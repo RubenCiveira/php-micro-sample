@@ -8,7 +8,8 @@ class SecurityConfig
         public readonly string $googleClientId,
         public readonly string $googleClientSecret,
         public readonly string $googleRedirectUri,
-        public readonly array $authorizedUsers
+        public readonly array $authorizedUsers,
+        public readonly array $publicPaths
     ) {
 
     }

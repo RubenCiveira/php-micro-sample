@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Configuración - Gestor de Aplicaciones{% endblock %}
+
+{% block content %}
+    <h2>Configuración del Sistema</h2>
+    <p>Configura los parámetros necesarios para el funcionamiento del sistema.</p>
+    
+    <div class="config-container">
+        <div class="info-box">
+            <h4>Configuración de GitHub</h4>
+            <p>Configura tu token de GitHub para permitir que la aplicación acceda a tus repositorios y realice operaciones en tu nombre.</p>
+        </div>
+        
+        <form id="configForm">
+            <div class="form-group">
+                <label for="githubToken">Token de GitHub:</label>
+                <input type="password" id="githubToken" name="githubToken" placeholder="Ingresa tu token de GitHub" value="{{ github_token|default('') }}">
+                <small style="display: block; margin-top: 0.5rem; color: #666;">
+                    Para crear un nuevo token, ve a <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings > Developer settings > Personal access tokens</a> y genera un nuevo token con los permisos necesarios.
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label for="tokenDescription">Descripción del Token:</label>
+                <input type="text" id="tokenDescription" name="tokenDescription" placeholder="Ej: Token para Gestor de Aplicaciones" value="{{ token_description|default('') }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="tokenExpiration">Fecha de Expiración del Token:</label>
+                <input type="date" id="tokenExpiration" name="tokenExpiration" value="{{ token_expiration|default('') }}">
+                <small style="display: block; margin-top: 0.5rem; color: #666;">
+                    Opcional. Te ayudará a recordar cuándo necesitas renovar el token.
+                </small>
+            </div>
+            
+            <div class="actions">
+                <button type="button" class="btn" onclick="testGithubConnection()">Probar Conexión</button>
+                <button type="submit" class="btn btn-success">Guardar Configuración</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // Función para probar la conexión con GitHub
+    function testGithubConnection() {
+        const token = document.getElementById('githubToken').value;
+        
+        if (!token) {
+            alert('Por favor, ingresa un token de GitHub para probar la conexión.');
+            return;
+        }
+        
+        // Aquí normalmente harías una solicitud a la API de GitHub para verificar el token
+        // Por simplicidad, solo mostraremos un mensaje de éxito simulado
+        setTimeout(() => {
+            alert('Conexión exitosa con GitHub (simulación)');
+        }, 1000);
+    }
+    
+    // Manejar el envío del formulario
+    document.getElementById('configForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Aquí normalmente guardarías la configuración en el servidor
+        alert('Configuración guardada correctamente (simulación)');
+    });
+</script>
+{% endblock %}

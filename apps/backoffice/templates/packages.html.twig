@@ -1,0 +1,246 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paquetes - Gestor de Aplicaciones{% endblock %}
+
+{% block content %}
+    <h2>Gestión de Paquetes</h2>
+    <p>Administra los paquetes y dependencias de tus aplicaciones.</p>
+    
+    <div class="packages-container">
+        <div class="actions">
+            <button class="btn btn-success" onclick="openModal()">Agregar Paquete</button>
+            <input type="text" class="search" placeholder="Buscar paquetes...">
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label for="typeFilter">Tipo:</label>
+                <select id="typeFilter">
+                    <option value="">Todos</option>
+                    <option value="npm">NPM</option>
+                    <option value="pip">PIP</option>
+                    <option value="composer">Composer</option>
+                    <option value="docker">Docker</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="statusFilter">Estado:</label>
+                <select id="statusFilter">
+                    <option value="">Todos</option>
+                    <option value="active">Activo</option>
+                    <option value="deprecated">Obsoleto</option>
+                    <option value="pending">Pendiente</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="projectFilter">Proyecto:</label>
+                <select id="projectFilter">
+                    <option value="">Todos</option>
+                    <option value="frontend">Frontend</option>
+                    <option value="backend">Backend</option>
+                    <option value="mobile">Mobile</option>
+                </select>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Versión</th>
+                    <th>Tipo</th>
+                    <th>Proyecto</th>
+                    <th>Estado</th>
+                    <th>Última Actualización</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for package in packages %}
+                <tr>
+                    <td>{{ package.name }}</td>
+                    <td><span class="version-badge">{{ package.version }}</span></td>
+                    <td>{{ package.type }}</td>
+                    <td>{{ package.project }}</td>
+                    <td>{{ package.status }}</td>
+                    <td>{{ package.updated|date('d/m/Y') }}</td>
+                    <td class="actions-cell">
+                        <button class="btn btn-small" onclick="updatePackage({{ package.id }})">Actualizar</button>
+                        <button class="btn btn-small btn-warning" onclick="editPackage({{ package.id }})">Editar</button>
+                        <button class="btn btn-small btn-danger" onclick="deletePackage({{ package.id }})">Eliminar</button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center;">No hay paquetes registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Modal para agregar/editar paquetes -->
+    <div id="packageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Agregar Paquete</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="packageForm">
+                <div class="form-group">
+                    <label for="name">Nombre:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="version">Versión:</label>
+                    <input type="text" id="version" name="version" required>
+                </div>
+                <div class="form-group">
+                    <label for="type">Tipo:</label>
+                    <select id="type" name="type" required>
+                        <option value="">Seleccionar tipo</option>
+                        <option value="npm">NPM</option>
+                        <option value="pip">PIP</option>
+                        <option value="composer">Composer</option>
+                        <option value="docker">Docker</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="project">Proyecto:</label>
+                    <select id="project" name="project" required>
+                        <option value="">Seleccionar proyecto</option>
+                        <option value="frontend">Frontend</option>
+                        <option value="backend">Backend</option>
+                        <option value="mobile">Mobile</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status">Estado:</label>
+                    <select id="status" name="status" required>
+                        <option value="">Seleccionar estado</option>
+                        <option value="active">Activo</option>
+                        <option value="deprecated">Obsoleto</option>
+                        <option value="pending">Pendiente</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Descripción:</label>
+                    <textarea id="description" name="description" rows="2"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // Datos de ejemplo (en una aplicación real, estos vendrían de una base de datos)
+    const packages = [
+        {
+            id: 1,
+            name: "React",
+            version: "18.2.0",
+            type: "NPM",
+            project: "Frontend",
+            status: "Activo",
+            updated: "2025-04-05",
+            description: "Biblioteca de JavaScript para construir interfaces de usuario"
+        },
+        {
+            id: 2,
+            name: "Express",
+            version: "4.18.2",
+            type: "NPM",
+            project: "Backend",
+            status: "Activo",
+            updated: "2025-04-01",
+            description: "Framework web para Node.js"
+        },
+        {
+            id: 3,
+            name: "Django",
+            version: "4.2.0",
+            type: "PIP",
+            project: "Backend",
+            status: "Activo",
+            updated: "2025-03-20",
+            description: "Framework web para Python"
+        },
+        {
+            id: 4,
+            name: "jQuery",
+            version: "3.6.0",
+            type: "NPM",
+            project: "Frontend",
+            status: "Obsoleto",
+            updated: "2025-01-10",
+            description: "Biblioteca de JavaScript para manipulación del DOM"
+        }
+    ];
+    
+    // Funciones para manejar el modal
+    function openModal() {
+        document.getElementById('modalTitle').textContent = 'Agregar Paquete';
+        document.getElementById('packageForm').reset();
+        document.getElementById('packageModal').style.display = 'flex';
+    }
+    
+    function closeModal() {
+        document.getElementById('packageModal').style.display = 'none';
+    }
+    
+    function editPackage(id) {
+        document.getElementById('modalTitle').textContent = 'Editar Paquete';
+        
+        // Buscar el paquete por ID
+        const package = packages.find(pkg => pkg.id === id);
+        
+        if (package) {
+            document.getElementById('name').value = package.name;
+            document.getElementById('version').value = package.version;
+            document.getElementById('type').value = package.type.toLowerCase();
+            document.getElementById('project').value = package.project.toLowerCase();
+            document.getElementById('status').value = package.status.toLowerCase();
+            document.getElementById('description').value = package.description || '';
+        }
+        
+        document.getElementById('packageModal').style.display = 'flex';
+    }
+    
+    function updatePackage(id) {
+        if (confirm('¿Estás seguro de que deseas actualizar este paquete a la última versión?')) {
+            // Aquí normalmente enviarías una solicitud al servidor para actualizar el paquete
+            alert('Paquete actualizado (simulación)');
+        }
+    }
+    
+    function deletePackage(id) {
+        if (confirm('¿Estás seguro de que deseas eliminar este paquete?')) {
+            // Aquí normalmente enviarías una solicitud al servidor para eliminar el paquete
+            alert('Paquete eliminado (simulación)');
+            // Y luego actualizarías la tabla
+        }
+    }
+    
+    // Manejar el envío del formulario
+    document.getElementById('packageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Aquí normalmente enviarías los datos al servidor
+        alert('Paquete guardado (simulación)');
+        closeModal();
+    });
+    
+    // Cerrar el modal si se hace clic fuera de él
+    window.onclick = function(event) {
+        if (event.target === document.getElementById('packageModal')) {
+            closeModal();
+        }
+    };
+</script>
+{% endblock %}

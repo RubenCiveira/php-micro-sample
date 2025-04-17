@@ -5,5 +5,6 @@ app:
       client-secret: '%env(GOOGLE_SECRET)%'
       redirect-uri: '%env(GOOGLE_REDIRECT_URL)%'
     authorized-users: '%env(USERS_ALLOWED)%'
-    verify-endpoint:
+    public-paths:
+      - composer 
 

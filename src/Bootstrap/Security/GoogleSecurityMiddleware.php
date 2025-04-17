@@ -29,6 +29,7 @@ class GoogleSecurityMiddleware
         $this->basePath = $app->getBasePath() . '/';
         $this->verifyRoute = $this->basePath. basename($config->googleRedirectUri);
     }
+
     public function __invoke(Request $request, RequestHandlerInterface $handler): Response
     {
         // Obtiene la ruta actual
@@ -41,6 +42,7 @@ class GoogleSecurityMiddleware
         $user = $this->getUsername();
         if (!$user) {
             $response = new Response();
+            // TODO: if request dont accept Html => error with message
             return $response->withHeader('Location', $this->getLocationToLogin())->withStatus(302);
         } else if (!$this->isValidUser()) {
             $response = new Response();
@@ -74,7 +76,6 @@ class GoogleSecurityMiddleware
             return $response->withHeader('Location', '?msg=Token invalido')->withStatus(302);
         }
     }
-
 
     private function isValidUser(): bool
     {

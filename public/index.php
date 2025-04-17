@@ -1,6 +1,6 @@
 <?php
-use Civi\Repomanager\Shared\Config;
-use Civi\Repomanager\Shared\Security\SecurityConfig;
+
+use Civi\Repomanager\Features\Repository\Access\Gateway\CredentialGateway;
 use DI\Container;
 use Slim\Factory\AppFactory;
 
@@ -23,10 +23,5 @@ $routes = require __DIR__ . '/../routes.php';
 $routes($app);
 
 $container->set(\Slim\App::class, \DI\value($app));
-
-$app->get("/", function($request, $response) {
-    $response->getBody()->write("<h1>TEST</h1>");
-    return $response;
-});
 
 $app->run();

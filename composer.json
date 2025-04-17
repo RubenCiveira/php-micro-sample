@@ -2,7 +2,8 @@
     "name": "ruben.civeiraiglesia/docker-dashboard",
     "autoload": {
         "psr-4": {
-            "Civi\\Repomanager\\": "src/"
+            "Civi\\Repomanager\\": "src/",
+            "Civi\\RepomanagerBackoffice\\": "apps/backoffice/"
         }
     },
     "autoload-dev": {
@@ -23,7 +24,8 @@
         "vlucas/phpdotenv": "^5.6",
         "symfony/yaml": "^7.2",
         "php-di/php-di": "^7.0",
-        "twig/twig": "^3.0"
+        "twig/twig": "^3.0",
+        "monolog/monolog": "^3.7"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.1"

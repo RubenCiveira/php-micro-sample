@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard - Gestor de Aplicaciones{% endblock %}
+
+{% block content %}
+    <h2>Dashboard</h2>
+    <p>Bienvenido al sistema de gestión de aplicaciones y despliegues.</p>
+    
+    <div class="dashboard">
+        <div class="card">
+            <h3>Credenciales</h3>
+            <div class="card-content">
+                <p>Gestiona tus credenciales para conectarte y descargar paquetes publicados.</p>
+            </div>
+            <div class="card-footer">
+                <a href="{{ path('credentials') }}" class="btn">Gestionar</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Paquetes</h3>
+            <div class="card-content">
+                <p>Administra los paquetes y dependencias de tus aplicaciones.</p>
+            </div>
+            <div class="card-footer">
+                <a href="{{ path('packages') }}" class="btn">Gestionar</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Configuración</h3>
+            <div class="card-content">
+                <p>Configura los parámetros del sistema y personaliza tu experiencia.</p>
+            </div>
+            <div class="card-footer">
+                <a href="{{ path('configuration') }}" class="btn">Gestionar</a>
+            </div>
+        </div>
+        <!--
+        <div class="card">
+            <h3>Despliegues Recientes</h3>
+            <div class="card-content">
+                <p>No hay despliegues recientes para mostrar.</p>
+            </div>
+            <div class="card-footer">
+                <a href="#" class="btn">Ver todos</a>
+            </div>
+        </div>
+        -->
+    </div>
+{% endblock %}
