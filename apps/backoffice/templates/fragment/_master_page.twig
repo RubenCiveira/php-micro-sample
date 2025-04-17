@@ -1,0 +1,163 @@
+{% macro master_page(meta, values, target) %}
+    <h2>{{ meta.title }}</h2>
+    <p>{{ meta.description }}.</p>
+    
+    <div class="container">
+        <div class="actions">
+            <button class="btn btn-success" onclick="run('update')">Agregar</button>
+            <input type="text" class="search" placeholder="Buscar...">
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    {% for column in meta.columns %}
+                    <th>{{ column.label }}</th>
+                    {% endfor %}
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for value in values %}
+                <tr>
+                    {% for column in meta.columns %}
+                        <td>{{ value[column.name] }}</td>
+                    {% endfor %}
+                    <td class="actions-cell">
+                        <!--
+                        <button class="btn btn-small btn-info" onclick="generateAuthJson('{{ credential.name }}')">Generar .auth.json</button>
+                        -->
+                        {% if meta.canUpdate %}
+                        <button class="btn btn-small btn-warning" onclick="run('update', '{{ value[meta.id] }}')">Editar</button>
+                        {% endif %}
+                        {% if meta.canDelete %}
+                        <button class="btn btn-small btn-danger" onclick="run('delete', '{{ value[meta.id] }}')">Eliminar</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center;">No hay valores registradas</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Modal para agregar/editar credenciales -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Agregar Credencial</h3>
+                <span class="close" onclick="closeUpdateModal()">&times;</span>
+            </div>
+            <form id="updateForm" method="POST" action="{{ path(target) }}">
+                <input type="hidden" name="{{ meta.id }}" id="{{ meta.id}}" />
+                {% for field in meta.fields %}
+                    <div class="form-group">
+                        <label for="{{ field.name }}">{{ field.label }}</label>
+                        {% if field.type == 'textarea' %}
+                            <textarea id="{{ field.name }}" name="{{ field.name }}" rows="3"
+                                {% if field.required %}required{% endif %}>{{ values[name]|default('') }}</textarea>
+                        {% elseif field.type == 'options' %}
+                            <select name="{{ field.name }}" id="{{ field.name }}" {% if field.required %}required{% endif %}>
+                                {% for key, label in field.options %}
+                                    <option value="{{ key }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <input
+                                type="{{ field.type }}"
+                                id="{{ field.name }}"
+                                name="{{ field.name }}"
+                                value="{{ values[name]|default('') }}"
+                                {% if field.required %}required{% endif %}
+                                {% for attr, val in field.attributes|default({}) %} {{ attr }}="{{ val }}"{% endfor %}
+                            />
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="closeUpdateModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para eliminar -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar eliminación</h3>
+                <span class="close" onclick="closeDeleteModal()">&times;</span>
+            </div>
+            <form id="deleteForm" method="POST" action="{{ path(target) }}">
+                <div class="modal-body">
+                    <input type="hidden" name="delete" id="delete" />
+                    <p id="deleteConfirmMessage">¿Estás seguro de que deseas eliminar esta credencial?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="closeDeleteModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // Datos de ejemplo (en una aplicación real, estos vendrían de una base de datos)
+    const values = [
+        {% for value in values %}
+        {
+            {{ meta.id }}: "{{ value[meta.id] }}",
+            {% for field in meta.fields %}
+                {{ field.name }}: "{{ value[field.name] }}",
+            {% endfor %}
+        },
+        {% endfor %}
+    ];
+
+    console.log( values );
+
+    function run(modal, element) {
+        if( element ) {
+            const value = values.find(val => val.{{ meta.id }} === element);
+            if( value ) {
+                document.getElementById('{{ meta.id }}').value = value.{{ meta.id }};
+                {% for field in meta.fields %}
+                document.getElementById('{{ field.name }}').value = value.{{ field.name }};
+                {% endfor %}
+            }
+        } else {
+            {% for field in meta.fields %}
+            document.getElementById('{{ field.name }}').value = '';
+            {% endfor %}
+        }
+        document.getElementById('delete').value = element;
+        document.getElementById( modal + 'Modal').style.display = 'flex';
+    }
+
+    function closeUpdateModal() {
+        document.getElementById('updateModal').style.display = 'none';
+    }
+    
+    function closeDeleteModal() {
+        credentialToDelete = null;
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+    
+    // Cerrar los modales si se hace clic fuera de ellos
+    window.onclick = function(event) {
+        if (event.target === document.getElementById('updateModal')) {
+            closeUpdateModal();
+        }
+        if (event.target === document.getElementById('authJsonModal')) {
+            closeAuthJsonModal();
+        }
+        if (event.target === document.getElementById('deleteModal')) {
+            closeDeleteModal();
+        }
+    };
+</script>
+{% endmacro %}

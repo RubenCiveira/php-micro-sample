@@ -15,6 +15,7 @@ return function (App $app) {
     $app->get("/" . basename($config->googleRedirectUri), [GoogleSecurityMiddleware::class, 'verifyAuthorization']);
     $app->get("/", [IndexView::class, 'get']);
     $app->get("/packages", [PackagesView::class, 'get']);
+    $app->post("/packages", [PackagesView::class, 'post']);
     $app->get("/credentials", [CredentialsView::class, 'get']);
     $app->post("/credentials", [CredentialsView::class, 'post']);
     $app->get("/configuration", [ConfigurationView::class, 'get']);

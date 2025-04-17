@@ -1,6 +1,5 @@
 <?php
 
-use Civi\Repomanager\Features\Repository\Access\Gateway\CredentialGateway;
 use DI\Container;
 use Slim\Factory\AppFactory;
 

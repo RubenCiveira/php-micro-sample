@@ -3,7 +3,7 @@
 namespace Civi\Repomanager\Features\Repository\Access\Gateway;
 
 use Civi\Repomanager\Features\Repository\Access\Credential;
-use Civi\Repomanager\Shared\Infrastructure\FileStore;
+use Civi\Repomanager\Shared\Infrastructure\Simple\FileStore;
 
 class CredentialGateway
 {

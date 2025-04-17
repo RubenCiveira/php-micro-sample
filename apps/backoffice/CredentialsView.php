@@ -15,7 +15,7 @@ class CredentialsView
     public function post(Request $request, Response $response, array $args): Response
     {
         $data = $request->getParsedBody();
-        if( $data['delete'] ) {
+        if( isset($data['delete'] ) ) {
             $this->credentials->removeCredential( $data['delete'] );
         } else {
             $cred = new Credential(name: $data['name'], user: $data['user'], pass: $data['pass'], until: new \DateTimeImmutable($data['expiration'])) ;

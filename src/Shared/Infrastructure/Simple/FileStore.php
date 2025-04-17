@@ -1,6 +1,6 @@
 <?php
 
-namespace Civi\Repomanager\Shared\Infrastructure;
+namespace Civi\Repomanager\Shared\Infrastructure\Simple;
 
 class FileStore
 {
