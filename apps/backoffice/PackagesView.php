@@ -59,6 +59,7 @@ class PackagesView extends MasterDetailView
                 ->addTextareaField('description', 'Description')
                 ->addFilter('status')
                 ->addFilter('url')
+                ->markCalculated(['status'])
                 ->excludeColumn('description');
     }
 }

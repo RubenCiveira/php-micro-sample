@@ -49,6 +49,7 @@ class CredentialsView extends MasterDetailView
             ->addRequiredPasswordField('pass', 'Password')
             ->addRequiedDateField('until', 'Expiration')
             ->excludeColumn('pass')
+            ->markReadonly(['name', 'user'])
             ->addResumeAction('generateAuthFile', 'Generar .auth.json', '
                     JSON.stringify({
                         "http-basic": {

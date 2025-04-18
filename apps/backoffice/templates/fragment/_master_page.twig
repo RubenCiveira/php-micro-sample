@@ -59,8 +59,17 @@
             <form id="updateForm" method="POST" action="{{ path(target) }}">
                 <input type="hidden" name="{{ meta.id }}" id="{{ meta.id}}" />
                 {% for field in meta.fields %}
+                    {% if field.calculated %}
+                        <input
+                                type="hidden"
+                                id="{{ field.name }}"
+                                name="{{ field.name }}" />
+                    {% else %}
                     <div class="form-group">
                         <label for="{{ field.name }}">{{ field.label }}</label>
+                        {% if field.readonly %}
+                            <div id="{{field.name}}Label"></div>
+                        {% endif %}
                         {% if field.type == 'textarea' %}
                             <textarea id="{{ field.name }}" name="{{ field.name }}" rows="3"
                                 {% if field.required %}required{% endif %}></textarea>
@@ -80,6 +89,7 @@
                             />
                         {% endif %}
                     </div>
+                    {% endif %}
                 {% endfor %}
                 <div class="modal-footer">
                     <button type="button" class="btn" onclick="closeUpdateModal()">Cancelar</button>
@@ -224,6 +234,11 @@
                 document.getElementById('{{ meta.id }}').value = value.{{ meta.id }};
                 {% for field in meta.fields %}
                 document.getElementById('{{ field.name }}').value = value.{{ field.name }};
+                {% if field.readonly %}
+                document.getElementById('{{ field.name }}').style.display = 'none';
+                document.getElementById('{{ field.name }}Label').style.display = '';
+                document.getElementById('{{ field.name }}Label').innerHTML = value.{{ field.name }};
+                {% endif %}
                 {% endfor %}
             }
             {% for action in meta.actions %}
@@ -236,6 +251,10 @@
         } else {
             {% for field in meta.fields %}
             document.getElementById('{{ field.name }}').value = '';
+                {% if field.readonly %}
+                document.getElementById('{{ field.name }}').style.display = '';
+                document.getElementById('{{ field.name }}Label').style.display = 'none';
+                {% endif %}
             {% endfor %}
         }
         document.getElementById('delete').value = element;
@@ -266,7 +285,6 @@
     });
 
     function search() {
-        console.log("SEARCH");
         load(values.filter( this.filter ), (!values || values.length === 0) ? 'No hay registos' : 'No se encuentran coincidencias');
     }
 

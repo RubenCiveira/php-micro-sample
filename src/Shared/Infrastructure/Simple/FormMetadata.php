@@ -40,6 +40,20 @@ class FormMetadata
             'actions' => $this->actions,
         ];
     }
+    public function markCalculated(array $names): FormMetadata
+    {
+        foreach($names as $name) {
+            $this->fields[$name]['calculated'] = true;
+        }
+        return $this;
+    }
+    public function markReadonly(array $names): FormMetadata
+    {
+        foreach($names as $name) {
+            $this->fields[$name]['readonly'] = true;
+        }
+        return $this;
+    }
     public function addRequiredTextField(string $name, string $label): FormMetadata
     {
         $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'text' ];
