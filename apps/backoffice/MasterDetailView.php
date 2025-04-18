@@ -7,6 +7,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Ramsey\Uuid\Uuid;
 use Slim\Routing\RouteContext;
 use Twig\TwigFunction;
+use voku\helper\HtmlMin;
 
 abstract class MasterDetailView
 {
@@ -85,7 +86,16 @@ abstract class MasterDetailView
             return $url;
         }));
         // Renderizar la plantilla con los datos
-        $response->getBody()->write($twig->render($name . ".html.twig", $context));
+        $html = $twig->render($name . ".html.twig", $context);
+        $htmlMin = new HtmlMin();
+        $html = $htmlMin->minify($html);
+        // $html = $this->minifyHtml( $html );
+        $response->getBody()->write($html);
         return $response;
     }
+
+    private function minifyHtml(string $html): string {
+        return preg_replace(['/>\s+</', '/\s+/'], ['><', ' '], $html);
+    }
+    
 }
