@@ -313,6 +313,12 @@ input, select, textarea {
     display: block;
 }
 
+.cell-actions {
+    width: 1%;
+    white-space: nowrap;
+    text-align: center;
+}
+
 .auth-json-modal {
     display: none;
     position: fixed;

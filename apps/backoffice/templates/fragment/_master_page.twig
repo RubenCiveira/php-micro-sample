@@ -4,42 +4,47 @@
     
     <div class="container">
         <div class="actions">
+            <div>
             <button class="btn btn-success" onclick="run('update')">Agregar</button>
-            <input type="text" class="search" placeholder="Buscar...">
+            {% for action in meta.actions %}
+                {% if not action.contextual %}
+                    <button class="btn btn-info" onclick="run('{{ action.name }}')">{{ action.label }}</button>
+                {% endif %}
+            {% endfor %}
+            </div>
+            <input id="globalSearch" type="search" class="search text-search" placeholder="Buscar...">
         </div>
         
-        <table>
+        {% if meta.filters %}
+        <div class="filters">
+            {% for filter in meta.filters %}
+            <div class="filter-group">
+                <label for="{{filter.name}}Filter">{{ meta.fields[filter.name].label }}:</label>
+                {% if meta.fields[filter.name].type == 'options' %}
+                <select id="{{filter.name}}Filter" onchange="search()">
+                    <option value="">Todos</option>
+                    {% for k, v in meta.fields[filter.name].options %}
+                    <option value="{{k}}">{{v}}</option>
+                    {% endfor %}
+                </select>
+                {% else %}
+                <input id="{{filter.name}}Filter" type="search" class="text-search" />
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <table id="tableContent">
             <thead>
                 <tr>
                     {% for column in meta.columns %}
                     <th>{{ column.label }}</th>
                     {% endfor %}
-                    <th>Acciones</th>
+                    <th class="cell-actions">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for value in values %}
-                <tr>
-                    {% for column in meta.columns %}
-                        <td>{{ value[column.name] }}</td>
-                    {% endfor %}
-                    <td class="actions-cell">
-                        <!--
-                        <button class="btn btn-small btn-info" onclick="generateAuthJson('{{ credential.name }}')">Generar .auth.json</button>
-                        -->
-                        {% if meta.canUpdate %}
-                        <button class="btn btn-small btn-warning" onclick="run('update', '{{ value[meta.id] }}')">Editar</button>
-                        {% endif %}
-                        {% if meta.canDelete %}
-                        <button class="btn btn-small btn-danger" onclick="run('delete', '{{ value[meta.id] }}')">Eliminar</button>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" style="text-align: center;">No hay valores registradas</td>
-                </tr>
-                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -58,7 +63,7 @@
                         <label for="{{ field.name }}">{{ field.label }}</label>
                         {% if field.type == 'textarea' %}
                             <textarea id="{{ field.name }}" name="{{ field.name }}" rows="3"
-                                {% if field.required %}required{% endif %}>{{ values[name]|default('') }}</textarea>
+                                {% if field.required %}required{% endif %}></textarea>
                         {% elseif field.type == 'options' %}
                             <select name="{{ field.name }}" id="{{ field.name }}" {% if field.required %}required{% endif %}>
                                 {% for key, label in field.options %}
@@ -70,7 +75,6 @@
                                 type="{{ field.type }}"
                                 id="{{ field.name }}"
                                 name="{{ field.name }}"
-                                value="{{ values[name]|default('') }}"
                                 {% if field.required %}required{% endif %}
                                 {% for attr, val in field.attributes|default({}) %} {{ attr }}="{{ val }}"{% endfor %}
                             />
@@ -95,7 +99,7 @@
             <form id="deleteForm" method="POST" action="{{ path(target) }}">
                 <div class="modal-body">
                     <input type="hidden" name="delete" id="delete" />
-                    <p id="deleteConfirmMessage">¿Estás seguro de que deseas eliminar esta credencial?</p>
+                    <p id="deleteConfirmMessage">¿Estás seguro de que deseas eliminar este registro?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn" onclick="closeDeleteModal()">Cancelar</button>
@@ -105,6 +109,33 @@
         </div>
     </div>
 
+    {% for action in meta.actions %}
+    <!-- Modal de confirmación para {{ action.label }} -->
+    <div id="{{action.name}}Modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar {{ action.label }}</h3>
+                <span class="close" onclick="closeA{{ action.name }}Modal()">&times;</span>
+            </div>
+            {% if action.template %}
+                <input type="hidden" name="{{ action.name }}" id="{{ action.name }}" />
+                {{ action.template | raw }}
+            {% else %}
+            <form id="deleteForm" method="POST" action="{{ path(target) }}">
+                <div class="modal-body">
+                    <input type="hidden" name="{{ action.name }}" id="{{ action.name }}" />
+                    <p id="deleteConfirmMessage">¿Estás seguro de que deseas {{ action.label }}?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" onclick="closeA{{ action.name }}DeleteModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">{{ action.label }}</button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
     <script>
     // Datos de ejemplo (en una aplicación real, estos vendrían de una base de datos)
     const values = [
@@ -112,13 +143,79 @@
         {
             {{ meta.id }}: "{{ value[meta.id] }}",
             {% for field in meta.fields %}
+                {% if field.type == 'date' %}
+                {{ field.name }}: "{{ value[field.name] |date('Y-m-d') }}",
+                {% else %}
                 {{ field.name }}: "{{ value[field.name] }}",
+                {% endif %}
             {% endfor %}
         },
         {% endfor %}
     ];
 
-    console.log( values );
+    function load(values, forEmpty) {
+        const table = document.getElementById('tableContent');
+        const tbody = table.querySelector('tbody');
+        const thead = table.querySelector('thead tr');
+        tbody.innerHTML = ''; 
+        const columnCount = thead ? thead.children.length : 1;
+        if (!values || values.length === 0) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = columnCount;
+            td.style.textAlign = 'center';
+            td.textContent = forEmpty;
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+            return;
+        }
+
+        values.forEach(item => {
+            const tr = document.createElement('tr');
+            
+            {% for column in meta.columns %}
+                const td{{column.name}} = document.createElement('td');
+                {% if meta.fields[column.name].type == 'date' %}
+                const [yyyy{{column.name}}, mm{{column.name}}, dd{{column.name}}] = item.{{column.name}}.split('-');
+                td{{column.name}}.textContent = `${dd{{column.name}}}-${mm{{column.name}}}-${yyyy{{column.name}}}`;
+                {% else %}
+                td{{column.name}}.textContent = item.{{column.name}};
+                {% endif %}
+                tr.appendChild(td{{column.name}});
+            {% endfor %}
+
+            // Acciones
+            const tdActions = document.createElement('td');
+            tdActions.className = 'cell-actions';
+
+            const actions = [
+                {% for action in meta.actions %}
+                {% if action.contextual %}
+                    { label: '{{action.label}}', action: '{{action.name}}', class: 'btn-info' },
+                {% endif %}
+                {% endfor %}
+                {% if meta.canUpdate %}
+                { label: 'Editar', action: 'update', class: 'btn-warning' },
+                {% endif %}
+                {% if meta.canDelete %}
+                { label: 'Eliminar', action: 'delete', class: 'btn-danger' }
+                {% endif %}
+            ];
+
+            actions.forEach(({ label, action, class: btnClass }) => {
+                const btn = document.createElement('button');
+                btn.className = `btn btn-small ${btnClass}`;
+                btn.textContent = label;
+                btn.onclick = () => run(action, item.id);
+                tdActions.appendChild(btn);
+            });
+
+            tr.appendChild(tdActions);
+            tbody.appendChild(tr);
+        });
+    }
+
+    load( values, 'No hay valores registradas' );
 
     function run(modal, element) {
         if( element ) {
@@ -129,12 +226,22 @@
                 document.getElementById('{{ field.name }}').value = value.{{ field.name }};
                 {% endfor %}
             }
+            {% for action in meta.actions %}
+            {% if action.code %}
+            if( modal == '{{ action.name }}' ) {
+                {{ action.code | raw }}
+            }
+            {% endif %}
+            {% endfor %}
         } else {
             {% for field in meta.fields %}
             document.getElementById('{{ field.name }}').value = '';
             {% endfor %}
         }
         document.getElementById('delete').value = element;
+        {% for action in meta.actions %}
+        document.getElementById('{{action.name}}').value = element;
+        {% endfor %}
         document.getElementById( modal + 'Modal').style.display = 'flex';
     }
 
@@ -143,17 +250,68 @@
     }
     
     function closeDeleteModal() {
-        credentialToDelete = null;
         document.getElementById('deleteModal').style.display = 'none';
     }
+
+    const searchInputs = document.querySelectorAll('.text-search');
+    let debounceTimer;
+
+    searchInputs.forEach(input => {
+        input.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                search(); // o search(input.value) si necesitas el valor individual
+            }, 300);
+        });
+    });
+
+    function search() {
+        console.log("SEARCH");
+        load(values.filter( this.filter ), (!values || values.length === 0) ? 'No hay registos' : 'No se encuentran coincidencias');
+    }
+
+    function filter(item) {
+        const searchInput = document.getElementById('globalSearch');
+        const term = searchInput.value;
+        let match = true;
+        if( search ) {
+            match = match && (
+                {% for field in meta.fields %}
+                    {% if field.type == 'password' %}
+                    {% else %}
+                    ( item.{{ field.name }} || '').toLowerCase().includes(term) ||
+                    {% endif %}
+                {% endfor %}
+                false
+            );
+        }
+        {% for filter in meta.filters %}
+        const {{filter.name}}Value = document.getElementById('{{filter.name}}Filter').value;
+        if( {{filter.name}}Value ) {
+            match = match && {{filter.name}}Value == item.{{filter.name}};
+        }
+        {% endfor %}
+        return match;
+    }
+
+    {% for action in meta.actions %}
+        {% if action.functions %}
+            {{ action.functions | raw }}
+        {% endif %}
+    function closeA{{action.name}}Modal() {
+        document.getElementById('{{action.name}}Modal').style.display = 'none';
+    }
+    {% endfor %}
     
     // Cerrar los modales si se hace clic fuera de ellos
     window.onclick = function(event) {
+        {% for action in meta.actions %}
+        if (event.target === document.getElementById('{{ action.name}}Modal')) {
+            closeA{{action.name}}Modal();
+        }
+        {% endfor %}
         if (event.target === document.getElementById('updateModal')) {
             closeUpdateModal();
-        }
-        if (event.target === document.getElementById('authJsonModal')) {
-            closeAuthJsonModal();
         }
         if (event.target === document.getElementById('deleteModal')) {
             closeDeleteModal();

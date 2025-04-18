@@ -16,7 +16,7 @@ class CredentialGateway
 
     public function saveCredential(Credential $credential)
     {
-        $this->store->set($credential->user, $credential);
+        $this->store->set($credential->id, $credential);
     }
     public function removeCredential(string $username)
     {

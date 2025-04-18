@@ -3,33 +3,60 @@ namespace Civi\RepomanagerBackoffice;
 
 use Civi\Repomanager\Features\Repository\Access\Credential;
 use Civi\Repomanager\Features\Repository\Access\Gateway\CredentialGateway;
+use Civi\Repomanager\Shared\Infrastructure\Simple\FormMetadata;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-class CredentialsView
+class CredentialsView extends MasterDetailView
 {
     public function __construct(private readonly CredentialGateway $credentials)
     {
     }
 
-    public function post(Request $request, Response $response, array $args): Response
+    protected function template(): string
     {
-        $data = $request->getParsedBody();
-        if( isset($data['delete'] ) ) {
-            $this->credentials->removeCredential( $data['delete'] );
-        } else {
-            $cred = new Credential(name: $data['name'], user: $data['user'], pass: $data['pass'], until: new \DateTimeImmutable($data['expiration'])) ;
-            $this->credentials->saveCredential($cred);
-        }
-        return BaseView::redirect('credentials', $request, $response);
+        return 'credentials';
     }
 
-    public function get(Request $request, Response $response, array $args): Response 
+    protected function delete(string $id)
     {
-        $all = $this->credentials->listCredentials();
-        $context = [
-            'url' => "composer.civeira.net",
-            'credentials' => $all];
-        return BaseView::template('credentials', $context, $request, $response);
+        $this->credentials->removeCredential($id);
+    }
+
+    protected function save(array $data)
+    {
+        $cred = new Credential(
+            id: $data['id'],
+            name: $data['name'],
+            user: $data['user'],
+            pass: $data['pass'],
+            until: new \DateTimeImmutable($data['until'])
+        );
+        $this->credentials->saveCredential($cred);
+    }
+
+    protected function list(): array
+    {
+        return $this->credentials->listCredentials();
+    }
+
+    protected function meta(): FormMetadata
+    {
+        $url = "composer.civeira.net";
+        return (new FormMetadata('Credenciales', 'Manejar credenciales', 'id'))
+            ->addRequiredTextField('name', 'Nombre')
+            ->addRequiredTextField('user', 'User')
+            ->addRequiredPasswordField('pass', 'Password')
+            ->addRequiedDateField('until', 'Expiration')
+            ->excludeColumn('pass')
+            ->addResumeAction('generateAuthFile', 'Generar .auth.json', '
+                    JSON.stringify({
+                        "http-basic": {
+                            ["'.$url.'"]: {
+                                "username": value.user,
+                                "password": value.pass
+                            }
+                        }
+                    }, null, 2)');
     }
 }

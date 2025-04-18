@@ -57,46 +57,8 @@ class PackagesView extends MasterDetailView
                     'pending' => 'Pendiente'
                 ])
                 ->addTextareaField('description', 'Description')
+                ->addFilter('status')
+                ->addFilter('url')
                 ->excludeColumn('description');
     }
-
-    /*
-    public function post(Request $request, Response $response, array $args): Response
-    {
-        $data = $request->getParsedBody();
-        if (isset($data['delete'])) {
-            $this->packages->removePackage($data['delete']);
-        } else {
-            if (!$data['id']) {
-                $data['id'] = Uuid::uuid4()->toString();
-            }
-            $pack = new Package(
-                id: $data['id'],
-                name: $data['name'],
-                url: $data['url'],
-                type: $data['type'],
-                status: $data['status'],
-                description: $data['description']
-            );
-            $this->packages->savePackage($pack);
-        }
-        return BaseView::redirect('packages', $request, $response);
-    }
-    public function get(Request $request, Response $response, array $args): Response
-    {
-        $context = [
-            'packageTypes' => [
-                'website' => 'Website',
-                'composer' => 'Composer'
-            ],
-            'statusTypes' => [
-                'active' => 'Activo',
-                'deprecated' => 'Obsoleto',
-                'pending' => 'Pendiente'
-            ],
-            'packages' => $this->packages->listPackages()
-        ];
-        return BaseView::template('packages', $context, $request, $response);
-    }
-    */
 }
