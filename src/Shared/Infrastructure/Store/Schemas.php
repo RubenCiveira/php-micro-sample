@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Civi\Graphql;
+namespace Civi\Repomanager\Shared\Infrastructure\Store;
 
 use Civi\Graphql\Gateway\SchemaGateway;
 use Civi\Graphql\Service\GraphQlEnrich;
