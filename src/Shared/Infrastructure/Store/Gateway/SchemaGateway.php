@@ -4,13 +4,15 @@ namespace Civi\Repomanager\Shared\Infrastructure\Store\Gateway;
 
 class SchemaGateway
 {
-    public function __construct(private readonly string $baseDir = __DIR__ . '/../../../../../')
+    private readonly string $baseDir;
+    public function __construct(string $base = __DIR__ . '/../../../../../')
     {
+        $this->baseDir = $base;
     }
 
     public function sdl(string $namespace): string
     {
-        $directory = "{$this->baseDir}/config/$namespace";
+        $directory = "{$this->baseDir}/config/schema/$namespace";
         $result = '';
 
         if (!is_dir($directory)) {

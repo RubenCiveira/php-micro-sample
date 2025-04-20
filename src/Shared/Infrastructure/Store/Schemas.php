@@ -2,18 +2,18 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\Store;
 
-use Civi\Graphql\Gateway\SchemaGateway;
-use Civi\Graphql\Service\GraphQlEnrich;
-use Civi\Graphql\Service\OpenApiGenerator;
+use Civi\Repomanager\Shared\Infrastructure\Store\Gateway\SchemaGateway;
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\GraphQlEnrich;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 
 class Schemas
 {
-    private readonly string $baseDir = __DIR__ . '/../../../../';
+    private readonly string $baseDir;
 
-    public function __construct(private readonly SchemaGateway $schemas)
+    public function __construct(private readonly SchemaGateway $schemas, string $base = __DIR__ . '/../../../../')
     {
+        $this->baseDir = $base;
     }
 
     public function sdl(string $namespace): string
@@ -43,10 +43,10 @@ class Schemas
         $result[] = BuildSchema::build($newContent);
         $result[] = "{$cache}/{$namespace}-expand.graphql";
 
-        $openApi = new OpenApiGenerator();
-        $swagger = $openApi->generateOpenApi( $newContent );
-        file_put_contents("{$cache}/{$namespace}-openapi.yaml" , $swagger);
-        $result[] = "{$cache}/{$namespace}-openapi.yaml";
+        // $openApi = new OpenApiGenerator();
+        // $swagger = $openApi->generateOpenApi( $newContent );
+        // file_put_contents("{$cache}/{$namespace}-openapi.yaml" , $swagger);
+        // $result[] = "{$cache}/{$namespace}-openapi.yaml";
         return $result;
     }
     private function loadSdlBase(string $namespace): string

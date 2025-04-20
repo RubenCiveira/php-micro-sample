@@ -1,0 +1,39 @@
+directive @format(
+  type: String!
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @mutation(
+  create: Boolean = true, update: Boolean = true, delete: Boolean = true, extra: [String!] = []
+) on OBJECT
+
+type Credencial 
+    @mutation() {
+  id: ID!
+  name: String!
+  user: String!
+  pass: String!
+  until: String @format(type: "date-time")!
+}
+
+enum PackageStatus {
+    active
+    deprecated
+    pending
+}
+
+enum PackageType {
+    website
+    composer
+}
+
+
+type Packate 
+    @mutation() {
+  id: ID!
+  name: String!
+  url: String!
+  type: PackageType!
+  status: PackageStatus!
+  description: String!
+}
+
