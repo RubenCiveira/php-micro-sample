@@ -12,7 +12,7 @@ class SchemaGateway
 
     public function sdl(string $namespace): string
     {
-        $directory = "{$this->baseDir}/config/schema/$namespace";
+        $directory = "{$this->baseDir}/config/schemas/$namespace";
         $result = '';
 
         if (!is_dir($directory)) {

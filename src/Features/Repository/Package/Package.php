@@ -17,4 +17,8 @@ class Package
     {
         return new Package($data['id'], $data['name'], $data['url'], $data['type'], $data['status'], $data['description']);
     }
+    public function withStatus(string $status): Package
+    {
+        return new Package( $this->id, $this->name, $this->url, $this->type, $status, $this->description);
+    }
 }

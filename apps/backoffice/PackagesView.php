@@ -4,9 +4,6 @@ namespace Civi\RepomanagerBackoffice;
 use Civi\Repomanager\Features\Repository\Package\Gateway\PackageGateway;
 use Civi\Repomanager\Features\Repository\Package\Package;
 use Civi\Repomanager\Shared\Infrastructure\Simple\FormMetadata;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
-use Ramsey\Uuid\Uuid;
 
 class PackagesView extends MasterDetailView
 {
@@ -24,7 +21,7 @@ class PackagesView extends MasterDetailView
         $this->packages->removePackage( $id );
     }
 
-    protected function save(array $data)
+    protected function create(array $data)
     {
         $pack = new Package(
             id: $data['id'],
@@ -34,7 +31,20 @@ class PackagesView extends MasterDetailView
             status: $data['status'],
             description: $data['description']
         );
-        $this->packages->savePackage($pack);
+        $this->packages->createPackage($pack);
+    }
+
+    protected function update(string $id, $data)
+    {
+        $pack = new Package(
+            id: $data['id'],
+            name: $data['name'],
+            url: $data['url'],
+            type: $data['type'],
+            status: $data['status'],
+            description: $data['description']
+        );
+        $this->packages->updatePackage($id, $pack);
     }
 
     protected function list(): array

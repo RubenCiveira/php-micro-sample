@@ -2,6 +2,9 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\Store;
 
+use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryCondition;
+use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryFilter;
+use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryOperator;
 use GraphQL\Type\Schema;
 
 class DataQueryParam

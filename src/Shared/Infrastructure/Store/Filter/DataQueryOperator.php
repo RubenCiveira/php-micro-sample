@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Civi\Repomanager\Shared\Infrastructure\Store;
+namespace Civi\Repomanager\Shared\Infrastructure\Store\Filter;
 
 enum DataQueryOperator: string
 {

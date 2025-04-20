@@ -7,12 +7,12 @@ directive @mutation(
 ) on OBJECT
 
 type Credencial 
-    @mutation() {
+    @mutation {
   id: ID!
   name: String!
   user: String!
   pass: String!
-  until: String @format(type: "date-time")!
+  until: String! @format(type: "date-time")
 }
 
 enum PackageStatus {
@@ -26,9 +26,8 @@ enum PackageType {
     composer
 }
 
-
-type Packate 
-    @mutation() {
+type Package
+    @mutation {
   id: ID!
   name: String!
   url: String!

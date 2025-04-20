@@ -45,19 +45,15 @@ class GraphQLProcessor
                 // die();
                 $type = $rootQuery->getField($name)->getType();
                 $theType = Type::getNamedType($type );
-                $filter = new DataQueryParam($schema, $theType, $args);
+                $filter = new DataQueryParam($schema, $theType->toString(), $args);
                 $response = $this->datas->fetch(
                     $namepace,
-                    $theType,
+                    $theType->toString(),
                     $filter
                 );
-                if( str_starts_with($name, "_") && str_ends_with($name, "Metadata") ) {
-                    return [ "count" => count($response) ];
-                }
                 if( $type instanceof NonNull) {
                     $type = $type->getWrappedType();
                 }
-                var_dump( $name );
                 return ( $type instanceof ListOfType ) ? $response : $response[0];
             };
         }

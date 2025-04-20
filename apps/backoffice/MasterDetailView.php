@@ -20,8 +20,10 @@ abstract class MasterDetailView
         } else {
             if (!$data['id']) {
                 $data['id'] = Uuid::uuid4()->toString();
+                $this->create($data );
+            } else {
+                $this->update($data['id'], $data );
             }
-            $this->save( $data );
         }
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
@@ -31,10 +33,12 @@ abstract class MasterDetailView
     {
         $routeContext = RouteContext::fromRequest($request);
         // $basePath = $routeContext->getBasePath();
-        $route = $routeContext->getRoute();
+        // $route = $routeContext->getRoute();
+        
+        // print_r( $this->list() );
         $context = [
             'meta' => $this->meta()->export(),
-            'values' => array_map(fn($row) => get_object_vars($row), $this->list())
+            'values' => array_map(fn($row) => is_array($row) ? $row : get_object_vars($row), $this->list())
         ];
         return $this->render($this->template(), $context, $request, $response);
     }
@@ -46,7 +50,8 @@ abstract class MasterDetailView
 
     protected abstract function delete(string $id);
 
-    protected abstract function save(array $data);
+    protected abstract function create(array $data);
+    protected abstract function update(string $id, array $data);
 
     private function redirect(string $target,  Request $request, Response $response): Response
     {

@@ -22,7 +22,6 @@ class Schemas
         return file_get_contents( $file );
     }
 
-
     public function schema(string $namespace): Schema
     {
         [$schema] = $this->buildSchema($namespace);

@@ -2,10 +2,10 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\Store\Gateway;
 
-use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryFilter;
-use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryOperator;
 use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryParam;
-use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryCondition;
+use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryFilter;
+use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryOperator;
+use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryCondition;
 use InvalidArgumentException;
 
 class DataGateway

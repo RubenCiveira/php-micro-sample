@@ -5,7 +5,7 @@ namespace Civi\Repomanager\Features\Repository\Package\Gateway;
 use Civi\Repomanager\Features\Repository\Package\Package;
 use Civi\Repomanager\Shared\Infrastructure\Simple\FileStore;
 
-class PackageGateway
+class OldPackageGateway
 {
     private readonly FileStore $store;
 
