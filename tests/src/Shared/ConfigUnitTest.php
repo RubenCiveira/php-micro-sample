@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace Tests\Shared;
 
@@ -118,7 +116,7 @@ YAML);
         // $instance = Config::load('app.security', 'Civi\Repomanager\Shared\SecurityConfig', 'security');
 
         $this->assertInstanceOf('Civi\Repomanager\Shared\SecurityConfig', $instance);
-        
+
         $this->assertEquals(['verify', 'login'], $instance->publicRoutes);
         $this->assertContains('dev-dashboard', $instance->protectedRoutes);
     }
