@@ -1,7 +1,7 @@
 <?php
 namespace Civi\RepomanagerBackoffice;
 
-use Civi\Repomanager\Shared\Infrastructure\Simple\FormMetadata;
+use Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Ramsey\Uuid\Uuid;
@@ -15,14 +15,22 @@ abstract class MasterDetailView
     public function post(Request $request, Response $response, array $args): Response
     {
         $data = $request->getParsedBody();
-        if (isset($data['delete'])) {
-            $this->delete($data['delete']);
-        } else {
-            if (!$data['id']) {
-                $data['id'] = Uuid::uuid4()->toString();
-                $this->create($data );
+        $meta = $this->meta();
+        if( !$meta->exec($data) ) {
+            if (isset($data['delete'])) {
+                $this->delete($data['delete']);
             } else {
-                $this->update($data['id'], $data );
+                // try {
+                    if (!$data['id']) {
+                        $data['id'] = Uuid::uuid4()->toString();
+                        $this->create($data );
+                    } else {
+                        $this->update($data['id'], $data );
+                    }
+                // } catch(\Exception $ex) {
+                //     echo "oHhhhh";
+                //     die();
+                // }
             }
         }
         $routeContext = RouteContext::fromRequest($request);
@@ -31,11 +39,12 @@ abstract class MasterDetailView
     }
     public function get(Request $request, Response $response, array $args): Response
     {
-        $routeContext = RouteContext::fromRequest($request);
+        // $routeContext = RouteContext::fromRequest($request);
         // $basePath = $routeContext->getBasePath();
         // $route = $routeContext->getRoute();
         
         // print_r( $this->list() );
+        // $this->meta
         $context = [
             'meta' => $this->meta()->export(),
             'values' => array_map(fn($row) => is_array($row) ? $row : get_object_vars($row), $this->list())
@@ -44,7 +53,7 @@ abstract class MasterDetailView
     }
 
     protected abstract function template(): string;
-    protected abstract function meta(): FormMetadata;
+    protected abstract function meta(): ViewMetadata;
 
     protected abstract function list(): array;
 

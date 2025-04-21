@@ -2,6 +2,7 @@
 
 use Civi\Repomanager\Bootstrap\Security\SecurityConfig;
 use Civi\Repomanager\Shared\Infrastructure\Middleware\GzipMiddleware;
+use Civi\Repomanager\Shared\Infrastructure\Store\Endpoint\Register;
 use Civi\RepomanagerBackoffice\ConfigurationView;
 use Civi\RepomanagerBackoffice\CredentialsView;
 use Civi\RepomanagerBackoffice\IndexView;
@@ -21,4 +22,6 @@ return function (App $app) {
     $app->get("/credentials", [CredentialsView::class, 'get']);
     $app->post("/credentials", [CredentialsView::class, 'post']);
     $app->get("/configuration", [ConfigurationView::class, 'get']);
+
+    Register::register($app);
 };

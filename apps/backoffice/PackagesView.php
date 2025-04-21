@@ -1,13 +1,14 @@
 <?php
 namespace Civi\RepomanagerBackoffice;
 
+use Civi\Repomanager\Features\Repository\Package\View\PackageViewMetadata;
 use Civi\Repomanager\Features\Repository\Package\Gateway\PackageGateway;
 use Civi\Repomanager\Features\Repository\Package\Package;
-use Civi\Repomanager\Shared\Infrastructure\Simple\FormMetadata;
+use Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata;
 
 class PackagesView extends MasterDetailView
 {
-    public function __construct(private readonly PackageGateway $packages)
+    public function __construct(private readonly PackageGateway $packages, private readonly PackageViewMetadata $meta)
     {
     }
 
@@ -52,24 +53,27 @@ class PackagesView extends MasterDetailView
         return $this->packages->listPackages();
     }
 
-    protected function meta(): FormMetadata
+    protected function meta(): ViewMetadata
     {
-        return (new FormMetadata('Paquetes', 'Manejar paquetes', 'id'))
-                ->addRequiredTextField('name', 'Nombre')
-                ->addRequiredTextField('url', 'Url')
-                ->addRequiredOptionsField('type', 'Type', [
-                    'website' => 'Website',
-                    'composer' => 'Composer'
-                ])
-                ->addRequiredOptionsField('status', 'Status', [
-                    'active' => 'Activo',
-                    'deprecated' => 'Obsoleto',
-                    'pending' => 'Pendiente'
-                ])
-                ->addTextareaField('description', 'Description')
+        $form = $this->meta->build();
+        // $form = new FormMetadata('Paquetes', 'Manejar paquetes', 'id');
+
+        return $form
+                // ->addRequiredTextField('name', 'Nombre')
+                // ->addTextField('url', 'Url')
+                // ->addRequiredOptionsField('type', 'Type', [
+                //     'website' => 'Website',
+                //     'composer' => 'Composer'
+                // ])
+                // ->addRequiredOptionsField('status', 'Status', [
+                //     'active' => 'Activo',
+                //     'deprecated' => 'Obsoleto',
+                //     'pending' => 'Pendiente'
+                // ])
+                // ->addTextareaField('description', 'Description')
+                // ->markCalculated(['status'])
                 ->addFilter('status')
                 ->addFilter('url')
-                ->markCalculated(['status'])
                 ->excludeColumn('description');
     }
 }

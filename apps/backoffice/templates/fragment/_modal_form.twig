@@ -1,0 +1,33 @@
+{% macro modal_form(prefix, meta, fields) %}
+    {% import 'fragment/_form.twig' as forms %}
+
+    <input type="hidden" name="{{ meta.id }}" id="{{ prefix }}-{{ meta.id}}" />
+    {{ forms.form(prefix, fields) }}
+
+    <div class="modal-footer">
+        <button type="button" class="btn" onclick="closeUpdateModal()">Cancelar</button>
+        <button type="submit" class="btn btn-success">Guardar</button>
+    </div>
+{% endmacro %}
+
+{% macro assign(prefix, meta, fields) %}
+    if( value ) {
+        document.getElementById('{{prefix}}-{{ meta.id }}').value = value.{{ meta.id }};
+        {% for field in fields %}
+        document.getElementById('{{prefix}}-{{ field.name }}').value = value.{{ field.name }};
+        {% if field.readonly %}
+        document.getElementById('{{prefix}}-{{ field.name }}').style.display = 'none';
+        document.getElementById('{{prefix}}-{{ field.name }}Label').style.display = '';
+        document.getElementById('{{prefix}}-{{ field.name }}Label').innerHTML = value.{{ field.name }};
+        {% endif %}
+        {% endfor %}
+    } else {
+        {% for field in fields %}
+        document.getElementById('{{prefix}}-{{ field.name }}').value = '';
+            {% if field.readonly %}
+            document.getElementById('{{prefix}}-{{ field.name }}').style.display = '';
+            document.getElementById('{{prefix}}-{{ field.name }}Label').style.display = 'none';
+            {% endif %}
+        {% endfor %}
+    }
+{% endmacro %}

@@ -1,14 +1,15 @@
 {% macro master_page(meta, values, target) %}
+    {% import 'fragment/_modal_form.twig' as modal_form %}
+
     <h2>{{ meta.title }}</h2>
     <p>{{ meta.description }}.</p>
     
     <div class="container">
         <div class="actions">
             <div>
-            <button class="btn btn-success" onclick="run('update')">Agregar</button>
             {% for action in meta.actions %}
                 {% if not action.contextual %}
-                    <button class="btn btn-info" onclick="run('{{ action.name }}')">{{ action.label }}</button>
+                    <button class="btn btn-{{ action.kind }}" onclick="run('{{ action.name }}')">{{ action.label }}</button>
                 {% endif %}
             {% endfor %}
             </div>
@@ -48,76 +49,6 @@
             </tbody>
         </table>
     </div>
-    
-    <!-- Modal para agregar/editar credenciales -->
-    <div id="updateModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Agregar Credencial</h3>
-                <span class="close" onclick="closeUpdateModal()">&times;</span>
-            </div>
-            <form id="updateForm" method="POST" action="{{ path(target) }}">
-                <input type="hidden" name="{{ meta.id }}" id="{{ meta.id}}" />
-                {% for field in meta.fields %}
-                    {% if field.calculated %}
-                        <input
-                                type="hidden"
-                                id="{{ field.name }}"
-                                name="{{ field.name }}" />
-                    {% else %}
-                    <div class="form-group">
-                        <label for="{{ field.name }}">{{ field.label }}</label>
-                        {% if field.readonly %}
-                            <div id="{{field.name}}Label"></div>
-                        {% endif %}
-                        {% if field.type == 'textarea' %}
-                            <textarea id="{{ field.name }}" name="{{ field.name }}" rows="3"
-                                {% if field.required %}required{% endif %}></textarea>
-                        {% elseif field.type == 'options' %}
-                            <select name="{{ field.name }}" id="{{ field.name }}" {% if field.required %}required{% endif %}>
-                                {% for key, label in field.options %}
-                                    <option value="{{ key }}">{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        {% else %}
-                            <input
-                                type="{{ field.type }}"
-                                id="{{ field.name }}"
-                                name="{{ field.name }}"
-                                {% if field.required %}required{% endif %}
-                                {% for attr, val in field.attributes|default({}) %} {{ attr }}="{{ val }}"{% endfor %}
-                            />
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                {% endfor %}
-                <div class="modal-footer">
-                    <button type="button" class="btn" onclick="closeUpdateModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-success">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal de confirmación para eliminar -->
-    <div id="deleteModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Confirmar eliminación</h3>
-                <span class="close" onclick="closeDeleteModal()">&times;</span>
-            </div>
-            <form id="deleteForm" method="POST" action="{{ path(target) }}">
-                <div class="modal-body">
-                    <input type="hidden" name="delete" id="delete" />
-                    <p id="deleteConfirmMessage">¿Estás seguro de que deseas eliminar este registro?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn" onclick="closeDeleteModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Eliminar</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     {% for action in meta.actions %}
     <!-- Modal de confirmación para {{ action.label }} -->
@@ -130,14 +61,18 @@
             {% if action.template %}
                 <input type="hidden" name="{{ action.name }}" id="{{ action.name }}" />
                 {{ action.template | raw }}
+            {% elseif action.form %}
+                <form method="POST" action="{{ path(target) }}">
+                    {{ modal_form.modal_form( action.name, meta, action.form) }}
+                </form>
             {% else %}
-            <form id="deleteForm" method="POST" action="{{ path(target) }}">
+            <form method="POST" action="{{ path(target) }}">
                 <div class="modal-body">
                     <input type="hidden" name="{{ action.name }}" id="{{ action.name }}" />
-                    <p id="deleteConfirmMessage">¿Estás seguro de que deseas {{ action.label }}?</p>
+                    <p>¿Estás seguro de que deseas {{ action.label }}?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn" onclick="closeA{{ action.name }}DeleteModal()">Cancelar</button>
+                    <button type="button" class="btn" onclick="closeA{{ action.name }}Modal()">Cancelar</button>
                     <button type="submit" class="btn btn-danger">{{ action.label }}</button>
                 </div>
             </form>
@@ -201,15 +136,9 @@
             const actions = [
                 {% for action in meta.actions %}
                 {% if action.contextual %}
-                    { label: '{{action.label}}', action: '{{action.name}}', class: 'btn-info' },
+                    { label: '{{action.label}}', action: '{{action.name}}', class: 'btn-{{ action.kind }}' },
                 {% endif %}
                 {% endfor %}
-                {% if meta.canUpdate %}
-                { label: 'Editar', action: 'update', class: 'btn-warning' },
-                {% endif %}
-                {% if meta.canDelete %}
-                { label: 'Eliminar', action: 'delete', class: 'btn-danger' }
-                {% endif %}
             ];
 
             actions.forEach(({ label, action, class: btnClass }) => {
@@ -228,48 +157,15 @@
     load( values, 'No hay valores registradas' );
 
     function run(modal, element) {
-        if( element ) {
-            const value = values.find(val => val.{{ meta.id }} === element);
-            if( value ) {
-                document.getElementById('{{ meta.id }}').value = value.{{ meta.id }};
-                {% for field in meta.fields %}
-                document.getElementById('{{ field.name }}').value = value.{{ field.name }};
-                {% if field.readonly %}
-                document.getElementById('{{ field.name }}').style.display = 'none';
-                document.getElementById('{{ field.name }}Label').style.display = '';
-                document.getElementById('{{ field.name }}Label').innerHTML = value.{{ field.name }};
-                {% endif %}
-                {% endfor %}
-            }
-            {% for action in meta.actions %}
-            {% if action.code %}
-            if( modal == '{{ action.name }}' ) {
-                {{ action.code | raw }}
-            }
-            {% endif %}
-            {% endfor %}
-        } else {
-            {% for field in meta.fields %}
-            document.getElementById('{{ field.name }}').value = '';
-                {% if field.readonly %}
-                document.getElementById('{{ field.name }}').style.display = '';
-                document.getElementById('{{ field.name }}Label').style.display = 'none';
-                {% endif %}
-            {% endfor %}
-        }
-        document.getElementById('delete').value = element;
+        const value = element ? values.find(val => val.{{ meta.id }} === element) : null;
         {% for action in meta.actions %}
-        document.getElementById('{{action.name}}').value = element;
+            {% if action.form %}
+            {{ modal_form.assign( action.name, meta, action.form) }}
+            {% else %}
+            document.getElementById('{{action.name}}').value = element;
+            {% endif %}
         {% endfor %}
         document.getElementById( modal + 'Modal').style.display = 'flex';
-    }
-
-    function closeUpdateModal() {
-        document.getElementById('updateModal').style.display = 'none';
-    }
-    
-    function closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
     }
 
     const searchInputs = document.querySelectorAll('.text-search');
@@ -316,9 +212,9 @@
         {% if action.functions %}
             {{ action.functions | raw }}
         {% endif %}
-    function closeA{{action.name}}Modal() {
-        document.getElementById('{{action.name}}Modal').style.display = 'none';
-    }
+        function closeA{{action.name}}Modal() {
+            document.getElementById('{{action.name}}Modal').style.display = 'none';
+        }
     {% endfor %}
     
     // Cerrar los modales si se hace clic fuera de ellos
@@ -328,12 +224,6 @@
             closeA{{action.name}}Modal();
         }
         {% endfor %}
-        if (event.target === document.getElementById('updateModal')) {
-            closeUpdateModal();
-        }
-        if (event.target === document.getElementById('deleteModal')) {
-            closeDeleteModal();
-        }
     };
 </script>
 {% endmacro %}

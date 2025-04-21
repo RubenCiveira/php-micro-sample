@@ -1,0 +1,36 @@
+{% macro form(prefix, fields) %}
+    <h1>FORM</h1>
+    {% for field in fields %}
+        {% if field.calculated %}
+            <input
+                    type="hidden"
+                    id="{{prefix}}-{{field.name}}"
+                    name="{{ field.name }}" />
+        {% else %}
+        <div class="form-group">
+            <label for="{{ field.name }}">{{ field.label }}</label>
+            {% if field.readonly %}
+                <div id="{{prefix}}-{{field.name}}Label"></div>
+            {% endif %}
+            {% if field.type == 'textarea' %}
+                <textarea id="{{prefix}}-{{ field.name }}" name="{{ field.name }}" rows="3"
+                    {% if field.required %}required{% endif %}></textarea>
+            {% elseif field.enum %}
+                <select name="{{ field.name }}" id="{{prefix}}-{{ field.name }}" {% if field.required %}required{% endif %}>
+                    {% for key, label in field.enum %}
+                        <option value="{{ label }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <input
+                    type="{{ field.type }}"
+                    id="{{prefix}}-{{ field.name }}"
+                    name="{{ field.name }}"
+                    {% if field.required %}required{% endif %}
+                    {% for attr, val in field.attributes|default({}) %} {{ attr }}="{{ val }}"{% endfor %}
+                />
+            {% endif %}
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endmacro %}

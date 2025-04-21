@@ -19,8 +19,8 @@ class Repository
         return new EntityRepository($namespace, $kind, $this->schemas, $this->dataGateway, $this->validator);
     }
 
-    public function formMetadata(string $namespace, string $kind): EntityFormMetadata
+    public function formMetadata(string $namespace, string $kind): EntityViewMetadata
     {
-        return new EntityFormMetadata($namespace, $kind, $this->schemas, $this->dataGateway);
+        return new EntityViewMetadata($namespace, $kind, $this->schemas, $this->dataGateway, $this->validator);
     }
 }
