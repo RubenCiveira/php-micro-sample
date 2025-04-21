@@ -248,6 +248,6 @@ class EntityRepository
                 $errors[] = $graphQlError['error'];
             }
         }
-        throw new ConstraintException( $errors);
+        return new ConstraintException( $errors);
     }
 }
