@@ -22,6 +22,7 @@ class GraphQLProcessor
     public function __construct(
         private readonly Schemas $schemas,
         private readonly DataGateway $datas,
+        private readonly Validator $validator,
         private readonly string $namespace,
         private readonly string $query,
         private readonly array|null $variables
@@ -90,6 +91,11 @@ class GraphQLProcessor
                             );
                             return true;
                         case 'modify':
+                            $validate = $this->validator->getErrors($namepace, $theType, $data);
+                            if( $validate ) {
+                                print_r( $validate );
+                                die();
+                            }
                             $id = array_key_first($args);
                             $condition = ["filter" => ["{$id}Equals" => $args[$id]]];
                             return $this->datas->modify(
@@ -101,6 +107,8 @@ class GraphQLProcessor
                                 $data
                             )[0];
                         case 'create':
+                            $schema = $this->schemas->jsonSchema( $namepace, $theType->name );
+
                             return $this->datas->create(
                                 $namepace,
                                 $theType,

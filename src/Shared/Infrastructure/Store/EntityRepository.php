@@ -13,7 +13,8 @@ class EntityRepository
 
     public function __construct(
         private readonly string $namespace, private readonly string $type,
-        private readonly Schemas $schemas, private readonly DataGateway $dataGateway)
+        private readonly Schemas $schemas, private readonly DataGateway $dataGateway,
+        private readonly Validator $validator)
     {
     }
 
@@ -35,7 +36,7 @@ class EntityRepository
         $query = "query { " . lcfirst($this->className($this->type)) . "s ".($arguments ? "($arguments)" : ""). " { " 
                     . $this->expandGraphQLFields($include) 
                     . " } }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->namespace, $query, null);
+        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
         $result = $query->result()->toArray();
         if( !isset($result['data']) && isset($result['errors']) ) {
             throw $this->errorException($result['errors']);
@@ -85,7 +86,7 @@ class EntityRepository
             }
         }
         $query = "mutation { ".lcfirst($name)."Create(input: {".substr($insert, 2)."}) { ".substr($retrieve,2)." } }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->namespace, $query, null);
+        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
         $result = $query->result();
         $result = $result->toArray();
         if( !isset($result['data']) && isset($result['errors']) ) {
@@ -99,6 +100,7 @@ class EntityRepository
 
     public function modify(string $id, $instance)
     {
+        
         if( !is_a($instance, $this->type)) {
             throw new InvalidArgumentException();
         }
@@ -125,7 +127,7 @@ class EntityRepository
             }
         }
         $query = "mutation { ".lcfirst($name)."Update(id: \"".$id."\", input: {".substr($insert, 2)."}) { ".substr($retrieve,2)." } }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->namespace, $query, null);
+        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
         $result = $query->result();
         $result = $result->toArray();
         if( !isset($result['data']) && isset($result['errors']) ) {
@@ -141,7 +143,7 @@ class EntityRepository
     {
         $name = $this->className( $this->type );
         $query = "mutation { ".lcfirst($name)."Delete(id: \"".$id."\") }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->namespace, $query, null);
+        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
         $result = $query->result();
         $result = $result->toArray();
         if( !isset($result['data']) && isset($result['errors']) ) {

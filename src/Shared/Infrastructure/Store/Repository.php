@@ -10,12 +10,12 @@ use InvalidArgumentException;
 
 class Repository
 {
-    public function __construct(private readonly Schemas $schemas, private readonly DataGateway $dataGateway)
+    public function __construct(private readonly Schemas $schemas, private readonly DataGateway $dataGateway, private readonly Validator $validator)
     {
     }
 
     public function entityRepositor(string $namespace, string $kind): EntityRepository
     {
-        return new EntityRepository($namespace, $kind, $this->schemas, $this->dataGateway);
+        return new EntityRepository($namespace, $kind, $this->schemas, $this->dataGateway, $this->validator);
     }
 }

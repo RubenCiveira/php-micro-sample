@@ -4,6 +4,7 @@ namespace Civi\Repomanager\Shared\Infrastructure\Store;
 
 use Civi\Repomanager\Shared\Infrastructure\Store\Gateway\SchemaGateway;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\GraphQlEnrich;
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\JsonSchemaGenerator;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 
@@ -28,7 +29,17 @@ class Schemas
         return $schema;
     }
 
-    private function buildSchema(string $namespace)
+    public function jsonSchema(string $namespace, string $resource): array
+    {
+        [$schema] = $this->buildSchema($namespace);
+        $generator = new JsonSchemaGenerator();
+        $jsonSchema = $generator->generateSchema($schema, $resource);
+        $cache = "{$this->baseDir}/.cache/schemas";
+        file_put_contents("{$cache}/{$namespace}-{$resource}.json-schema" , $jsonSchema);
+        return json_decode( $jsonSchema, true);
+    }
+    
+    private function buildSchema(string $namespace): array
     {
         $result = [];
         $cache = "{$this->baseDir}/.cache/schemas";

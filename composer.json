@@ -28,7 +28,9 @@
         "webonyx/graphql-php": "^15.20",
         "twig/twig": "^3.0",
         "monolog/monolog": "^3.7",
-        "voku/html-min": "^4.5"
+        "voku/html-min": "^4.5",
+        "justinrainbow/json-schema": "^6.4",
+        "opis/json-schema": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.1"

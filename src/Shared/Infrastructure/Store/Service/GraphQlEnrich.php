@@ -199,7 +199,6 @@ class GraphQlEnrich
         return [$input, $mutationLine];
     }
 
-
     private function dumpField(Schema $schema, string $name, FieldDefinition|Argument|InputObjectField $field, bool $array, &$lines): string
     {
         $fieldType = $field->getType()->toString();
