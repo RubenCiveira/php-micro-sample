@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Civi\Repomanager\Shared\Infrastructure\Simple;
+namespace Civi\Repomanager\Shared\Infrastructure\Form;
 
 class FormMetadata
 {
@@ -15,6 +15,9 @@ class FormMetadata
 
     private bool $canUpdate = true;
     private bool $canDelete = true;
+
+    public string $createSchema = '';
+    public string $updateSchema = '';
     public function __construct(private readonly string $name, private readonly string $title, private readonly string $id)
     {
     }
@@ -31,6 +34,8 @@ class FormMetadata
         return [
             'title' => $this->name,
             'description' => $this->title,
+            'createSchmea' => $this->createSchema,
+            'updateSchmea' => $this->updateSchema,
             'id' => $this->id,
             'canUpdate' => $this->canUpdate,
             'canDelete' => $this->canDelete,
@@ -40,6 +45,8 @@ class FormMetadata
             'actions' => $this->actions,
         ];
     }
+
+
     public function markCalculated(array $names): FormMetadata
     {
         foreach($names as $name) {

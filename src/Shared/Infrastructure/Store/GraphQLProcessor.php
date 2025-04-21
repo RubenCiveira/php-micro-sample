@@ -7,12 +7,16 @@ use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryParam;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExtractMutation;
 
 use GraphQL\Deferred;
+use GraphQL\Error\Error;
+use GraphQL\Error\FormattedError;
+use GraphQL\Error\UserError;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\GraphQL;
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use TypeError;
 
 class GraphQLProcessor
 {
@@ -43,7 +47,6 @@ class GraphQLProcessor
                     $args['filter'] = ['idEquals' => $args['id']];
                     unset($args['id']);
                 }
-                // die();
                 $type = $rootQuery->getField($name)->getType();
                 $theType = Type::getNamedType($type );
                 $filter = new DataQueryParam($schema, $theType->toString(), $args);
@@ -91,10 +94,9 @@ class GraphQLProcessor
                             );
                             return true;
                         case 'modify':
-                            $validate = $this->validator->getErrors($namepace, $theType, $data);
-                            if( $validate ) {
-                                print_r( $validate );
-                                die();
+                            $errors = $this->validator->getErrors($namepace, $theType, $data);
+                            if( $errors ) {
+                                throw new ConstraintException( $errors );
                             }
                             $id = array_key_first($args);
                             $condition = ["filter" => ["{$id}Equals" => $args[$id]]];
@@ -107,8 +109,10 @@ class GraphQLProcessor
                                 $data
                             )[0];
                         case 'create':
-                            $schema = $this->schemas->jsonSchema( $namepace, $theType->name );
-
+                            $errors = $this->validator->getErrors($namepace, $theType, $data);
+                            if( $errors ) {
+                                throw new ConstraintException( $errors );
+                            }
                             return $this->datas->create(
                                 $namepace,
                                 $theType,
@@ -124,7 +128,6 @@ class GraphQLProcessor
         $customFieldResolver = function ($objectValue, array $args, $context, ResolveInfo $info) {
             $fieldName = trim($info->fieldName);
             $property = null;
-
             if (is_array($objectValue) || $objectValue instanceof ArrayAccess) {
                 if (isset($objectValue[$fieldName])) {
                     $property = $objectValue[$fieldName];
@@ -135,8 +138,10 @@ class GraphQLProcessor
                 }
             }
             if (!$property) {
-                if ($info->parentType && $info->parentType->name) {
-                    return $this->expand($objectValue, $info);
+                if ( is_array($objectValue) ) {
+                    return "";
+                } else if ($info->parentType && $info->parentType->name) {
+                    return  $this->expand($objectValue, $info);
                 }
             }
             return $property instanceof \Closure
@@ -152,11 +157,11 @@ class GraphQLProcessor
             $this->variables,
             null,
             $customFieldResolver
-        );
+        )->setErrorFormatter(fn (Error $error): array => MyFormater::fromException($error));
         return $result;
     }
 
-    private function expand($objectValue, ResolveInfo $info): Deferred
+    private function expand($objectValue, ResolveInfo $info): mixed
     {
         $namespace = $this->namespace;
         $schema = $this->schemas->schema($namespace);
@@ -179,7 +184,7 @@ class GraphQLProcessor
         }
         return new Deferred(function () use ($namespace, $schema, $type, $field, $on, $id, $theId) {
             if (!isset($this->batches[$on])) {
-                $query = new DataQueryParam($schema, $type, []);
+                $query = new DataQueryParam($schema, $type->name, []);
                 $query->idIn($this->pending[$on]);
                 $this->batches[$on] = [];
                 $all = $this->datas->fetch($namespace, $on, $query);
@@ -189,5 +194,23 @@ class GraphQLProcessor
             }
             return $this->batches[$on][$theId][$field] ?? null;
         });
+    }
+}
+
+class MyFormater extends FormattedError
+{
+
+    public static function fromException(Error $error): array {
+        $is = FormattedError::createFromException($error);
+        $previous = $error->getPrevious();
+        if( $previous instanceof ConstraintException) {
+            $is['constraints'] = $previous->errors;
+        } else if( $previous instanceof TypeError) {
+            echo "<p>" . $previous->getMessage();
+        } else {
+            echo "<pre>" . get_class( $previous );
+
+        }
+        return $is;
     }
 }

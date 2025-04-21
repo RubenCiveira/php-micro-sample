@@ -13,7 +13,7 @@ class PackageGateway
     private readonly EntityRepository $repository;
     public function __construct(Repository $repository)
     {
-        $this->repository = $repository->entityRepositor('repos', Package::class);
+        $this->repository = $repository->entityRepository('repos', Package::class);
     }
 
     public function createPackage(Package $credential)

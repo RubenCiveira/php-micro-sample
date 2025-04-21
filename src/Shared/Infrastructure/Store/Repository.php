@@ -14,8 +14,13 @@ class Repository
     {
     }
 
-    public function entityRepositor(string $namespace, string $kind): EntityRepository
+    public function entityRepository(string $namespace, string $kind): EntityRepository
     {
         return new EntityRepository($namespace, $kind, $this->schemas, $this->dataGateway, $this->validator);
+    }
+
+    public function formMetadata(string $namespace, string $kind): EntityFormMetadata
+    {
+        return new EntityFormMetadata($namespace, $kind, $this->schemas, $this->dataGateway);
     }
 }

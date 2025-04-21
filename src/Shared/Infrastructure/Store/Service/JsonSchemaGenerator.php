@@ -7,6 +7,7 @@ use GraphQL\Type\Definition\EnumType;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\InputObjectField;
 use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
@@ -38,13 +39,17 @@ class JsonSchemaGenerator
     private function generateSchemaFromObjectType( InputObjectType|EnumType|ObjectType $type): array
     {
         $props = [];
+        $required = [];
         foreach ($type->getFields() as $field) {
-            $theType = Type::getNamedType($field->getType());
+            if( $field->getType() instanceof NonNull ) {
+                $required[] = $field->name;
+            }
             $props[$field->name] = $this->graphqlTypeToJsonType( $field);
         }
         return [
             'type' => 'object',
-            'properties' => $props
+            'properties' => $props,
+            'required' => $required
         ];
     }
 

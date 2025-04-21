@@ -7,7 +7,6 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use InvalidArgumentException;
 
-
 class EntityRepository
 {
 
@@ -155,11 +154,6 @@ class EntityRepository
         }
     }
 
-    private function classNamespace($kind)
-    {
-        return 'repos';
-    }
-
     private function className($kind)
     {
         return basename(str_replace('\\', '/', $kind));
@@ -169,7 +163,10 @@ class EntityRepository
     {
         $id = 'id';
         foreach($type->getFields() as $field) {
-            echo "<p>" . $field->name;
+            $baseType = Type::getNamedType($field->getType());
+            if( $baseType->name == 'ID' ) {
+                $id = $field->name;
+            }
         }
         return $id;
     }
@@ -232,20 +229,25 @@ class EntityRepository
 
             return "{ " . implode(', ', $fields) . " }";
         }
-
         if (is_string($value)) {
             return '"' . addslashes($value) . '"';
         }
-
         if (is_bool($value)) {
             return $value ? 'true' : 'false';
         }
-
         return (string) $value;
     }
 
-    private function errorException($data) {
-        print_r( $data );
-        return new InvalidArgumentException('');
+    private function errorException(array $graphQlErrors) 
+    { 
+        $errors = [];
+        foreach($graphQlErrors as $graphQlError) {
+            if( isset($graphQlError['constraints'])) {
+                $errors[] = $graphQlError['constraints'];
+            } else {
+                $errors[] = $graphQlError['error'];
+            }
+        }
+        throw new ConstraintException( $errors);
     }
 }

@@ -12,7 +12,7 @@ class Validator
     {
         $validator = new \JsonSchema\Validator;
         $schema = $this->schema->jsonSchema($namespace, $resource);
-        $values = $this->encode( $data );
+        $values = $this->encode( $this->normalizeEmptyStringsToNull($data) );
         $validator->validate( $values, $schema,
             Constraint::CHECK_MODE_COERCE_TYPES | Constraint::CHECK_MODE_APPLY_DEFAULTS);
         if( $validator->isValid() ) {
@@ -24,6 +24,15 @@ class Validator
         } else {
             return $validator->getErrors();
         }
+    }
+
+    private function normalizeEmptyStringsToNull(array $input): array {
+        foreach ($input as $key => $value) {
+            if (is_string($value) && trim($value) === '') {
+                unset( $input[$key] );
+            }
+        }
+        return $input;
     }
 
     private function encode(array $data): object
