@@ -118,8 +118,8 @@ class EntityRepository
         $mutations = $ext->fromType( $type );
         $insert = "";
         $retrieve = "";
-        foreach ($mutations[$for]['assign'] as $fieldName) {
-            $field = $type->getField( $fieldName );
+        foreach ($mutations[$for]['assign'] as $field) {
+            // $field = $type->getField( $fieldName );
             $baseType = Type::getNamedType($field->getType());
             if ($baseType->name == 'String') {
                 $insert .= ", {$field->name}: \"" . $instance->{$field->name} . "\"";

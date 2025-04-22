@@ -145,7 +145,7 @@ class GraphQlEnrich
             $inputFields[] = "  {$id}: ID!";
         }
 
-        foreach ($mutation['assign'] as $field) {
+        foreach ($mutation['assign'] as $field => $info) {
             $know = false;
             foreach ($fields as $fd) {
                 if ($fd->getName() == $field) {

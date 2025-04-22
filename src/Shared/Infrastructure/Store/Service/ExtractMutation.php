@@ -43,8 +43,13 @@ class ExtractMutation
                             foreach ($arg->value->values as $valueNode) {
                                 if( $valueNode->value ) {
                                     $row = $this->parseMutationExtras($valueNode->value);
+                                    $assigFields = [];
+                                    foreach($row['assign'] as $name) {
+                                        $assigFields[$name] = $type->getField( $name );
+                                    }
+                                    $row['assign'] = $assigFields;
                                     $mutations[$row['name']] = $row;
-                                    $hisAssigns = $row['assign'];
+                                    $hisAssigns = array_keys( $row['assign'] );
                                     $hisSets = array_keys($row['set']);
                                     $fieldsOnExtras = array_merge($fieldsOnExtras, $hisAssigns, $hisSets);                        
                                 }
@@ -76,7 +81,7 @@ class ExtractMutation
                 continue;
             }
             if (!in_array($field->getName(), $fieldsOnExtras)) {
-                $editableFields[] = $field->getName();
+                $editableFields[$field->getName()] = $field;
             }
         }
         if( isset($mutations['create']) ) {
