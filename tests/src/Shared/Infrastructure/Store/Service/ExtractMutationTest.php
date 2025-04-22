@@ -48,7 +48,7 @@ class ExtractMutationTest extends TestCase
 
         $extra = array_filter($mutations['Empleado'], fn($m) => $m['name'] === 'asignar');
         $this->assertNotEmpty($extra);
-        $this->assertEquals(['oficina'], array_values($extra)[0]['assign']);
+        $this->assertEquals(['oficina'], array_keys( array_values($extra)[0]['assign']) );
     }
 
     public function test_extracts_extra_mutation_set()
@@ -87,7 +87,7 @@ class ExtractMutationTest extends TestCase
         $this->assertNotEmpty($extra);
         $mut = array_values($extra)[0];
         $this->assertEquals("modify", $mut['context'], );
-        $this->assertEquals(['usuario'], $mut['assign']);
+        $this->assertEquals(['usuario'], array_keys($mut['assign']));
         $this->assertTrue($mut['set']['activo']);
     }
 }
