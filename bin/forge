@@ -81,7 +81,11 @@ HELP;
 
         require_once __DIR__. '/use/entity_builder.php';
         generateEntityFromType($type, $package, "{$directory}/{$type->name}.php");
-        generateEntityFromType($filterType, "{$package}.Quary", "{$directory}/Query/{$type->name}Filter.php");
+        generateEntityFromType($filterType, "{$package}.Query", "{$directory}/Query/{$type->name}Filter.php");
+        require_once __DIR__. '/use/repository_builder.php';
+        generateEntityRepositoryFromType($type, $namespace, "{$package}.{$type->name}", "{$directory}/Gateway/{$type->name}Gateway.php");
+        require_once __DIR__. '/use/view_builder.php';
+        generateEntityViewFromType($type, $namespace, "{$package}.{$type->name}", "{$directory}/View/{$type->name}ViewMetadata.php");
 
         // echo $txt;
         // Aquí colocarías tu lógica para leer DSL, generar archivos, etc.

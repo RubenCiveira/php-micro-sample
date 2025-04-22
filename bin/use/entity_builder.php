@@ -15,6 +15,7 @@ use PhpParser\Node\Stmt\ClassMethod;
 
 function generateEntityFromType(InputObjectType|ObjectType $type, string $fqn, string $filePath): void
 {
+    $fqn = str_replace('.', '\\', $fqn);
     $parser = (new ParserFactory())->createForNewestSupportedVersion();
     $pretty = new PrettyPrinter();
     $factory = new BuilderFactory();
@@ -24,7 +25,7 @@ function generateEntityFromType(InputObjectType|ObjectType $type, string $fqn, s
     }
 
     $className = $type->name();
-    $namespace = implode('\\', array_slice(explode('.', $fqn), 0, -1));
+    $namespace = implode('\\', array_slice(explode('\\', $fqn), 0, -1));
 
     // 🔁 Mapeamos los campos SDL a propiedades PHP
     $newProps = [];
