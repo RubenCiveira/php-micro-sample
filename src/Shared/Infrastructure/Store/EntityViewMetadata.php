@@ -2,6 +2,7 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\Store;
 
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExtractMutation;
 use Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata;
 use Civi\Repomanager\Shared\Infrastructure\Store\Gateway\DataGateway;
 use GraphQL\Type\Definition\ObjectType;
@@ -36,22 +37,49 @@ class EntityViewMetadata
         $type = $schema->getType($resource);
         $idField = $this->searchIdField($type);
         $meta = new ViewMetadata('', '', $idField);
-        $defaultForm = [];
+        // $defaultForm = [];
         foreach ($jsonSchema['properties'] as $name => $info) {
             if ($name !== $idField) {
                 $detail = $info;
-                if( isset( $info['format'] ) ) {
+                if (isset($info['format'])) {
                     $detail['type'] = $info['format'];
                 }
                 // if( $info['type'] == 'datetime-local' ) 
                 $detail['required'] = in_array($name, $jsonSchema['required']);
-                $defaultForm[] = $name;
+                // $defaultForm[] = $name;
                 $meta->addField($name, $detail);
             }
         }
-        $meta->addStandaloneFormAction('create', 'Create', $defaultForm, fn($data) => $this->repository->create($data) );
-        $meta->addContextualFormAction('edit', 'Edit', $defaultForm, fn($data) => $this->repository->modify($data[$idField], $data) );
-        $meta->addContextualConfirmAction('remove', 'Remove', fn($data) => $this->repository->delete($data[$idField]));
+        $mut = new ExtractMutation();
+        $mutations = $mut->fromType($type);
+        foreach ($mutations as $mutation) {
+            $form = [];
+            foreach($mutation['assign'] as $asName => $asField) {
+                if( $asName != $idField ) {
+                    $detail = $jsonSchema['properties'][$asName];
+                    if (isset($info['format'])) {
+                        $detail['type'] = $info['format'];
+                    }
+                    // if( $info['type'] == 'datetime-local' ) 
+                    $detail['required'] = in_array($name, $jsonSchema['required']);
+                    $form[] = $asName;
+                }
+            }
+            switch ($mutation['context']) {
+                case 'create':
+                    $meta->addStandaloneFormAction($mutation['name'], ucfirst($mutation['name']), $form, fn($data) => $this->repository->create($mutation['name'], $data));
+                    break;
+                case 'modify':
+                    if (count($form) == 0) {
+                        $meta->addContextualConfirmAction($mutation['name'], ucfirst($mutation['name']), fn($data) => $this->repository->modify($mutation['name'], $data[$idField], $data));
+                    } else {
+                        $meta->addContextualFormAction($mutation['name'], ucfirst($mutation['name']), $form, fn($data) => $this->repository->modify($mutation['name'], $data[$idField], $data));
+                    }
+                    break;
+                case 'delete':
+                    $meta->addContextualConfirmAction($mutation['name'], ucfirst($mutation['name']), fn($data) => $this->repository->change($mutation['name'], $data[$idField]));
+            }
+        }
         return $meta;
     }
 
