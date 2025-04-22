@@ -21,7 +21,7 @@ class DataFileAdapterTest extends TestCase
         $accessPipeline = $this->createMock(AccessPipeline::class);
         $accessPipeline->method('applyAccessPipeline')->willReturnCallback(fn(...$args) => $args[2]);
         $execPipeline = $this->createMock(ExecPipeline::class);
-        $execPipeline->method('executeOperation')->willReturnCallback(fn(...$args) => $args[3]);
+        $execPipeline->method('executeOperation')->willReturnCallback(fn(...$args) => $args[4]);
         $this->schema = BuildSchema::build($sdl);
         $this->adapter = new DataGateway( $accessPipeline, $execPipeline, __DIR__ . '/../../../../../mock/' );
     }
