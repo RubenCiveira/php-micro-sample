@@ -163,6 +163,9 @@
             {{ modal_form.assign( action.name, meta, action.form) }}
             {% else %}
             document.getElementById('{{action.name}}').value = element;
+            {% if action.code %}
+                {{ action.code | raw }}
+            {% endif %}
             {% endif %}
         {% endfor %}
         document.getElementById( modal + 'Modal').style.display = 'flex';
