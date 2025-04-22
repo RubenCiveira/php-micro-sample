@@ -22,6 +22,7 @@
         {% endif %}
         {% endfor %}
     } else {
+        document.getElementById('{{prefix}}-{{ meta.id }}').value = '';
         {% for field in fields %}
         document.getElementById('{{prefix}}-{{ field.name }}').value = '';
             {% if field.readonly %}
