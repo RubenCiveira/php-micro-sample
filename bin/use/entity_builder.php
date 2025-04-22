@@ -1,5 +1,6 @@
 <?php
 
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExtractDirectives;
 use GraphQL\Type\Definition\EnumType;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\NamedType;
@@ -30,7 +31,7 @@ function generateEntityFromType(InputObjectType|ObjectType $type, string $fqn, s
     // 🔁 Mapeamos los campos SDL a propiedades PHP
     $newProps = [];
     foreach ($type->getFields() as $field) {
-        $propType = mapGqlTypeToPhp($field->getType());
+        $propType = mapGqlTypeToPhp($field);
         $newProps[$field->name] = $factory
             ->property($field->name)
             ->makePublic()
@@ -179,13 +180,17 @@ function generateEntityFromType(InputObjectType|ObjectType $type, string $fqn, s
     echo "✅ Actualizado $filePath\n";
 }
 
-function mapGqlTypeToPhp($type): string
+function mapGqlTypeToPhp($field): string
 {
+    $type = $field->getType();
     while ($type instanceof NonNull) {
         $type = $type->getWrappedType();
     }
-
-    if ($type instanceof EnumType) {
+    $directives = ExtractDirectives::fromNode($field);
+    $as = $directives['format']['type'] ?? '';
+    if( $as == 'date' || $as == 'date-time') {
+        return '?\DateTimeInterface';
+    } else if ($type instanceof EnumType) {
         return '?string';
     } else if ($type instanceof NamedType) {
         return match ($type->name()) {
