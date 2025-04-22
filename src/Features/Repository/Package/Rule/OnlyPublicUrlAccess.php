@@ -9,7 +9,7 @@ class OnlyPublicUrlAccess
 
     public function __invoke(PackageFilter $filter, $next): PackageFilter
     {
-        $filter->urlEquals = 'dos';
+        // $filter->urlEquals = 'dos';
         return $next( $filter );
     }
 }

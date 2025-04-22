@@ -8,7 +8,7 @@ class UpperCaseRead
 {
     public function __invoke(Package $package, $next): Package
     {
-        $package->name = ucfirst($package->name) . "[]";
+        // $package->name = ucfirst($package->name) . "[]";
         return $next( $package );
     }
 }
