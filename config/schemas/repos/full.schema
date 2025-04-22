@@ -6,7 +6,7 @@ directive @mutation(
   create: Boolean = true, update: Boolean = true, delete: Boolean = true, extra: [String!] = []
 ) on OBJECT
 
-type Credencial 
+type Credential 
     @mutation {
   id: ID!
   name: String!
