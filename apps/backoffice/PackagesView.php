@@ -17,23 +17,6 @@ class PackagesView extends MasterDetailView
         return 'packages';
     }
 
-    protected function delete(string $id) 
-    {
-        $this->packages->removePackage( $id );
-    }
-
-    protected function create(array $data)
-    {
-        $pack = Package::from($data);
-        $this->packages->createPackage($pack);
-    }
-
-    protected function update(string $id, $data)
-    {
-        $pack = Package::from($data);
-        $this->packages->updatePackage($id, $pack);
-    }
-
     protected function list(): array
     {
         return $this->packages->listPackages();

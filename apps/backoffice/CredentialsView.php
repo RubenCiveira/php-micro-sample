@@ -20,23 +20,6 @@ class CredentialsView extends MasterDetailView
         return 'credentials';
     }
 
-    protected function delete(string $id) 
-    {
-        $this->credentials->removeCredential( $id );
-    }
-
-    protected function create(array $data)
-    {
-        $pack = Credential::from($data);
-        $this->credentials->createCredential($pack);
-    }
-
-    protected function update(string $id, $data)
-    {
-        $pack = Credential::from($data);
-        $this->credentials->updateCredential($id, $pack);
-    }
-
     protected function list(): array
     {
         return $this->credentials->listCredentials();

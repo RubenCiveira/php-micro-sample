@@ -16,22 +16,10 @@ abstract class MasterDetailView
     {
         $data = $request->getParsedBody();
         $meta = $this->meta();
-        if( !$meta->exec($data) ) {
-            if (isset($data['delete'])) {
-                $this->delete($data['delete']);
-            } else {
-                // try {
-                    if (!$data['id']) {
-                        $data['id'] = Uuid::uuid4()->toString();
-                        $this->create($data );
-                    } else {
-                        $this->update($data['id'], $data );
-                    }
-                // } catch(\Exception $ex) {
-                //     echo "oHhhhh";
-                //     die();
-                // }
-            }
+        try {
+            $meta->exec($data);
+        } catch(\Exception $ex) {
+            die( $ex->getMessage() );
         }
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
@@ -39,12 +27,6 @@ abstract class MasterDetailView
     }
     public function get(Request $request, Response $response, array $args): Response
     {
-        // $routeContext = RouteContext::fromRequest($request);
-        // $basePath = $routeContext->getBasePath();
-        // $route = $routeContext->getRoute();
-        
-        // print_r( $this->list() );
-        // $this->meta
         $context = [
             'meta' => $this->meta()->export(),
             'values' => array_map(fn($row) => is_array($row) ? $row : get_object_vars($row), $this->list())
@@ -54,13 +36,7 @@ abstract class MasterDetailView
 
     protected abstract function template(): string;
     protected abstract function meta(): ViewMetadata;
-
     protected abstract function list(): array;
-
-    protected abstract function delete(string $id);
-
-    protected abstract function create(array $data);
-    protected abstract function update(string $id, array $data);
 
     private function redirect(string $target,  Request $request, Response $response): Response
     {
