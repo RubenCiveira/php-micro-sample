@@ -12,9 +12,9 @@ class CredentialFilter
     public ?string $passEquals = null;
     public mixed $passIn = null;
     public ?string $passLike = null;
-    public ?string $untilEquals = null;
-    public mixed $untilIn = null;
-    public ?string $untilLike = null;
+    public ?\DateTimeInterface $untilEquals = null;
+    public ?\DateTimeInterface $untilIn = null;
+    public ?\DateTimeInterface $untilLike = null;
     public ?string $userEquals = null;
     public mixed $userIn = null;
     public ?string $userLike = null;
