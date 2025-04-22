@@ -38,7 +38,18 @@ abstract class AbstractPipeline
 
     protected function toArray(array|object $object): array
     {
-        return is_array($object) ? $object : get_object_vars($object);
+        if( is_array($object) ) {
+            return $object;
+        } else {
+            $response = [];
+            $extract = get_object_vars($object);
+            foreach($extract as $k=>$v) {
+                if( $v !== null ) {
+                    $response[$k] = $v;
+                }
+            }
+            return $response;
+        }
     }
 
     protected function toObject(array|null $data, string $typeName): object|null
