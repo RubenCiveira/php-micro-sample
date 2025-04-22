@@ -1,6 +1,7 @@
 <?php
 namespace Civi\RepomanagerBackoffice;
 
+use Civi\Repomanager\Shared\Infrastructure\View\Twig\ComponentExtension;
 use Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -75,7 +76,9 @@ abstract class MasterDetailView
             }
             return $url;
         }));
+        $twig->addExtension(new ComponentExtension());
         // Renderizar la plantilla con los datos
+
         $html = $twig->render($name . ".html.twig", $context);
         $htmlMin = new HtmlMin();
         $html = $htmlMin->minify($html);

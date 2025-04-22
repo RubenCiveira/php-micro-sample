@@ -2,6 +2,7 @@
 
 namespace Civi\RepomanagerBackoffice;
 
+use Civi\Repomanager\Shared\Infrastructure\View\Twig\ComponentExtension;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
@@ -46,6 +47,7 @@ class BaseView
             }
             return $url;
         }));
+        $twig->addExtension(new ComponentExtension());
         // Renderizar la plantilla con los datos
         $response->getBody()->write($twig->render($name . ".html.twig", $context));
         return $response;
