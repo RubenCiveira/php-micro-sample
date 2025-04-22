@@ -29,6 +29,7 @@ class ExtractMutation
 
     public function fromType(ObjectType $type): array
     {
+        // To use cache from __DIR__.'/../../../../../.cache/mutations-' . $type->name . '.ser';
         $mutations = [];
         $ast = $type->astNode();
         $fieldsOnExtras = [];
