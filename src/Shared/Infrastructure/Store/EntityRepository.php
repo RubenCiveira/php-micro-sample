@@ -3,6 +3,7 @@
 namespace Civi\Repomanager\Shared\Infrastructure\Store;
 
 use Civi\Repomanager\Shared\Infrastructure\Store\Gateway\DataGateway;
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExtractMutation;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
@@ -62,7 +63,7 @@ class EntityRepository
     {
     }
 
-    public function create($instance): array
+    public function create(string $for, $instance): array
     {
         if( is_array($instance) ) {
             $instance = (object) $instance;
@@ -90,7 +91,7 @@ class EntityRepository
                 $retrieve .= ", {$field->name}";
             }
         }
-        $query = "mutation { " . lcfirst($name) . "Create(input: {" . substr($insert, 2) . "}) { " . substr($retrieve, 2) . " } }";
+        $query = "mutation { " . lcfirst($name) . ucfirst($for). "(input: {" . substr($insert, 2) . "}) { " . substr($retrieve, 2) . " } }";
         $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
         $result = $query->result();
         $result = $result->toArray(self::FLAG);
@@ -103,7 +104,7 @@ class EntityRepository
         }
     }
 
-    public function modify(string $id, $instance)
+    public function modify(string $for, string $id, $instance)
     {
         if( is_array($instance) ) {
             $instance = (object) $instance;
@@ -113,13 +114,14 @@ class EntityRepository
         $name = $this->className($this->type);
         $schema = $this->schemas->schema($this->namespace);
         $type = $schema->getType($name);
-        $fields = $type->getFields();
+        $ext = new ExtractMutation();
+        $mutations = $ext->fromType( $type );
         $insert = "";
         $retrieve = "";
-        foreach ($fields as $field) {
+        foreach ($mutations[$for]['assign'] as $fieldName) {
+            $field = $type->getField( $fieldName );
             $baseType = Type::getNamedType($field->getType());
-            if ($baseType->name == 'ID') {
-            } else if ($baseType->name == 'String') {
+            if ($baseType->name == 'String') {
                 $insert .= ", {$field->name}: \"" . $instance->{$field->name} . "\"";
             } else if (is_a($baseType, ObjectType::class)) {
                 $insert .= ", {$field->name}: \"" . $instance->{$field->name} . "\"";
@@ -132,7 +134,8 @@ class EntityRepository
                 $retrieve .= ", {$field->name}";
             }
         }
-        $query = "mutation { " . lcfirst($name) . "Update(id: \"" . $id . "\", input: {" . substr($insert, 2) . "}) { " . substr($retrieve, 2) . " } }";
+        $input = $insert ? ", input: {".substr($insert, 2)."}": "";
+        $query = "mutation { " . lcfirst($name) . ucfirst($for). "(id: \"" . $id . "\"{$input}) { " . substr($retrieve, 2) . " } }";
         $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
         $result = $query->result();
         $result = $result->toArray(self::FLAG);
@@ -145,10 +148,10 @@ class EntityRepository
         }
     }
 
-    public function delete(string $id)
+    public function change(string $for, string $id)
     {
         $name = $this->className($this->type);
-        $query = "mutation { " . lcfirst($name) . "Delete(id: \"" . $id . "\") }";
+        $query = "mutation { " . lcfirst($name) . ucfirst($for) . "(id: \"" . $id . "\") }";
         $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
         $result = $query->result();
         $result = $result->toArray();
