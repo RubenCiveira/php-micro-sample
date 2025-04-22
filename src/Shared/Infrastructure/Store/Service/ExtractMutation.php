@@ -3,6 +3,8 @@
 namespace Civi\Repomanager\Shared\Infrastructure\Store\Service;
 
 use GraphQL\Type\Definition\NamedType;
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 
@@ -15,19 +17,21 @@ class ExtractMutation
         }
         $resources = [];
         foreach ($schema->getTypeMap() as $type) {
-            $mutations = $this->fromType($type);
-            if ($mutations) {
-                $resources[$type->name] = $mutations;
+            if( is_a($type, ObjectType::class)) {
+                $mutations = $this->fromType($type);
+                if ($mutations) {
+                    $resources[$type->name] = $mutations;
+                }
             }
-
         }
         return $resources;
     }
 
-    public function fromType(NamedType $type): array
+    public function fromType(ObjectType $type): array
     {
         $mutations = [];
         $ast = $type->astNode();
+        $fieldsOnExtras = [];
         if ($ast && isset($ast->directives)) {
             foreach ($ast->directives as $directive) {
                 if ($directive->name->value === 'mutation') {
@@ -38,7 +42,11 @@ class ExtractMutation
                         if ($arg->name->value === 'extra') {
                             foreach ($arg->value->values as $valueNode) {
                                 if( $valueNode->value ) {
-                                    $mutations[] = $this->parseMutationExtras($valueNode->value);
+                                    $row = $this->parseMutationExtras($valueNode->value);
+                                    $mutations[$row['name']] = $row;
+                                    $hisAssigns = $row['assign'];
+                                    $hisSets = array_keys($row['set']);
+                                    $fieldsOnExtras = array_merge($fieldsOnExtras, $hisAssigns, $hisSets);                        
                                 }
                             }
                         } else if ($arg->name->value === 'create') {
@@ -50,16 +58,32 @@ class ExtractMutation
                         }
                     }
                     if( $create ) {
-                        $mutations[] = ['name' => 'create',  'context' => 'create', 'assign' => [], 'set' => []];
+                        $mutations['create'] = ['name' => 'create',  'context' => 'create', 'assign' => [], 'set' => []];
                     }
                     if( $update ) {
-                        $mutations[] = ['name' => 'update', 'context' => 'modify', 'assign' => [], 'set' => []];
+                        $mutations['update'] = ['name' => 'update', 'context' => 'modify', 'assign' => [], 'set' => []];
                     }
                     if( $delete ) {
-                        $mutations[] = ['name' => 'delete', 'context' => 'delete', 'assign' => [], 'set' => []];
+                        $mutations['delete'] = ['name' => 'delete', 'context' => 'delete', 'assign' => [], 'set' => []];
                     }
                 }
             }
+        }
+        $editableFields = [];
+        $fields = $type->getFields();
+        foreach ($fields as $field) {
+            if ('ID' == Type::getNamedType($field->getType())) {
+                continue;
+            }
+            if (!in_array($field->getName(), $fieldsOnExtras)) {
+                $editableFields[] = $field->getName();
+            }
+        }
+        if( isset($mutations['create']) ) {
+            $mutations['create']['assign'] = $editableFields;
+        }
+        if( isset($mutations['update'])) {
+            $mutations['update']['assign'] = $editableFields;
         }
         return $mutations;
     }

@@ -26,23 +26,13 @@ class GraphQlEnrich
         foreach ($schema->getTypeMap() as $typeName => $type) {
             if (str_starts_with($typeName, '__') || !$type instanceof ObjectType)
                 continue;
-            $fieldsOnExtras = [];
             $fields = $type->getFields();
             $typeMutations = $mutationsExtractor->fromType($type);
-            foreach ($typeMutations as $typeMutation) {
-                $hisAssigns = $typeMutation['assign'];
-                $hisSets = array_keys($typeMutation['set']);
-                $fieldsOnExtras = array_merge($fieldsOnExtras, $hisAssigns, $hisSets);
-            }
             $idField = 'id';
-            $editableFields = [];
             foreach ($fields as $field) {
                 if ('ID' == Type::getNamedType($field->getType())) {
                     $idField = $field->getName();
                     continue;
-                }
-                if (!in_array($field->getName(), $fieldsOnExtras)) {
-                    $editableFields[] = $field->getName();
                 }
             }
             $sections[] = $this->generateFilterInput($type, $schema);
@@ -52,9 +42,6 @@ class GraphQlEnrich
             $queryFields[] = $this->generateQueryField($type);
 
             foreach ($typeMutations as $typeMutation) {
-                if ($typeMutation['name'] == 'create' || $typeMutation['name'] == 'update') {
-                    $typeMutation['assign'] = $editableFields;
-                }
                 $typeMutation['name'] = lcfirst($typeName) . ucfirst($typeMutation['name']);
                 $typeMutation['type'] = $typeName;
                 [$input, $mutation] = $this->generateMutation($idField, $typeMutation, $fields);
@@ -225,19 +212,6 @@ class GraphQlEnrich
             }
             $lines[] = "    @" . $dirName . ($params ? "(" . substr($params, 2) . ")" : "");
         }
-        // $ast = $field->astNode;
-        // if ($ast && !empty($ast->directives)) {
-        //     foreach ($ast->directives as $directive) {
-        //         $params = '';
-        //         foreach ($directive->arguments as $arg) {
-        //             if ($arg->name->value == 'format' && ($arg->value->value == 'date' || $arg->value->value == 'date-time')) {
-        //                 $fieldType = 'Date';
-        //             }
-        //             $params .= "  {$arg->name->value}: \"" . $arg->value->value . "\"";
-        //         }
-        //         $lines[] = "    @" . $directive->name->value . ($params ? "(" . substr($params, 2) . ")" : "");
-        //     }
-        // }
         return $fieldType;
     }
 
