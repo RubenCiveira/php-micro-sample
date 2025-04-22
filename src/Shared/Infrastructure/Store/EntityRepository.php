@@ -64,8 +64,10 @@ class EntityRepository
 
     public function create($instance): array
     {
-        if (!is_a($instance, $this->type)) {
-            throw new InvalidArgumentException();
+        if( is_array($instance) ) {
+            $instance = (object) $instance;
+        } else if (!is_a($instance, $this->type)) {
+            throw new InvalidArgumentException("Para crear con el timpo " . $this->type . " el argumento no puede ser " . get_class($instance) );
         }
         $name = $this->className($this->type);
         $schema = $this->schemas->schema($this->namespace);
@@ -103,8 +105,9 @@ class EntityRepository
 
     public function modify(string $id, $instance)
     {
-
-        if (!is_a($instance, $this->type)) {
+        if( is_array($instance) ) {
+            $instance = (object) $instance;
+        } else if (!is_a($instance, $this->type)) {
             throw new InvalidArgumentException();
         }
         $name = $this->className($this->type);

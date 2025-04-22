@@ -40,6 +40,10 @@ class EntityViewMetadata
         foreach ($jsonSchema['properties'] as $name => $info) {
             if ($name !== $idField) {
                 $detail = $info;
+                if( isset( $info['format'] ) ) {
+                    $detail['type'] = $info['format'];
+                }
+                // if( $info['type'] == 'datetime-local' ) 
                 $detail['required'] = in_array($name, $jsonSchema['required']);
                 $defaultForm[] = $name;
                 $meta->addField($name, $detail);

@@ -214,19 +214,30 @@ class GraphQlEnrich
             $fieldType = "ID";
         }
         $lines[] = $array ? "  {$name}: [{$fieldType}]" : "  {$name}: {$fieldType}";
-        $ast = $field->astNode;
-        if ($ast && !empty($ast->directives)) {
-            foreach ($ast->directives as $directive) {
-                $params = '';
-                foreach ($directive->arguments as $arg) {
-                    if ($arg->name->value == 'format' && ($arg->value->value == 'date' || $arg->value->value == 'date-time')) {
-                        $fieldType = 'Date';
-                    }
-                    $params .= "  {$arg->name->value}: \"" . $arg->value->value . "\"";
+        $directives = ExtractDirectives::fromNode( $field );
+        foreach($directives as $dirName=>$dirAttributes) {
+            $params = '';
+            foreach($dirAttributes as $attName=>$attValue) {
+                if( $attName == 'format' && ($attValue == 'date' || $attValue == 'date-time' ) ) {
+                    $fieldType = 'Date';
                 }
-                $lines[] = "    @" . $directive->name->value . ($params ? "(" . substr($params, 2) . ")" : "");
+                $params .= "  {$attName}: \"{$attValue}\"";
             }
+            $lines[] = "    @" . $dirName . ($params ? "(" . substr($params, 2) . ")" : "");
         }
+        // $ast = $field->astNode;
+        // if ($ast && !empty($ast->directives)) {
+        //     foreach ($ast->directives as $directive) {
+        //         $params = '';
+        //         foreach ($directive->arguments as $arg) {
+        //             if ($arg->name->value == 'format' && ($arg->value->value == 'date' || $arg->value->value == 'date-time')) {
+        //                 $fieldType = 'Date';
+        //             }
+        //             $params .= "  {$arg->name->value}: \"" . $arg->value->value . "\"";
+        //         }
+        //         $lines[] = "    @" . $directive->name->value . ($params ? "(" . substr($params, 2) . ")" : "");
+        //     }
+        // }
         return $fieldType;
     }
 
