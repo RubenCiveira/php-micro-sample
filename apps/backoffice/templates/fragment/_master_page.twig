@@ -164,7 +164,9 @@
             {% else %}
             document.getElementById('{{action.name}}').value = element;
             {% if action.code %}
-                {{ action.code | raw }}
+                if( value ) {
+                    {{ action.code | raw }}
+                }
             {% endif %}
             {% endif %}
         {% endfor %}

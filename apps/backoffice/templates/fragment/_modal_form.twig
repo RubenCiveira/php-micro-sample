@@ -2,6 +2,7 @@
     {% import 'fragment/_form.twig' as forms %}
 
     <input type="hidden" name="{{ meta.id }}" id="{{ prefix }}-{{ meta.id}}" />
+    <input type="hidden" name="{{ prefix }}" id="{{ prefix }}" />
     {{ forms.form(prefix, fields) }}
 
     <div class="modal-footer">
@@ -12,6 +13,7 @@
 
 {% macro assign(prefix, meta, fields) %}
     if( value ) {
+        document.getElementById('{{prefix}}').value = value.{{ meta.id }};
         document.getElementById('{{prefix}}-{{ meta.id }}').value = value.{{ meta.id }};
         {% for field in fields %}
         document.getElementById('{{prefix}}-{{ field.name }}').value = value.{{ field.name }};
@@ -22,6 +24,7 @@
         {% endif %}
         {% endfor %}
     } else {
+        document.getElementById('{{prefix}}').value = '';
         document.getElementById('{{prefix}}-{{ meta.id }}').value = '';
         {% for field in fields %}
         document.getElementById('{{prefix}}-{{ field.name }}').value = '';
