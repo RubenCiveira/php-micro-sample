@@ -24,27 +24,29 @@ class PackagesView extends MasterDetailView
 
     protected function create(array $data)
     {
-        $pack = new Package(
-            id: $data['id'],
-            name: $data['name'],
-            url: $data['url'],
-            type: $data['type'],
-            status: $data['status'],
-            description: $data['description']
-        );
+        $pack = Package::from($data);
+        // $pack = new Package(
+        //     id: $data['id'],
+        //     name: $data['name'],
+        //     url: $data['url'],
+        //     type: $data['type'],
+        //     status: $data['status'],
+        //     description: $data['description']
+        // );
         $this->packages->createPackage($pack);
     }
 
     protected function update(string $id, $data)
     {
-        $pack = new Package(
-            id: $data['id'],
-            name: $data['name'],
-            url: $data['url'],
-            type: $data['type'],
-            status: $data['status'],
-            description: $data['description']
-        );
+        $pack = Package::from($data);
+        // $pack = new Package(
+        //     id: $data['id'],
+        //     name: $data['name'],
+        //     url: $data['url'],
+        //     type: $data['type'],
+        //     status: $data['status'],
+        //     description: $data['description']
+        // );
         $this->packages->updatePackage($id, $pack);
     }
 

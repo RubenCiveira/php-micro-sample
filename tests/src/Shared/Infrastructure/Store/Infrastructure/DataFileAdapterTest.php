@@ -4,6 +4,8 @@ namespace Tests\Shared\Infrastructure\Gateway;
 
 use Civi\Repomanager\Shared\Infrastructure\Store\Gateway\DataGateway;
 use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryParam;
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\AccessPipeline;
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExecPipeline;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 use PHPUnit\Framework\TestCase;
@@ -16,8 +18,12 @@ class DataFileAdapterTest extends TestCase
     protected function setUp(): void
     {
         $sdl = file_get_contents(__DIR__ . '/../../../../../mock/schema_full.graphql');
+        $accessPipeline = $this->createMock(AccessPipeline::class);
+        $accessPipeline->method('applyAccessPipeline')->willReturnCallback(fn(...$args) => $args[2]);
+        $execPipeline = $this->createMock(ExecPipeline::class);
+        $execPipeline->method('executeOperation')->willReturnCallback(fn(...$args) => $args[3]);
         $this->schema = BuildSchema::build($sdl);
-        $this->adapter = new DataGateway( __DIR__ . '/../../../../../mock/' );
+        $this->adapter = new DataGateway( $accessPipeline, $execPipeline, __DIR__ . '/../../../../../mock/' );
     }
 
     public function test_filter_by_provincia_nombre(): void

@@ -21,7 +21,7 @@ class GzipMiddleware
             $response = $response
                 ->withHeader('Content-Encoding', 'gzip')
                 ->withHeader('Vary', 'Accept-Encoding')
-                ->withHeader('Content-Length', strlen($gzipped));
+                ->withHeader('Content-Length', ''.strlen($gzipped));
     
             $response->getBody()->rewind();
             $response->getBody()->write($gzipped);

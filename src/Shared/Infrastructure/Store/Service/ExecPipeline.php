@@ -16,6 +16,7 @@ class ExecPipeline extends AbstractPipeline
         string $namespace,
         string $typeName,
         array $operations,
+        ?Closure $callback,
         array $data,
         ?array $original = null
     ): mixed {
@@ -60,6 +61,13 @@ class ExecPipeline extends AbstractPipeline
                     };
                 }
             }
+        }
+        if( $callback ) {
+            $handlers[] = function($param, $next) use ($callback) {
+                $callback();
+                $result = $next($param);
+                return $result;
+            };
         }
 
         // Ejecutar pipeline

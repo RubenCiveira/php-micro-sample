@@ -171,7 +171,6 @@ class GraphQLProcessor
         if( $type ) {
             foreach ($type->getFields() as $field) {
                 $baseType = Type::getNamedType($field->getType());
-                echo "<h1>  " . $field->getName() . " = " . $baseType->toString()  . "</h1>";
                 if( $data[$field->name] && is_a($baseType, ObjectType::class)) {
                     $id = '';
                     $ref = $schema->getType($baseType->name);

@@ -4,21 +4,28 @@ namespace Civi\Repomanager\Features\Repository\Package;
 
 class Package
 {
-       public function __construct(
-        public readonly string $id,
-        public readonly string $name,
-        public readonly string $url,
-        public readonly string $type,
-        public readonly string $status,
-        public readonly string $description
-    ) {
-    }
+    public string $id;
+    public string $name;
+    public string $url;
+    public string $type;
+    public string $status;
+    public string $description;
+
     public static function from($data): Package
     {
-        return new Package($data['id'], $data['name'], $data['url'], $data['type'], $data['status'], $data['description']);
+        $pack = new Package();
+        $pack->id = $data['id'];
+        $pack->name = $data['name'];
+        $pack->url = $data['url'];
+        $pack->type = $data['type'];
+        $pack->status = $data['status'];
+        $pack->description = $data['description'];
+        return $pack;
     }
     public function withStatus(string $status): Package
     {
-        return new Package( $this->id, $this->name, $this->url, $this->type, $status, $this->description);
+        $pack = clone $this;
+        $pack->status = $status;
+        return $pack;
     }
 }

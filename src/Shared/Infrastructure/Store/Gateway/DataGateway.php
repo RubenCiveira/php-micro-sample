@@ -6,17 +6,24 @@ use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryParam;
 use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryFilter;
 use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryOperator;
 use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryCondition;
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\AccessPipeline;
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExecPipeline;
 use InvalidArgumentException;
 
 class DataGateway
 {
-    public function __construct(private readonly string $baseDir = __DIR__ . '/../../../../../storage')
-    {
+    public function __construct(
+        private readonly AccessPipeline $accessPipeline,
+        private readonly ExecPipeline $execPipeline,
+        private readonly string $baseDir = __DIR__ . '/../../../../../storage'
+    ) {
     }
 
     public function create(string $namespace, string $typeName, string $idName, string $from, array $data): array
     {
-        $this->save($namespace, $typeName, $data[$idName], $data);
+        $data = $this->execPipeline->executeOperation($namespace, $typeName, [ucfirst($from), 'Write', 'Read'], function () use ($namespace, $typeName, $data, $idName) {
+            $this->save($namespace, $typeName, $data[$idName], $data);
+        }, $data);
         return [$data];
     }
     public function modify(string $namespace, string $typeName, string $idName, string $from, DataQueryParam $filters, array $data): array
@@ -28,8 +35,10 @@ class DataGateway
         $saved = [];
         foreach ($readed as $read) {
             $save = array_merge($read, $data);
-            $this->save($namespace, $typeName, $read[$idName], $save);
-            $saved[] = $save;
+            $saved[] = $this->execPipeline->executeOperation($namespace, $typeName, [ucfirst($from), 'Write', 'Read'], function () use ($namespace, $typeName, $read, $save, $idName) {
+                $this->save($namespace, $typeName, $read[$idName], $save);
+                return $save;
+            }, $save, $read);
         }
         return $saved;
     }
@@ -39,14 +48,19 @@ class DataGateway
         $path = "{$this->baseDir}/$namespace/$typeName/";
         if (is_dir($path)) {
             foreach ($readed as $read) {
-                $file = "{$path}/{$read[$idName]}.json";
-                unlink($file);
+                $this->execPipeline->executeOperation($namespace, $typeName, ['Delete'], function () use ($read, $path, $idName) {
+                    $file = "{$path}/{$read[$idName]}.json";
+                    unlink($file);
+                }, $read, $read);
             }
         }
     }
 
-    public function fetch(string $namespace, string $typeName, DataQueryParam $filters): array
+    public function fetch(string $namespace, string $typeName, DataQueryParam $originalFilter): array
     {
+        $result = $this->accessPipeline->applyAccessPipeline($namespace, $typeName, $originalFilter->toArray());
+        $filters = DataQueryParam::replaceInto($originalFilter, $result);
+
         $path = "{$this->baseDir}/$namespace/$typeName/";
         if (!is_dir($path)) {
             return [];
@@ -96,7 +110,12 @@ class DataGateway
             $items = array_slice($items, 0, $limit);
         }
 
-        return array_values($items);
+        $values = array_values($items);
+        $result = [];
+        foreach($values as $value) {
+            $result[] = $this->execPipeline->executeOperation($namespace, $typeName, ['Read'], null, $value);
+        }
+        return $result;
     }
 
     private function save(string $namespace, string $typeName, string $id, array $data)

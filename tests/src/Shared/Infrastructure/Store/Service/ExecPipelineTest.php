@@ -20,6 +20,7 @@ class ExecPipelineTest extends TestCase
             'Namespace',
             'Tipo',
             [],
+            null,
             ['foo' => 'bar']
         );
         $this->assertEquals(['foo' => 'bar'], $result);
@@ -42,6 +43,7 @@ class ExecPipelineTest extends TestCase
             'App',
             'Cliente',
             ['Write'],
+            null,
             ['nombre' => 'Juan'],
             ['nombre' => 'Original', '__original_nombre' => 'TbOriginal']
         );
@@ -72,6 +74,7 @@ class ExecPipelineTest extends TestCase
             'App',
             'Pedido',
             ['Write'],
+            null,
             ['estado' => 'pendiente']
         );
 
@@ -95,6 +98,7 @@ class ExecPipelineTest extends TestCase
             'App',
             'Cliente',
             ['Enable'],
+            null,
             ['id' => 123, 'name' => 'Luis'],
             ['id' => 123, 'name' => 'Juan']
         );
@@ -119,6 +123,7 @@ class ExecPipelineTest extends TestCase
             'App',
             'Cliente',
             ['Enable'],
+            null,
             ['id' => 123, 'name' => 'Luis'],
             ['id' => 123, 'name' => 'Juan']
         );

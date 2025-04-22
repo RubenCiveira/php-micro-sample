@@ -14,15 +14,28 @@ class DataQueryParam
     private array $since = [];
     private ?int $limit = null;
 
+    private array $original = [];
+
     public function __construct(
         private readonly Schema $schema,
         private readonly string $resource,
         array $args
     ) {
+        $this->original = $args;
         $this->processFilter($args['filter'] ?? []);
         $this->processOrder($args['order'] ?? []);
         $this->processSince($args['since'] ?? []);
         $this->limit = $args['limite'] ?? null;
+    }
+
+    public static function replaceInto(DataQueryParam $base, array $filter): DataQueryParam
+    {
+        return new DataQueryParam($base->schema, $base->resource, $filter);
+    }
+
+    public function toArray(): array
+    {
+        return $this->original;
     }
 
     public function add(string $name, array $value): void
