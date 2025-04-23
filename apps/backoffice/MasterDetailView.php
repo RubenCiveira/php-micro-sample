@@ -80,15 +80,10 @@ abstract class MasterDetailView
         // Renderizar la plantilla con los datos
 
         $html = $twig->render($name . ".html.twig", $context);
-        $htmlMin = new HtmlMin();
-        $html = $htmlMin->minify($html);
-        // $html = $this->minifyHtml( $html );
+        // $htmlMin = new HtmlMin();
+        // $html = $htmlMin->minify($html);
         $response->getBody()->write($html);
         return $response;
-    }
-
-    private function minifyHtml(string $html): string {
-        return preg_replace(['/>\s+</', '/\s+/'], ['><', ' '], $html);
     }
     
 }
