@@ -2,17 +2,15 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\View\Twig;
 
-use Civi\Repomanager\Shared\Infrastructure\View\Twig\Bootstrap\CardNode;
-use Civi\Repomanager\Shared\Infrastructure\View\Twig\Bootstrap\GridNode;
 use Twig\Token;
 use Twig\TokenParser\AbstractTokenParser;
 use Twig\Node\Node;
 
 class ComponentTokenParser extends AbstractTokenParser
 {
-    private readonly string $kind;
-    public function __construct(private readonly string $name) {
-        $this->kind = 'Civi\\Repomanager\\Shared\\Infrastructure\\View\\Twig\\Bootstrap\\' . ucfirst($name) . 'Node';
+    private readonly ?string $kind;
+    public function __construct(private readonly ?string $name, private readonly ?string $as = null, private readonly array $attributes = [], private readonly bool $withBody = false) {
+        $this->kind = $this->name ? 'Civi\\Repomanager\\Shared\\Infrastructure\\View\\Twig\\Bootstrap\\' . ucfirst($name) . 'Node' : null;
     }
 
     public function parse(Token $token): Node
@@ -30,15 +28,20 @@ class ComponentTokenParser extends AbstractTokenParser
 
         $stream->expect(Token::BLOCK_END_TYPE);
 
-        $body = $this->parser->subparse(fn(Token $t) => $t->test("end{$this->name}"), true);
+        $tag = $this->name ?? lcfirst($this->as);
+
+        $body = $this->parser->subparse(fn(Token $t) => $t->test("end{$tag}"), true);
 
         $stream->expect(Token::BLOCK_END_TYPE); // for endcard
-
-        return new $this->kind($body, $attributes, $lineno, $this->getTag());
+        if( $this->kind ) {
+            return new $this->kind($body, $attributes, $lineno, $this->getTag());
+        } else {
+            return new ComponentNode($body, $attributes, $lineno, $this->getTag(), $this->as, $this->attributes, $this->withBody);
+        }
     }
 
     public function getTag(): string
     {
-        return $this->name;
+        return $this->name ?? lcfirst($this->as);
     }
 }

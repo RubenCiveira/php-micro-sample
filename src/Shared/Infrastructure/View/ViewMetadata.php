@@ -124,11 +124,11 @@ class ViewMetadata
                 JS, 
             'template' => <<<HTML
                 <div id="jsonContent" class="json-display"></div>
-                <div style="display: flex; justify-content: space-between;">
-                    <button class="copy-btn" onclick="copyToClipboard()">Copiar al Portapapeles</button>
-                    <button class="btn" onclick="downloadAuthJson()">Descargar .auth.json</button>
-                </div>
                 HTML,
+            'buttons' => [
+                'copyToClipboard()' => 'Copiar al portapapeles',
+                'downloadAuthJson()' => 'Descargar .auth.json'
+            ],
             'functions' => <<<JS
                 function copyToClipboard() {
                     const jsonContent = document.getElementById('jsonContent').textContent;

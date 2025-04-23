@@ -34,6 +34,7 @@ class CredentialsView extends MasterDetailView
         return $view 
             // ->markReadonly(['name', 'user'])
             ->excludeColumn('pass')
+            ->addFilter('name')
             ->addResumeAction('generateAuthFile', 'Generar .auth.json', '
                     JSON.stringify({
                         "http-basic": {
