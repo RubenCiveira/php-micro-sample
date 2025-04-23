@@ -10,13 +10,13 @@ class MasterDetail
     public function __construct(
         private readonly ?array $meta,
         private readonly ?array $values,
-        private readonly ?string $url,
+        private readonly ?string $target,
         private readonly string $body
     ) {
         $this->id = 'md' . time();
         $this->actions = [];
         foreach($meta['actions'] as $action) {
-            $this->actions[] = new Action( $meta, $action );
+            $this->actions[] = new Action( $target, $meta, $action );
         }
     }
     public function render(): string

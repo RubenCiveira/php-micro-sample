@@ -21,7 +21,7 @@ class ComponentExtension extends AbstractExtension implements GlobalsInterface
             new ComponentTokenParser(null, 'Main', [], true),
             new ComponentTokenParser(null, 'Nav', ['url', 'title', 'smallTitle'], true),
             new ComponentTokenParser(null, 'NavLink', ['url'], true),
-            new ComponentTokenParser(null, 'MasterDetail', ['meta', 'values', 'url'], true),
+            new ComponentTokenParser(null, 'MasterDetail', ['meta', 'values', 'target'], true),
         ];
     }
 }

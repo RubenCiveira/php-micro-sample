@@ -11,6 +11,6 @@ class DialogButton
 
     public function render(): string
     {
-        return "<button type=\"button\" ".($this->action?" onclick=\"{$this->action}\"":"")." class=\"btn ".($this->action?"btn-primary":"btn-secondary")."\">{$this->body}</button>";
+        return "<button type=\"button\" ".($this->action?" onclick=\"{$this->action}\"":" data-bs-dismiss=\"modal\"")." class=\"btn ".($this->action?"btn-primary":"btn-secondary")."\">{$this->body}</button>";
     }
 }

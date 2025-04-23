@@ -5,7 +5,7 @@ namespace Civi\Repomanager\Shared\Infrastructure\View\Toolkit\Bootstrap;
 class Action
 {
     public readonly string $id;
-    public function __construct(private readonly array $meta, private readonly array $action) 
+    public function __construct(private readonly string $target, private readonly array $meta, private readonly array $action) 
     {
         $this->id = $action['name'] . time();
     }
@@ -26,27 +26,42 @@ class Action
     }
     public function render(): string
     {
-        $body = "Accion {$this->action['label']}"
-            . "<input type=\"hidden\" name=\"{$this->action['name']}\" id=\"sel-{$this->id}\" />";
+        $body = "Accion {$this->action['label']}";
+            $form = null;
         if( $this->action['template'] ?? false) {
             $body .= $this->action['template'];
+        } else if( $this->action['form']  ?? false ) {
+            $form = new Form($this->action['name'], $this->target, $this->meta, $this->action['form']);
+            $body .= $form->render();
+        } else {
+            $body = "<form method=\"POST\" target=\"{$this->target}\" id=\"frm-{$this->id}\">"
+                . "<input type=\"hidden\" name=\"{$this->action['name']}\" id=\"sel-{$this->id}\" /></form>"
+                . "<p>¿Estás seguro de que deseas {$this->action['label']}?</p>";
         }
         $dialog = new Dialog(id: "{$this->action['name']}-{$this->id}", title: $this->action['label'], size: null, subtitle: null, body: $body);
+        $footer = new DialogFooter(null);
         if( $this->action['buttons'] ?? false ) {
-            $footer = new DialogFooter(null);
             foreach($this->action['buttons'] as $btCall => $btLabel) {
                 $footer->addButton( new DialogButton($btCall, $btLabel) );
             }
-            $dialog->appendFooter( $footer );
+        } else  {
+            $footer->addButton(new DialogButton(null, 'Cancel'));
+            $footer->addButton(new DialogButton("submit{$this->id}()", $this->action['name']));
+        }
+        $dialog->appendFooter( $footer );
+        $code = $this->action['code']??'';
+        if( $form ) {
+            $code .= $form->assign("value");
+        } else {
+            $code = "document.getElementById('sel-{$this->id}').value = value ? value.{$this->meta['id']} : '';{$code}";
         }
         return $dialog->render() . "<script>
             function run{$this->id}(value) {
                 const myModal = new bootstrap.Modal(document.getElementById('{$this->action['name']}-{$this->id}'));
-                document.getElementById('sel-{$this->id}').value = value.{$this->meta['id']};
-                ".($this->action['code']??'')."
+                {$code}
                 myModal.show();
             }
-            ".($this->action['functions']??'')."
+            ".($this->action['functions']??"function submit{$this->id}() {".($form? $form->submit() : "document.getElementById('frm-{$this->id}').submit()")."};")."
         </script>";
     }
 }
