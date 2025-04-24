@@ -2,7 +2,7 @@
 
 namespace Tests\Shared\Infrastructure\Service;
 
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\GraphQlEnrich;
+use Civi\Store\Service\GraphQlEnrich;
 use PHPUnit\Framework\TestCase;
 
 class GraphQlEnrichTest extends TestCase

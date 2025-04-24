@@ -2,13 +2,13 @@
 
 namespace Tests\Shared\Infrastructure\Gateway;
 
-use Civi\Repomanager\Shared\Infrastructure\Store\Gateway\DataGateway;
-use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryParam;
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExecPipeline;
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\RestrictionPipeline;
-use Civi\Repomanager\Shared\Security\Guard\AccessGuard;
-use Civi\Repomanager\Shared\Security\Redaction\OutputRedactor;
-use Civi\Repomanager\Shared\Security\Sanitization\InputSanitizer;
+use Civi\Store\Gateway\DataGateway;
+use Civi\Store\DataQueryParam;
+use Civi\Store\Service\ExecPipeline;
+use Civi\Store\Service\RestrictionPipeline;
+use Civi\SecurityGuard\AccessGuard;
+use Civi\SecurityRedaction\OutputRedactor;
+use Civi\SecuritySanitization\InputSanitizer;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 use PHPUnit\Framework\TestCase;

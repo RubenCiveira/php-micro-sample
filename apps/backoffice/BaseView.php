@@ -2,7 +2,7 @@
 
 namespace Civi\RepomanagerBackoffice;
 
-use Civi\Repomanager\Shared\Infrastructure\View\Twig\ComponentExtension;
+use Civi\View\Twig\ComponentExtension;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;

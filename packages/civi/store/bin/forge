@@ -2,8 +2,8 @@
 <?php
 
 require __DIR__ . '/../vendor/autoload.php';
-use Civi\Repomanager\Shared\Infrastructure\Store\Gateway\SchemaGateway;
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\GraphQlEnrich;
+use Civi\Store\Gateway\SchemaGateway;
+use Civi\Store\Service\GraphQlEnrich;
 use DI\Container;
 use GraphQL\Utils\BuildSchema;
 

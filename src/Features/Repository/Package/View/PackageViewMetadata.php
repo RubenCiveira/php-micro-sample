@@ -3,9 +3,9 @@
 namespace Civi\Repomanager\Features\Repository\Package\View;
 
 use Civi\Repomanager\Features\Repository\Package\Package;
-use Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata;
-use Civi\Repomanager\Shared\Infrastructure\Store\EntityViewMetadata;
-use Civi\Repomanager\Shared\Infrastructure\Store\Repository;
+use Civi\View\ViewMetadata;
+use Civi\Store\EntityViewMetadata;
+use Civi\Store\Repository;
 class PackageViewMetadata
 {
     private readonly EntityViewMetadata $repository;

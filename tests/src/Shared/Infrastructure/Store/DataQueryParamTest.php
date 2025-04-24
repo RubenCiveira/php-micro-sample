@@ -2,9 +2,9 @@
 
 namespace Tests\Shared\Infrastructure;
 
-use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryFilter;
-use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryOperator;
-use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryParam;
+use Civi\Store\Filter\DataQueryFilter;
+use Civi\Store\Filter\DataQueryOperator;
+use Civi\Store\DataQueryParam;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 use PHPUnit\Framework\TestCase;

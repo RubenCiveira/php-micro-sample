@@ -3,8 +3,8 @@
 namespace Civi\Repomanager\Features\Repository\Credential\Gateway;
 
 use Civi\Repomanager\Features\Repository\Credential\Credential;
-use Civi\Repomanager\Shared\Infrastructure\Store\EntityRepository;
-use Civi\Repomanager\Shared\Infrastructure\Store\Repository;
+use Civi\Store\EntityRepository;
+use Civi\Store\Repository;
 class CredentialGateway
 {
     private readonly EntityRepository $repository;

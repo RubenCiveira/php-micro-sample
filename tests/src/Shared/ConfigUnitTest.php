@@ -3,7 +3,7 @@
 namespace Tests\Shared;
 
 use PHPUnit\Framework\TestCase;
-use Civi\Repomanager\Shared\Config;
+use Civi\Micro\Config;
 
 class ConfigUnitTest extends TestCase
 {

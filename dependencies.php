@@ -2,8 +2,8 @@
 
 use Civi\Repomanager\Bootstrap\Security\SecurityConfig;
 use Civi\Repomanager\Features\Repository\Package\Package;
-use Civi\Repomanager\Shared\Config;
-use Civi\Repomanager\Shared\Infrastructure\Store\ClearArchitectureRegister;
+use Civi\Micro\Config;
+use Civi\Store\ClearArchitectureRegister;
 use DI\Container;
 
 return function (Container $container) {

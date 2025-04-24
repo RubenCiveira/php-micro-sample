@@ -1,8 +1,6 @@
 <?php
 
-use Civi\Repomanager\Shared\ProjectLocator;
-use DI\Container;
-use Slim\Factory\AppFactory;
+use Civi\Micro\ProjectLocator;
 
 require __DIR__ . '/../vendor/autoload.php';
 

@@ -81,13 +81,13 @@ function generateEntityViewFromType(ObjectType $type, string $group, string $fqn
             new Node\Stmt\UseUse(new Node\Name($fqn)),
         ]),
         new Node\Stmt\Use_([
-            new Node\Stmt\UseUse(new Node\Name('Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata')),
+            new Node\Stmt\UseUse(new Node\Name('Civi\View\ViewMetadata')),
         ]),
         new Node\Stmt\Use_([
-            new Node\Stmt\UseUse(new Node\Name('Civi\Repomanager\Shared\Infrastructure\Store\EntityViewMetadata')),
+            new Node\Stmt\UseUse(new Node\Name('Civi\Store\EntityViewMetadata')),
         ]),
         new Node\Stmt\Use_([
-            new Node\Stmt\UseUse(new Node\Name('Civi\Repomanager\Shared\Infrastructure\Store\Repository')),
+            new Node\Stmt\UseUse(new Node\Name('Civi\Store\Repository')),
         ])
     ];
 

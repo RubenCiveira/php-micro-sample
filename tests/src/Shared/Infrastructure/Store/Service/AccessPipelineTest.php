@@ -2,8 +2,8 @@
 
 namespace Tests\Shared\Infrastructure\Service;
 
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\AccessPipeline;
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\RestrictionPipeline;
+use Civi\Store\Service\AccessPipeline;
+use Civi\Store\Service\RestrictionPipeline;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 

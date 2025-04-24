@@ -1,6 +1,6 @@
 <?php
 
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExtractDirectives;
+use Civi\Store\Service\ExtractDirectives;
 use GraphQL\Type\Definition\EnumType;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\NamedType;

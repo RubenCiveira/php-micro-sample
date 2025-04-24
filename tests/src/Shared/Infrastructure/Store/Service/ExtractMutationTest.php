@@ -2,7 +2,7 @@
 
 namespace Tests\Shared\Infrastructure\Service;
 
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExtractMutation;
+use Civi\Store\Service\ExtractMutation;
 use PHPUnit\Framework\TestCase;
 
 class ExtractMutationTest extends TestCase

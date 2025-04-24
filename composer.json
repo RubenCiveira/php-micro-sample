@@ -1,43 +1,67 @@
 {
-    "name": "ruben.civeiraiglesia/docker-dashboard",
-    "bin": [
-        "bin/forge"
-    ],
-    "autoload": {
-        "psr-4": {
-            "Civi\\Repomanager\\": "src/",
-            "Civi\\RepomanagerBackoffice\\": "apps/backoffice/"
-        }
+  "name": "ruben.civeiraiglesia/docker-dashboard",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "bin": [
+    "bin/forge"
+  ],
+  "autoload": {
+    "psr-4": {
+      "Civi\\Repomanager\\": "src/",
+      "Civi\\RepomanagerBackoffice\\": "apps/backoffice/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "./packages/civi/micro"
     },
-    "autoload-dev": {
-        "psr-4": {
-            "Tests\\": "tests/"
-        }
+    {
+      "type": "path",
+      "url": "./packages/civi/security"
     },
-    "authors": [
-        {
-            "name": "Ruben civeira",
-            "email": "ruben.civeira@gmail.com"
-        }
-    ],
-    "require": {
-        "league/oauth2-google": "^4.0",
-        "slim/slim": "^4.14",
-        "slim/psr7": "^1.7",
-        "ramsey/uuid": "^4.7",
-        "vlucas/phpdotenv": "^5.6",
-        "symfony/yaml": "^7.2",
-        "php-di/php-di": "^7.0",
-        "webonyx/graphql-php": "^15.20",
-        "twig/twig": "^3.0",
-        "monolog/monolog": "^3.7",
-        "voku/html-min": "^4.5",
-        "justinrainbow/json-schema": "^6.4",
-        "opis/json-schema": "*",
-        "matthiasmullie/minify": "^1.3"
+    {
+      "type": "path",
+      "url": "./packages/civi/view"
     },
-    "require-dev": {
-        "phpunit/phpunit": "^12.1",
-        "nikic/php-parser": "^5.4"
-      }
+    {
+      "type": "path",
+      "url": "./packages/civi/store"
+    }
+  ],
+  "authors": [
+    {
+      "name": "Ruben civeira",
+      "email": "ruben.civeira@gmail.com"
+    }
+  ],
+  "require": {
+    "civi/micro": "*",
+    "civi/security": "*",
+    "civi/store": "*",
+    "civi/view": "*",
+    "league/oauth2-google": "^4.0",
+    "slim/slim": "^4.14",
+    "slim/psr7": "^1.7",
+    "ramsey/uuid": "^4.7",
+    "vlucas/phpdotenv": "^5.6",
+    "symfony/yaml": "^7.2",
+    "php-di/php-di": "^7.0",
+    "webonyx/graphql-php": "^15.20",
+    "twig/twig": "^3.0",
+    "monolog/monolog": "^3.7",
+    "voku/html-min": "^4.5",
+    "justinrainbow/json-schema": "^6.4",
+    "opis/json-schema": "*",
+    "matthiasmullie/minify": "^1.3"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^12.1",
+    "nikic/php-parser": "^5.4"
+  }
 }

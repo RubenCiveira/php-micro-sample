@@ -3,8 +3,8 @@ namespace Civi\RepomanagerBackoffice;
 
 use Civi\Repomanager\Features\Repository\Package\View\PackageViewMetadata;
 use Civi\Repomanager\Features\Repository\Package\Gateway\PackageGateway;
-use Civi\Repomanager\Shared\Infrastructure\View\Twig\MasterDetailView;
-use Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata;
+use Civi\View\Twig\MasterDetailView;
+use Civi\View\ViewMetadata;
 
 class PackagesView extends MasterDetailView
 {

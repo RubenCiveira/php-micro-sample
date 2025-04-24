@@ -2,7 +2,7 @@
 
 namespace Tests\Shared\Infrastructure\Service;
 
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExecPipeline;
+use Civi\Store\Service\ExecPipeline;
 use Closure;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;

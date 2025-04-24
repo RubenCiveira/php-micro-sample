@@ -1,8 +1,8 @@
 <?php
 
 use Civi\Repomanager\Bootstrap\Security\SecurityConfig;
-use Civi\Repomanager\Shared\Infrastructure\Middleware\GzipMiddleware;
-use Civi\Repomanager\Shared\Infrastructure\Store\Endpoint\Register;
+use Civi\Micro\Middleware\GzipMiddleware;
+use Civi\Store\Endpoint\Register;
 use Civi\RepomanagerBackoffice\ConfigurationView;
 use Civi\RepomanagerBackoffice\CredentialsView;
 use Civi\RepomanagerBackoffice\IndexView;

@@ -3,8 +3,8 @@
 namespace Civi\Repomanager\Features\Repository\Package\Gateway;
 
 use Civi\Repomanager\Features\Repository\Package\Package;
-use Civi\Repomanager\Shared\Infrastructure\Store\EntityRepository;
-use Civi\Repomanager\Shared\Infrastructure\Store\Repository;
+use Civi\Store\EntityRepository;
+use Civi\Store\Repository;
 class PackageGateway
 {
     private readonly EntityRepository $repository;

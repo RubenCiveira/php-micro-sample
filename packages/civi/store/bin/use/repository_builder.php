@@ -1,6 +1,6 @@
 <?php
 
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExtractMutation;
+use Civi\Store\Service\ExtractMutation;
 use GraphQL\Type\Definition\ObjectType;
 use PhpParser\BuilderFactory;
 use PhpParser\Node\Scalar\String_;
@@ -33,10 +33,10 @@ function generateEntityRepositoryFromType(ObjectType $type, string $group, strin
             new Node\Stmt\UseUse(new Node\Name($entityClass)),
         ]),
         new Node\Stmt\Use_([
-            new Node\Stmt\UseUse(new Node\Name('Civi\Repomanager\Shared\Infrastructure\Store\EntityRepository')),
+            new Node\Stmt\UseUse(new Node\Name('Civi\Store\EntityRepository')),
         ]),
         new Node\Stmt\Use_([
-            new Node\Stmt\UseUse(new Node\Name('Civi\Repomanager\Shared\Infrastructure\Store\Repository')),
+            new Node\Stmt\UseUse(new Node\Name('Civi\Store\Repository')),
         ])
     ];
 
