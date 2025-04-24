@@ -1,5 +1,7 @@
 {
     "name": "civi/store",
+    "minimum-stability": "dev",
+    "prefer-stable": true,  
     "bin": [
         "bin/forge"
     ],
@@ -13,6 +15,16 @@
             "Tests\\": "tests/"
         }
     },
+    "repositories": [
+        {
+          "type": "path",
+          "url": "/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/micro"
+        },
+        {
+          "type": "path",
+          "url": "/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/security"
+        }
+      ],
     "authors": [
         {
             "name": "Ruben civeira",

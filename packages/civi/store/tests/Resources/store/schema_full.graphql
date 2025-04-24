@@ -1,0 +1,23 @@
+
+type Provincia {
+  id: ID!
+  nombre: String!
+  poblacion: Int
+}
+
+type Oficina {
+  id: ID!
+  nombre: String!
+  provincia: Provincia
+  empleados: Int
+  creadaEn: String
+}
+
+type Empleado {
+  id: ID!
+  nombre: String!
+  oficina: Oficina
+  edad: Int
+  fechaIngreso: String
+  salario: Float
+}

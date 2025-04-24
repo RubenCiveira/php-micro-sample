@@ -1,6 +1,8 @@
 {
     "name": "civi/view",
-    "autoload": {
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+      "autoload": {
         "psr-4": {
             "Civi\\View\\": "src/"
         }
