@@ -13,7 +13,7 @@ composer.lock
 
 # Archivos de caché y logs
 .phpunit.result.cache
-/.cache/
+.cache/
 .assets/
 /node_modules/
 .DS_Store

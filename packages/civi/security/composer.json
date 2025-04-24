@@ -1,0 +1,32 @@
+{
+    "name": "civi/security",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+      "autoload": {
+        "psr-4": {
+            "Civi\\Security\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ruben civeira",
+            "email": "ruben.civeira@gmail.com"
+        }
+    ],
+    "require": {
+        "civi/micro": "*",
+        "slim/slim": "^4.14",
+        "slim/psr7": "^1.7",
+        "ramsey/uuid": "^4.7",
+        "php-di/php-di": "^7.0",
+        "monolog/monolog": "^3.7"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.1"
+      }
+}
