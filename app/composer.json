@@ -32,6 +32,10 @@
     {
       "type": "path",
       "url": "/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/store"
+    },
+    {
+      "type": "path",
+      "url": "/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/security-store"
     }
   ],
   "authors": [
@@ -45,6 +49,7 @@
     "civi/security": "*",
     "civi/store": "*",
     "civi/view": "*",
+    "civi/security-store": "*",
     "league/oauth2-google": "^4.0",
     "slim/slim": "^4.14",
     "slim/psr7": "^1.7",

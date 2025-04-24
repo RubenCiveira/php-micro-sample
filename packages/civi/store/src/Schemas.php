@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Civi\Store;
 
@@ -11,17 +13,26 @@ use GraphQL\Utils\BuildSchema;
 
 class Schemas
 {
+    private static array $registered = [];
     private readonly string $baseDir;
 
     public function __construct(private readonly SchemaGateway $schemas, string $base = '')
     {
         $this->baseDir = $base !== '' ? $base : ProjectLocator::getRootPath();
+        foreach (self::$registered as $namesace => $directory) {
+            $schemas->install($namesace, $directory);
+        }
+    }
+
+    public static function register(string $namespace, string $directory)
+    {
+        self::$registered[$namespace] = $directory;
     }
 
     public function sdl(string $namespace): string
     {
-        [,$file] = $this->buildSchema($namespace);
-        return file_get_contents( $file );
+        [, $file] = $this->buildSchema($namespace);
+        return file_get_contents($file);
     }
 
     public function schema(string $namespace): Schema
@@ -36,10 +47,10 @@ class Schemas
         $generator = new JsonSchemaGenerator();
         $jsonSchema = $generator->generateSchema($schema, $resource);
         $cache = "{$this->baseDir}/.cache/schemas";
-        file_put_contents("{$cache}/{$namespace}-{$resource}.json-schema" , $jsonSchema);
-        return json_decode( $jsonSchema, true);
+        file_put_contents("{$cache}/{$namespace}-{$resource}.json-schema", $jsonSchema);
+        return json_decode($jsonSchema, true);
     }
-    
+
     private function buildSchema(string $namespace): array
     {
         $result = [];
@@ -50,7 +61,7 @@ class Schemas
 
         $enrich = new GraphQlEnrich();
         $newContent = $enrich->augmentAndSave($this->loadSdlBase($namespace));
-        file_put_contents("{$cache}/{$namespace}-expand.graphql" , $newContent);
+        file_put_contents("{$cache}/{$namespace}-expand.graphql", $newContent);
         $result[] = BuildSchema::build($newContent);
         $result[] = "{$cache}/{$namespace}-expand.graphql";
 

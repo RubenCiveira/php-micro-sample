@@ -15,9 +15,12 @@
     {% navHeader
           url=path('')
           title="Gestor de aplicaciones y despliegues" smallTitle="Aplicaciones" %}
-        {% navLink url=path('credentials') %} Credenciales {% endnavLink %}
-        {% navLink url=path('packages') %} Paquetes {% endnavLink %}
-        {% navLink url=path('configuration') %} Configuracion {% endnavLink %}
+
+        {% for name,url in modules('backoffice') %}
+            {% if url != '/' %}
+                {% navLink url=path(url) %} {{name}} {% endnavLink %}
+            {% endif %}
+        {% endfor %}
     {% endnavHeader %}
 
     {% main %}

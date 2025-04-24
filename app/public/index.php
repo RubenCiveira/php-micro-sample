@@ -1,9 +1,9 @@
 <?php
 
-use Civi\Micro\ProjectLocator;
+use Civi\Micro\AppBuilder;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$app = ProjectLocator::buildApp();
+$app = AppBuilder::buildApp();
 
 $app->run();

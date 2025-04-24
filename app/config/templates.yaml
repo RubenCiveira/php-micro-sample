@@ -1,0 +1,3 @@
+app:
+  templates:
+    root-template-dir: apps/backoffice/templates

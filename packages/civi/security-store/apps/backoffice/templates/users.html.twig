@@ -1,0 +1,13 @@
+{% extends '@Root/base.html.twig' %}
+
+{% block title %}Credenciales - Gestor de Credenciales{% endblock %}
+
+{% block content %}
+
+    {% masterDetail meta=meta values=values target=path('users') %}
+    {% endmasterDetail %}
+    
+{% endblock %}
+
+{% block javascripts %}
+{% endblock %}

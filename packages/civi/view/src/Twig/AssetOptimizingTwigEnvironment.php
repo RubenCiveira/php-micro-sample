@@ -2,6 +2,7 @@
 
 namespace Civi\View\Twig;
 
+use Civi\Micro\AppBuilder;
 use Civi\View\AssetOptimizer;
 use Civi\Micro\ProjectLocator;
 
@@ -26,8 +27,11 @@ class AssetOptimizingTwigEnvironment extends Environment
         $root = ProjectLocator::getRootPath();
         $this->optimizer = new AssetOptimizer(  "{$root}/public/.assets", "{$basePath}/.assets");
 
+        $this->addFunction(new TwigFunction('modules', function($app) {
+           return AppBuilder::getViews($app);
+        }));
         $this->addFunction(new TwigFunction('path', function (string $routeName, array $params = []) use ($basePath) {
-            $url = "{$basePath}/{$routeName}";
+            $url = $basePath . ( str_starts_with($routeName, "/") ? "" : "/" ) . $routeName;
             if (!empty($params)) {
                 $url .= '?' . http_build_query($params);
             }

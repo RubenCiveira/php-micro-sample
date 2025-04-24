@@ -1,0 +1,20 @@
+directive @format(
+  type: String!
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @mutation(
+  create: Boolean = true, update: Boolean = true, delete: Boolean = true, extra: [String!] = []
+) on OBJECT
+
+type User
+    @mutation {
+  id: ID!
+  email: String!
+  until: String @format(type: "date-time")
+}
+
+type Rol
+    @mutation {
+  id: ID!
+  name: String!
+}

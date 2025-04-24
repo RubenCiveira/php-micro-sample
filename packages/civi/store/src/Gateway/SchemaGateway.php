@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Civi\Store\Gateway;
 
@@ -7,6 +9,7 @@ use Civi\Micro\ProjectLocator;
 class SchemaGateway
 {
     private readonly string $baseDir;
+    private array $aditional = [];
     public function __construct(string $base = '')
     {
         $this->baseDir = $base !== '' ? $base : ProjectLocator::getRootPath();
@@ -14,7 +17,11 @@ class SchemaGateway
 
     public function sdl(string $namespace): string
     {
-        $directory = "{$this->baseDir}/config/schemas/$namespace";
+        if (isset($this->aditional[$namespace])) {
+            $directory = $this->aditional[$namespace];
+        } else {
+            $directory = "{$this->baseDir}/config/schemas/$namespace";
+        }
         $result = '';
 
         if (!is_dir($directory)) {
@@ -25,5 +32,10 @@ class SchemaGateway
             $result .= file_get_contents($file) . "\n\n";
         }
         return $result;
+    }
+
+    public function install(string $namespace, string $directory)
+    {
+        $this->aditional[$namespace] = $directory;
     }
 }

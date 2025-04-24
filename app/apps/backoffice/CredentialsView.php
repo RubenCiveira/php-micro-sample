@@ -4,13 +4,14 @@ namespace Civi\RepomanagerBackoffice;
 use Civi\Repomanager\Features\Repository\Credential\Gateway\CredentialGateway;
 use Civi\Repomanager\Features\Repository\Credential\View\CredentialViewMetadata;
 use Civi\View\Twig\MasterDetailView;
+use Civi\View\ViewConfig;
 use Civi\View\ViewMetadata;
 
 class CredentialsView extends MasterDetailView
 {
-    public function __construct(private readonly CredentialGateway $credentials, private readonly CredentialViewMetadata $meta)
+    public function __construct(ViewConfig $config, private readonly CredentialGateway $credentials, private readonly CredentialViewMetadata $meta)
     {
-        parent::__construct('credentials', __DIR__ . '/templates');
+        parent::__construct($config, 'credentials', __DIR__ . '/templates');
     }
 
     protected function list(): array

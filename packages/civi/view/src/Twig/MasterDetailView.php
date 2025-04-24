@@ -1,18 +1,21 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Civi\View\Twig;
 
-use Civi\View\Twig\AssetOptimizingTwigEnvironment;
 use Civi\View\ViewMetadata;
-use Civi\Micro\ProjectLocator;
+use Civi\View\ViewConfig;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
 
-abstract class MasterDetailView
+abstract class MasterDetailView extends BaseView
 {
 
-    public function __construct(private readonly string $name, private readonly string $templates) 
+    public function __construct(private readonly ViewConfig $config, private readonly string $name, private readonly string $templates) 
     {
+        parent::__construct($config, $name, $templates);
 
     }
     public function post(Request $request, Response $response, array $args): Response
@@ -21,11 +24,11 @@ abstract class MasterDetailView
         $meta = $this->meta();
         try {
             $text = $meta->exec($data);
-            if( $response ) {
-                $_SESSION['indicator'] = ['kind' => 'primary', 'message' => $text];
+            if ($response) {
+                $this->addIndication($text);
             }
         } catch (\Exception $ex) {
-            $_SESSION['indicator'] = ['kind' => 'danger', 'message' => $ex->getMessage()];
+            $this->addErrorIndication($ex->getMessage());
         }
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
@@ -34,9 +37,9 @@ abstract class MasterDetailView
     public function get(Request $request, Response $response, array $args): Response
     {
         $params = $request->getQueryParams();
-        if( isset($params['fetch']) ) {
+        if (isset($params['fetch'])) {
             $values = array_map(fn($row) => is_array($row) ? $row : get_object_vars($row), $this->list());
-            $response->getBody()->write( json_encode($values) );
+            $response->getBody()->write(json_encode($values));
             return $response->withHeader('Content-Type', 'application/json');
         } else {
             $meta = $this->meta()->export();
@@ -45,32 +48,10 @@ abstract class MasterDetailView
                 'meta' => $meta,
                 'values' => []
             ];
-            return $this->render($this->name, $context, $request, $response);
+            return $this->render($context, $request, $response);
         }
     }
 
     protected abstract function meta(): ViewMetadata;
     protected abstract function list(): array;
-
-    private function redirect(string $target, Request $request, Response $response): Response
-    {
-        $routeContext = RouteContext::fromRequest($request);
-        $basePath = $routeContext->getBasePath();
-        return $response->withHeader('Location', "{$basePath}/{$target}")->withStatus(302);
-    }
-    private function render(string $name, array $context, Request $request, Response $response): Response
-    {
-        if (isset($_SESSION['indicator'])) {
-          $context['indicator'] = $_SESSION['indicator'];
-          unset($_SESSION['indicator']);
-        }
-        $loader = new \Twig\Loader\FilesystemLoader($this->templates );// __DIR__ . '/templates');
-        $twig = new AssetOptimizingTwigEnvironment($request, $loader, [
-            'cache' => ProjectLocator::getRootPath() . '/.cache',
-            'debug' => true,
-        ]);
-        $html = $twig->render("{$name}.html.twig", $context);
-        $response->getBody()->write($html);
-        return $response;
-    }
 }

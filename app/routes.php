@@ -1,5 +1,6 @@
 <?php
 
+use Civi\Micro\AppBuilder;
 use Civi\Repomanager\Bootstrap\Security\SecurityConfig;
 use Civi\Micro\Middleware\GzipMiddleware;
 use Civi\Store\Endpoint\Register;
@@ -15,13 +16,25 @@ return function (App $app) {
     $config = $container->get(SecurityConfig::class);
     $app->add(GoogleSecurityMiddleware::class);
     $app->add(GzipMiddleware::class);
-    $app->get("/" . basename($config->googleRedirectUri), [GoogleSecurityMiddleware::class, 'verifyAuthorization']);
-    $app->get("/", [IndexView::class, 'get']);
-    $app->get("/packages", [PackagesView::class, 'get']);
-    $app->post("/packages", [PackagesView::class, 'post']);
-    $app->get("/credentials", [CredentialsView::class, 'get']);
-    $app->post("/credentials", [CredentialsView::class, 'post']);
-    $app->get("/configuration", [ConfigurationView::class, 'get']);
+
+    if( AppBuilder::registerView('backoffice', 'home', "/") ) {
+        $app->get("/" . basename($config->googleRedirectUri), [GoogleSecurityMiddleware::class, 'verifyAuthorization']);
+        $app->get("/", [IndexView::class, 'get']);
+    }
+
+    if( AppBuilder::registerView('backoffice', 'Configuration', "/configuration") ) {
+        $app->get("/configuration", [ConfigurationView::class, 'get']);
+    }
+
+    if( AppBuilder::registerView('backoffice', 'Credentials', "/credentials") ) {
+        $app->get("/credentials", [CredentialsView::class, 'get']);
+        $app->post("/credentials", [CredentialsView::class, 'post']);
+    }
+    
+    if( AppBuilder::registerView('backoffice', 'Packages', "/packages") ) {
+        $app->get("/packages", [PackagesView::class, 'get']);
+        $app->post("/packages", [PackagesView::class, 'post']);
+    }
 
     Register::register($app);
 };
