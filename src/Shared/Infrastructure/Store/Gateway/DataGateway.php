@@ -9,6 +9,9 @@ use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryCondition;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExecPipeline;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\RestrictionPipeline;
 use Civi\Repomanager\Shared\ProjectLocator;
+use Civi\Repomanager\Shared\Security\Guard\AccessGuard;
+use Civi\Repomanager\Shared\Security\Redaction\OutputRedactor;
+use Civi\Repomanager\Shared\Security\Sanitization\InputSanitizer;
 use InvalidArgumentException;
 
 class DataGateway
@@ -17,6 +20,9 @@ class DataGateway
     public function __construct(
         private readonly RestrictionPipeline $restrictor,
         private readonly ExecPipeline $execPipeline,
+        private readonly AccessGuard $guard,
+        private readonly InputSanitizer $sanitizer,
+        private readonly OutputRedactor $redactor,
         string $baseDir = ''
     ) {
         $this->baseDir = $baseDir !== '' ? $baseDir : ProjectLocator::getRootPath() . '/storage'; 

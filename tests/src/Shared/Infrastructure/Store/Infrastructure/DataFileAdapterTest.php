@@ -6,6 +6,9 @@ use Civi\Repomanager\Shared\Infrastructure\Store\Gateway\DataGateway;
 use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryParam;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExecPipeline;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\RestrictionPipeline;
+use Civi\Repomanager\Shared\Security\Guard\AccessGuard;
+use Civi\Repomanager\Shared\Security\Redaction\OutputRedactor;
+use Civi\Repomanager\Shared\Security\Sanitization\InputSanitizer;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +26,14 @@ class DataFileAdapterTest extends TestCase
         $execPipeline = $this->createMock(ExecPipeline::class);
         $execPipeline->method('executeOperation')->willReturnCallback(fn(...$args) => $args[4]);
         $this->schema = BuildSchema::build($sdl);
-        $this->adapter = new DataGateway( $accessPipeline, $execPipeline, __DIR__ . '/../../../../../mock/' );
+        $guardMock = $this->createMock(AccessGuard::class);
+        $guardMock->method('canExecute')->willReturn(true);
+        $inputMock = $this->createMock( InputSanitizer::class );
+        $inputMock->method('sanitizeInput')->willReturnCallback(fn(...$args) => $args[2]);
+        $outputMock = $this->createMock( OutputRedactor::class );
+        $outputMock->method('filterOutput')->willReturnCallback(fn(...$args) => $args[2]);
+
+        $this->adapter = new DataGateway( $accessPipeline, $execPipeline, $guardMock, $inputMock, $outputMock, __DIR__ . '/../../../../../mock/' );
     }
 
     public function test_filter_by_provincia_nombre(): void
