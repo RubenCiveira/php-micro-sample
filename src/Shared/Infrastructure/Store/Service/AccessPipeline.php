@@ -2,6 +2,7 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\Store\Service;
 
+use Civi\Repomanager\Shared\Kernel\AbstractPipeline;
 use Psr\Container\ContainerInterface;
 
 class AccessPipeline extends AbstractPipeline

@@ -2,6 +2,7 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\Store\Service;
 
+use Civi\Repomanager\Shared\Kernel\AbstractPipeline;
 use Closure;
 use Psr\Container\ContainerInterface;
 
@@ -53,17 +54,15 @@ class ExecPipeline extends AbstractPipeline
                     };
                 }
             }
-        } else if( $objectType ) {
+        } else if ($objectType) {
             foreach ($operations as $suffix) {
                 if (method_exists($objectType, $method = lcfirst($suffix))) {
-                    $handlers[] = function (mixed $data, Closure $next) use ($objectType, $method) {
-                        return call_user_func([$objectType, $method], $data);
-                    };
+                    $handlers[] = fn(mixed $data, Closure $next) => call_user_func([$objectType, $method], $data);
                 }
             }
         }
-        if( $callback ) {
-            $handlers[] = function($param, $next) use ($callback) {
+        if ($callback) {
+            $handlers[] = function ($param, $next) use ($callback) {
                 $callback();
                 $result = $next($param);
                 return $result;
@@ -74,6 +73,6 @@ class ExecPipeline extends AbstractPipeline
         $result = $payload[1] ? $this->runPipeline($handlers, $payload[0], $payload[1]) : $this->runPipeline($handlers, $payload[0]);
 
         // Devolver la entidad si existe, o el resultado
-        return $this->toArray( $result );
+        return $this->toArray($result);
     }
 }

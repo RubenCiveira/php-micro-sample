@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Civi\Repomanager\Shared\Infrastructure\Store\Service;
+namespace Civi\Repomanager\Shared\Kernel;
 
 use Psr\Container\ContainerInterface;
 use InvalidArgumentException;
