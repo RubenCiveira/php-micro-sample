@@ -3,6 +3,7 @@ namespace Civi\Repomanager\Shared\Infrastructure\View\Twig;
 
 use Civi\Repomanager\Shared\Infrastructure\View\Twig\AssetOptimizingTwigEnvironment;
 use Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata;
+use Civi\Repomanager\Shared\ProjectLocator;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
@@ -65,7 +66,7 @@ abstract class MasterDetailView
         }
         $loader = new \Twig\Loader\FilesystemLoader($this->templates );// __DIR__ . '/templates');
         $twig = new AssetOptimizingTwigEnvironment($request, $loader, [
-            'cache' => __DIR__ . '/../../.cache',
+            'cache' => ProjectLocator::getRootPath() . '/.cache',
             'debug' => true,
         ]);
         $html = $twig->render("{$name}.html.twig", $context);
