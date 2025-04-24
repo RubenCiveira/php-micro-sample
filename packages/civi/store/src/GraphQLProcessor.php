@@ -1,7 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Civi\Store;
 
+use ArrayAccess;
 use Civi\Store\Gateway\DataGateway;
 use Civi\Store\DataQueryParam;
 use Civi\Store\Service\ExtractMutation;
@@ -32,8 +35,7 @@ class GraphQLProcessor
         private readonly string $namespace,
         private readonly string $query,
         private readonly array|null $variables
-    ) {
-    }
+    ) {}
 
     public function result(): ExecutionResult
     {
@@ -45,22 +47,22 @@ class GraphQLProcessor
         $names = $rootQuery->getFieldNames();
         foreach ($names as $name) {
             $resolvers[$name] = function ($root, array $args, $context, ResolveInfo $resolveInfo) use ($namepace, $schema, $name, $rootQuery) {
-                if( isset( $args['id'] ) ) {
+                if (isset($args['id'])) {
                     $args['filter'] = ['idEquals' => $args['id']];
                     unset($args['id']);
                 }
                 $type = $rootQuery->getField($name)->getType();
-                $theType = Type::getNamedType($type );
+                $theType = Type::getNamedType($type);
                 $filter = new DataQueryParam($schema, $theType->toString(), $args);
                 $response = $this->datas->fetch(
                     $namepace,
                     $theType->toString(),
                     $filter
                 );
-                if( $type instanceof NonNull) {
+                if ($type instanceof NonNull) {
                     $type = $type->getWrappedType();
                 }
-                return ( $type instanceof ListOfType ) ? $response : $response[0];
+                return ($type instanceof ListOfType) ? $response : $response[0];
             };
         }
         $extractor = new ExtractMutation();
@@ -98,25 +100,25 @@ class GraphQLProcessor
                         case 'modify':
                             $this->validateReferences($namepace, $schema, $schema->getType($theType), $data);
                             $errors = $this->validator->getErrors($namepace, $theType, $data);
-                            if( $errors ) {
-                                throw new ConstraintException( $errors );
+                            if ($errors) {
+                                throw new ConstraintException($errors);
                             }
                             $id = array_key_first($args);
                             $condition = ["filter" => ["{$id}Equals" => $args[$id]]];
                             $filter = new DataQueryParam($schema, $theType, $condition);
                             return $this->datas->modify(
-                                    $namepace,
-                                    $theType,
-                                    $idName,
-                                    $mutation['name'],
-                                    $filter,
-                                    $data
+                                $namepace,
+                                $theType,
+                                $idName,
+                                $mutation['name'],
+                                $filter,
+                                $data
                             )[0];
                         case 'create':
-                            $this->validateReferences($namepace, $schema,$schema->getType($theType), $data);
+                            $this->validateReferences($namepace, $schema, $schema->getType($theType), $data);
                             $errors = $this->validator->getErrors($namepace, $theType, $data);
-                            if( $errors ) {
-                                throw new ConstraintException( $errors );
+                            if ($errors) {
+                                throw new ConstraintException($errors);
                             }
                             return $this->datas->create(
                                 $namepace,
@@ -143,7 +145,7 @@ class GraphQLProcessor
                 }
             }
             if (!$property) {
-                if ( is_array($objectValue) ) {
+                if (is_array($objectValue)) {
                     return "";
                 } else if ($info->parentType && $info->parentType->name) {
                     return  $this->expand($objectValue, $info);
@@ -162,27 +164,29 @@ class GraphQLProcessor
             $this->variables,
             null,
             $customFieldResolver
-        )->setErrorFormatter(fn (Error $error): array => MyFormater::fromException($error));
+        )->setErrorFormatter(fn(Error $error): array => MyFormater::fromException($error));
         return $result;
     }
 
     private function validateReferences(string $namespace, Schema $schema, NamedType|Type|null $type, $data)
     {
-        if( $type ) {
+        if ($type instanceof ObjectType) {
             foreach ($type->getFields() as $field) {
                 $baseType = Type::getNamedType($field->getType());
-                if( $data[$field->name] && is_a($baseType, ObjectType::class)) {
+                if ($data[$field->name] && is_a($baseType, ObjectType::class)) {
                     $id = '';
                     $ref = $schema->getType($baseType->name);
-                    foreach( $ref->getFields() as $refField) {
-                        $refType = Type::getNamedType($refField->getType());
-                        if( !$refType == 'ID') {
-                            $id = $refField->name;
+                    if ($ref instanceof ObjectType) {
+                        foreach ($ref->getFields() as $refField) {
+                            $refType = Type::getNamedType($refField->getType());
+                            if (!$refType == 'ID') {
+                                $id = $refField->name;
+                            }
                         }
                     }
                     $filter = new DataQueryParam($schema, $baseType->name, ["{$id}Equals", $data[$field->name]]);
-                    if( !$this->datas->fetch($namespace, $baseType->name, $filter) ) {
-                        throw new NotFountException('Unable to find ' . $data[$field->name] . ' on ' . $field->name . ' for '. $type->name);
+                    if (!$this->datas->fetch($namespace, $baseType->name, $filter)) {
+                        throw new NotFountException('Unable to find ' . $data[$field->name] . ' on ' . $field->name . ' for ' . $type->name);
                     }
                 }
             }
@@ -200,10 +204,12 @@ class GraphQLProcessor
         }
         $type = $schema->getType($on);
         $id = 'id';
-        foreach ($type->getFields() as $fieldName => $fieldDef) {
-            $baseType = Type::getNamedType($fieldDef->getType());
-            if ($baseType->name === 'ID') {
-                $id = $fieldName;
+        if ($type instanceof ObjectType) {
+            foreach ($type->getFields() as $fieldName => $fieldDef) {
+                $baseType = Type::getNamedType($fieldDef->getType());
+                if ($baseType->name === 'ID') {
+                    $id = $fieldName;
+                }
             }
         }
         $theId = is_array($objectValue) ? $objectValue[$id] : $objectValue;
@@ -228,16 +234,16 @@ class GraphQLProcessor
 class MyFormater extends FormattedError
 {
 
-    public static function fromException(Error $error): array {
+    public static function fromException(Error $error): array
+    {
         $is = FormattedError::createFromException($error);
         $previous = $error->getPrevious();
-        if( $previous instanceof ConstraintException) {
+        if ($previous instanceof ConstraintException) {
             $is['constraints'] = $previous->errors;
-        } else if( $previous instanceof TypeError) {
+        } else if ($previous instanceof TypeError) {
             echo "<p>" . $previous->getMessage();
         } else {
-            echo "<pre>" . get_class( $previous );
-
+            echo "<pre>" . get_class($previous);
         }
         return $is;
     }

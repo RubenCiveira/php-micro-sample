@@ -2,7 +2,6 @@
 
 namespace Civi\Store\Service;
 
-use GraphQL\Type\Definition\NamedType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;

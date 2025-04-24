@@ -43,7 +43,7 @@ class DataGateway
     public function modify(string $namespace, string $typeName, string $idName, string $from, DataQueryParam $filters, array $data): array
     {
         $sanitized = $this->sanitizer->sanitizeInput($namespace, $typeName, $data);
-        $readed = $this->fetch($namespace, $typeName, $filters);
+        $readed = $this->read($namespace, $typeName, $filters);
         if (!count($readed)) {
             throw new InvalidArgumentException("Not found");
         }
@@ -63,7 +63,10 @@ class DataGateway
     }
     public function delete(string $namespace, string $typeName, string $idName, string $from, DataQueryParam $filters): void
     {
-        $readed = $this->fetch($namespace, $typeName, $filters);
+        $readed = $this->read($namespace, $typeName, $filters);
+        if( !$this->guard->canExecute($from, $namespace, $typeName, $readed, $readed) ) {
+            throw new UnauthorizedException("Not allowed to $from onver $namespace:$typeName");
+        }
         $path = "{$this->baseDir}/$namespace/$typeName/";
         if (is_dir($path)) {
             foreach ($readed as $read) {
@@ -74,8 +77,15 @@ class DataGateway
             }
         }
     }
-
     public function fetch(string $namespace, string $typeName, DataQueryParam $originalFilter): array
+    {
+        if( !$this->guard->canExecute('read', $namespace, $typeName, [], []) ) {
+            throw new UnauthorizedException("Not allowed to read over $namespace:$typeName");
+        }
+        $all = $this->read($namespace, $typeName, $originalFilter);
+        return array_map(fn($row) => $this->redactor->filterOutput($namespace, $typeName, $row), $all);
+    }
+    private function read(string $namespace, string $typeName, DataQueryParam $originalFilter): array
     {
         $filter = $this->restrictor->restrictFilter($namespace, $typeName, $originalFilter->toArray());
         $filters = DataQueryParam::replaceInto($originalFilter, $filter);

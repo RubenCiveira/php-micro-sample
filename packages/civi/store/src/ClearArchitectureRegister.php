@@ -3,7 +3,6 @@
 namespace Civi\Store;
 
 use Civi\Micro\ProjectLocator;
-use Composer\InstalledVersions;
 use DI\Container;
 
 class ClearArchitectureRegister

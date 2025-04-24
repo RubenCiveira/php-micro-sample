@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Civi\Repomanager\Shared\Security;
+namespace Civi\Security;
 
 use RuntimeException;
 
