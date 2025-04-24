@@ -2,13 +2,14 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\Store;
 
+use Civi\Repomanager\Shared\ProjectLocator;
+use Composer\InstalledVersions;
 use DI\Container;
 
 class ClearArchitectureRegister
 {
     public static function mappers(Container $container, $name, $type)
     {
-        // $cache = __DIR__ . '/../../../../.cache/registers';
         $array = [];
         self::scanRegister($array, $name, $type);
         foreach($array as $k=>$v) {
@@ -67,8 +68,8 @@ class ClearArchitectureRegister
 
     private static function resolveClassPath(string $fqcn): ?string
     {
-        $composerMap = require __DIR__ . '/../../../../vendor/composer/autoload_psr4.php';
-
+        $composerMap = require ProjectLocator::getRootPath() . '/vendor/composer/autoload_psr4.php';
+        
         foreach ($composerMap as $namespace => $paths) {
             if (str_starts_with($fqcn, $namespace)) {
                 $relative = str_replace('\\', '/', substr($fqcn, strlen($namespace)));

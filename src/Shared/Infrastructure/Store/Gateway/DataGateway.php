@@ -8,15 +8,18 @@ use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryOperator;
 use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryCondition;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\AccessPipeline;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExecPipeline;
+use Civi\Repomanager\Shared\ProjectLocator;
 use InvalidArgumentException;
 
 class DataGateway
 {
+    private readonly string $baseDir;
     public function __construct(
         private readonly AccessPipeline $accessPipeline,
         private readonly ExecPipeline $execPipeline,
-        private readonly string $baseDir = __DIR__ . '/../../../../../storage'
+        string $baseDir = ''
     ) {
+        $this->baseDir = $baseDir !== '' ? $baseDir : ProjectLocator::getRootPath() . '/storage'; 
     }
 
     public function create(string $namespace, string $typeName, string $idName, string $from, array $data): array

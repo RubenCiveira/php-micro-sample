@@ -2,7 +2,6 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\View\Twig;
 
-use Civi\Repomanager\Shared\Infrastructure\View\Twig\Bootstrap\CardNode;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 
@@ -20,7 +19,7 @@ class ComponentExtension extends AbstractExtension implements GlobalsInterface
             new ComponentTokenParser( 'Footer', [], true),
             new ComponentTokenParser( 'Main', [], true),
             new ComponentTokenParser( 'Indicator', ['kind'], true),
-            new ComponentTokenParser( 'Nav', ['url', 'title', 'smallTitle'], true),
+            new ComponentTokenParser( 'NavHeader', ['url', 'title', 'smallTitle'], true),
             new ComponentTokenParser( 'NavLink', ['url'], true),
             new ComponentTokenParser( 'MasterDetail', ['meta', 'values', 'target'], true),
         ];

@@ -4,30 +4,31 @@ namespace Civi\Repomanager\Shared\Infrastructure\View\Toolkit\Bootstrap;
 
 class Form
 {
+    private static $counter = 0;
     private readonly string $id;
     public function __construct(private readonly string $name, private readonly string $target, private readonly array $meta, private readonly array $form)
     {
-        $this->id = 'fm-' . $name . time();
+        $this->id = 'fm-' . $name . (++self::$counter);
     }
 
     public function render(): string
     {
         $inputs = "<input type=\"hidden\" id=\"{$this->id}-{$this->meta['id']}\" name=\"{$this->name}\" />"
-                // . "<input type=\"hidden\" id=\"{$this->id}-{$this->meta['id']}\" name=\"{$this->meta['id']}\" />"
-                . "";
+            // . "<input type=\"hidden\" id=\"{$this->id}-{$this->meta['id']}\" name=\"{$this->meta['id']}\" />"
+            . "";
         $assignsWithValue = "document.getElementById('{$this->id}-{$this->meta['id']}').value = value.{$this->meta['id']};";
         $assignsWithoutValue = "document.getElementById('{$this->id}-{$this->meta['id']}').value = '';";
-        
-        foreach($this->form as $field) {
+
+        foreach ($this->form as $field) {
             $assignWithValue = "document.getElementById('{$this->id}-{$field['name']}').value = value.{$field['name']};";
             $assignWithoutValue = "document.getElementById('{$this->id}-{$field['name']}').value = '';";
-            if( $field['calculated'] ?? false ) {
+            if ($field['calculated'] ?? false) {
                 $inputs .= "<input type=\"hidden\" id=\"{$this->id}-{$field['name']}\" name=\"{$field['name']}\" />";
             } else {
                 $input = "";
                 $type = $field['type'] ?? '';
-                $att = "id=\"{$this->id}-{$field['name']}\" name=\"{$field['name']}\" " . ($field['required'] ? " required": "");
-                if ($field['readonly'] ?? false ) {
+                $att = "id=\"{$this->id}-{$field['name']}\" name=\"{$field['name']}\" " . ($field['required'] ? " required" : "");
+                if ($field['readonly'] ?? false) {
                     $input = "<div id=\"{$this->id}-{$field['name']}-label\"></div>";
                     $assignWithValue .= "
                         document.getElementById('{$this->id}-{$field['name']}').style.display = 'none';
@@ -40,11 +41,11 @@ class Form
                         document.getElementById('{$this->id}-{$field['name']}-label').innerHTML = '';
                     ";
                 }
-                if ( $type == 'textarea' ) {
+                if ($type == 'textarea') {
                     $input = "<textarea class=\"form-control\" {$att} rows=\"3\"></textarea>";
-                } else if( $field['enum'] ?? false ) {
+                } else if ($field['enum'] ?? false) {
                     $options = "";
-                    foreach($field['enum'] as $v) {
+                    foreach ($field['enum'] as $v) {
                         $options .= "<option value=\"{$v}\">{$v}</option>";
                     }
                     $input = "<select class=\"form-select\" {$att}>{$options}</select>";
@@ -57,8 +58,8 @@ class Form
             $assignsWithoutValue .= $assignWithoutValue . "\n";
         }
         return "<div><form id=\"{$this->id}\" method=\"POST\" action=\"{$this->target}\">{$inputs}</form></div><script>"
-                . "function assign{$this->name}(value) { if( value ) { {$assignsWithValue}  } else { {$assignsWithoutValue} } }"
-                ."</script>";
+            . "function assign{$this->name}(value) { if( value ) { {$assignsWithValue}  } else { {$assignsWithoutValue} } }"
+            . "</script>";
     }
 
     public function submit(): string

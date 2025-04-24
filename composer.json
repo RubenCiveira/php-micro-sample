@@ -33,7 +33,8 @@
         "monolog/monolog": "^3.7",
         "voku/html-min": "^4.5",
         "justinrainbow/json-schema": "^6.4",
-        "opis/json-schema": "*"
+        "opis/json-schema": "*",
+        "matthiasmullie/minify": "^1.3"
     },
     "require-dev": {
         "phpunit/phpunit": "^12.1",

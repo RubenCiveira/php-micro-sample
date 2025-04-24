@@ -4,10 +4,11 @@ namespace Civi\Repomanager\Shared\Infrastructure\View\Toolkit\Bootstrap;
 
 class Action
 {
+    private static $counter = 0;
     public readonly string $id;
     public function __construct(private readonly string $target, private readonly array $meta, private readonly array $action) 
     {
-        $this->id = $action['name'] . time();
+        $this->id = $action['name'] . 'act' . (++self::$counter);
     }
 
     public function callback(string $value): string

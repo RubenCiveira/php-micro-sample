@@ -1,18 +1,19 @@
 <?php
-namespace Civi\RepomanagerBackoffice;
+namespace Civi\Repomanager\Shared\Infrastructure\View\Twig;
 
-use Civi\Repomanager\Shared\Infrastructure\View\Twig\ComponentExtension;
+use Civi\Repomanager\Shared\Infrastructure\View\Twig\AssetOptimizingTwigEnvironment;
 use Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Ramsey\Uuid\Uuid;
 use Slim\Routing\RouteContext;
-use Twig\TwigFunction;
-use voku\helper\HtmlMin;
 
 abstract class MasterDetailView
 {
 
+    public function __construct(private readonly string $name, private readonly string $templates) 
+    {
+
+    }
     public function post(Request $request, Response $response, array $args): Response
     {
         $data = $request->getParsedBody();
@@ -43,11 +44,10 @@ abstract class MasterDetailView
                 'meta' => $meta,
                 'values' => []
             ];
-            return $this->render($this->template(), $context, $request, $response);
+            return $this->render($this->name, $context, $request, $response);
         }
     }
 
-    protected abstract function template(): string;
     protected abstract function meta(): ViewMetadata;
     protected abstract function list(): array;
 
@@ -59,43 +59,17 @@ abstract class MasterDetailView
     }
     private function render(string $name, array $context, Request $request, Response $response): Response
     {
-        $routeContext = RouteContext::fromRequest($request);
-        $basePath = $routeContext->getBasePath();
-        $route = $routeContext->getRoute();
-        $context['route'] = $route ? substr($route->getPattern(), 1) : '';
-
         if (isset($_SESSION['indicator'])) {
           $context['indicator'] = $_SESSION['indicator'];
           unset($_SESSION['indicator']);
         }
-
-        $loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/templates');
-        $twig = new \Twig\Environment($loader, [
+        $loader = new \Twig\Loader\FilesystemLoader($this->templates );// __DIR__ . '/templates');
+        $twig = new AssetOptimizingTwigEnvironment($request, $loader, [
             'cache' => __DIR__ . '/../../.cache',
             'debug' => true,
         ]);
-        $twig->addFunction(new TwigFunction('path', function (string $routeName, array $params = []) use ($basePath) {
-            $url = "{$basePath}/{$routeName}";
-            if (!empty($params)) {
-                $url .= '?' . http_build_query($params);
-            }
-            return $url;
-        }));
-        $twig->addFunction(new TwigFunction('asset', function (string $routeName) use ($basePath) {
-            $url = "{$basePath}/{$routeName}";
-            if (!empty($params)) {
-                $url .= '?' . http_build_query($params);
-            }
-            return $url;
-        }));
-        $twig->addExtension(new ComponentExtension());
-        // Renderizar la plantilla con los datos
-
         $html = $twig->render("{$name}.html.twig", $context);
-        // $htmlMin = new HtmlMin();
-        // $html = $htmlMin->minify($html);
         $response->getBody()->write($html);
         return $response;
     }
-
 }

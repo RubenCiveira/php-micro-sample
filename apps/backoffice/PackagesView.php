@@ -3,18 +3,14 @@ namespace Civi\RepomanagerBackoffice;
 
 use Civi\Repomanager\Features\Repository\Package\View\PackageViewMetadata;
 use Civi\Repomanager\Features\Repository\Package\Gateway\PackageGateway;
-use Civi\Repomanager\Features\Repository\Package\Package;
+use Civi\Repomanager\Shared\Infrastructure\View\Twig\MasterDetailView;
 use Civi\Repomanager\Shared\Infrastructure\View\ViewMetadata;
 
 class PackagesView extends MasterDetailView
 {
     public function __construct(private readonly PackageGateway $packages, private readonly PackageViewMetadata $meta)
     {
-    }
-
-    protected function template(): string
-    {
-        return 'packages';
+        parent::__construct('packages', __DIR__ . '/templates');
     }
 
     protected function list(): array

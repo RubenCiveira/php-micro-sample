@@ -5,6 +5,7 @@ namespace Civi\Repomanager\Shared\Infrastructure\Store;
 use Civi\Repomanager\Shared\Infrastructure\Store\Gateway\SchemaGateway;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\GraphQlEnrich;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\JsonSchemaGenerator;
+use Civi\Repomanager\Shared\ProjectLocator;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 
@@ -12,9 +13,9 @@ class Schemas
 {
     private readonly string $baseDir;
 
-    public function __construct(private readonly SchemaGateway $schemas, string $base = __DIR__ . '/../../../../')
+    public function __construct(private readonly SchemaGateway $schemas, string $base = '')
     {
-        $this->baseDir = $base;
+        $this->baseDir = $base !== '' ? $base : ProjectLocator::getRootPath();
     }
 
     public function sdl(string $namespace): string

@@ -12,13 +12,13 @@
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
-    {% nav
+    {% navHeader
           url=path('')
           title="Gestor de aplicaciones y despliegues" smallTitle="Aplicaciones" %}
         {% navLink url=path('credentials') %} Credenciales {% endnavLink %}
         {% navLink url=path('packages') %} Paquetes {% endnavLink %}
         {% navLink url=path('configuration') %} Configuracion {% endnavLink %}
-    {% endnav %}
+    {% endnavHeader %}
 
     {% main %}
         {% if indicator %}

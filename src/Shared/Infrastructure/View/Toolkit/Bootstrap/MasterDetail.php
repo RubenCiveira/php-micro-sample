@@ -4,6 +4,7 @@ namespace Civi\Repomanager\Shared\Infrastructure\View\Toolkit\Bootstrap;
 
 class MasterDetail
 {
+    private static $counter = 0;
     private readonly string $id;
     private array $actions;
 
@@ -13,7 +14,7 @@ class MasterDetail
         private readonly ?string $target,
         private readonly string $body
     ) {
-        $this->id = 'md' . time();
+        $this->id = 'md' . (++self::$counter);
         $this->actions = [];
         foreach ($meta['actions'] as $action) {
             $this->actions[] = new Action($target, $meta, $action);
@@ -217,9 +218,9 @@ class MasterDetail
     private function writeSearchBox(): string
     {
         return "<div class=\"ms-auto\"><div class=\"input-group input-group-sm mb-1\">"
-                . "<input id=\"global-search-{$this->id}\" type=\"search\" class=\"search form-control form-control-sm text-search\" placeholder=\"Buscar...\">"
-                . "<span class=\"input-group-text\">.00</span>"
-                . "</div></div>";
+            . "<input id=\"global-search-{$this->id}\" type=\"search\" class=\"search form-control form-control-sm text-search\" placeholder=\"Buscar...\">"
+            . "<span class=\"input-group-text\">.00</span>"
+            . "</div></div>";
     }
 
     private function writeFilters(): string
@@ -244,7 +245,7 @@ class MasterDetail
             return "<input id=\"{$field['name']}-filter\" type=\"search\" class=\"form-control form-control-sm text-search\" />";
         }
     }
-    
+
     private function title(): string
     {
         return "<h2>{$this->meta['title']}</h2><p>{$this->meta['description']}</p>";

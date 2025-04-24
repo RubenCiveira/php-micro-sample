@@ -2,12 +2,14 @@
 
 namespace Civi\Repomanager\Shared\Infrastructure\Store\Gateway;
 
+use Civi\Repomanager\Shared\ProjectLocator;
+
 class SchemaGateway
 {
     private readonly string $baseDir;
-    public function __construct(string $base = __DIR__ . '/../../../../../')
+    public function __construct(string $base = '')
     {
-        $this->baseDir = $base;
+        $this->baseDir = $base !== '' ? $base : ProjectLocator::getRootPath();
     }
 
     public function sdl(string $namespace): string
