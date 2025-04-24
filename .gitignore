@@ -1,5 +1,5 @@
 # Composer
-/vendor/
+vendor/
 /cache/
 composer.lock
 
@@ -12,7 +12,7 @@ composer.lock
 .env.production
 
 # Archivos de caché y logs
-/.phpunit.result.cache
+.phpunit.result.cache
 /.cache/
 .assets/
 /node_modules/

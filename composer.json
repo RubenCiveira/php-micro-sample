@@ -19,19 +19,19 @@
   "repositories": [
     {
       "type": "path",
-      "url": "./packages/civi/micro"
+      "url": "/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/micro"
     },
     {
       "type": "path",
-      "url": "./packages/civi/security"
+      "url": "/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/security"
     },
     {
       "type": "path",
-      "url": "./packages/civi/view"
+      "url": "/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/view"
     },
     {
       "type": "path",
-      "url": "./packages/civi/store"
+      "url": "/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/store"
     }
   ],
   "authors": [
