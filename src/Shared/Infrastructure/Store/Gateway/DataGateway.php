@@ -6,8 +6,8 @@ use Civi\Repomanager\Shared\Infrastructure\Store\DataQueryParam;
 use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryFilter;
 use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryOperator;
 use Civi\Repomanager\Shared\Infrastructure\Store\Filter\DataQueryCondition;
-use Civi\Repomanager\Shared\Infrastructure\Store\Service\AccessPipeline;
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\ExecPipeline;
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\RestrictionPipeline;
 use Civi\Repomanager\Shared\ProjectLocator;
 use InvalidArgumentException;
 
@@ -15,7 +15,7 @@ class DataGateway
 {
     private readonly string $baseDir;
     public function __construct(
-        private readonly AccessPipeline $accessPipeline,
+        private readonly RestrictionPipeline $restrictor,
         private readonly ExecPipeline $execPipeline,
         string $baseDir = ''
     ) {
@@ -61,8 +61,8 @@ class DataGateway
 
     public function fetch(string $namespace, string $typeName, DataQueryParam $originalFilter): array
     {
-        $result = $this->accessPipeline->applyAccessPipeline($namespace, $typeName, $originalFilter->toArray());
-        $filters = DataQueryParam::replaceInto($originalFilter, $result);
+        $filter = $this->restrictor->restrictFilter($namespace, $typeName, $originalFilter->toArray());
+        $filters = DataQueryParam::replaceInto($originalFilter, $filter);
 
         $path = "{$this->baseDir}/$namespace/$typeName/";
         if (!is_dir($path)) {

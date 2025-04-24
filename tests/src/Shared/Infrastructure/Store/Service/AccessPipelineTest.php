@@ -3,6 +3,7 @@
 namespace Tests\Shared\Infrastructure\Service;
 
 use Civi\Repomanager\Shared\Infrastructure\Store\Service\AccessPipeline;
+use Civi\Repomanager\Shared\Infrastructure\Store\Service\RestrictionPipeline;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
@@ -13,10 +14,10 @@ class AccessPipelineTest extends TestCase
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')->willReturn(false);
 
-        $pipeline = new AccessPipeline($container);
+        $pipeline = new RestrictionPipeline($container);
 
         $input = ['filter' => ['activo' => true]];
-        $result = $pipeline->applyAccessPipeline('AnyNamespace', 'Cliente', $input);
+        $result = $pipeline->restrictFilter('AnyNamespace', 'Cliente', $input);
 
         $this->assertSame($input, $result);
     }
@@ -31,17 +32,17 @@ class AccessPipelineTest extends TestCase
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')->willReturnMap([
             ['TestNamespace::ClienteFilter', true],
-            ['TestNamespace::ClienteAccess', true],
+            ['TestNamespace::ClienteRestriction', true],
         ]);
         $container->method('get')->willReturnMap([
             ['TestNamespace::ClienteFilter', MockAccessFilter::class],
-            ['TestNamespace::ClienteAccess', [$pipelineStep]],
+            ['TestNamespace::ClienteRestriction', [$pipelineStep]],
         ]);
 
-        $pipeline = new AccessPipeline($container);
+        $pipeline = new RestrictionPipeline($container);
 
         $input = ['filter' => ['estado' => 'activo']];
-        $result = $pipeline->applyAccessPipeline('TestNamespace', 'Cliente', $input);
+        $result = $pipeline->restrictFilter('TestNamespace', 'Cliente', $input);
 
         $this->assertEquals(['filter' => ['estado' => 'activo-modificado']], $result);
     }
@@ -56,16 +57,16 @@ class AccessPipelineTest extends TestCase
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')->willReturnMap([
             ['TestNamespace::ClienteFilter', false],
-            ['TestNamespace::ClienteAccess', true],
+            ['TestNamespace::ClienteRestriction', true],
         ]);
         $container->method('get')->willReturnMap([
-            ['TestNamespace::ClienteAccess', [$pipelineStep]],
+            ['TestNamespace::ClienteRestriction', [$pipelineStep]],
         ]);
 
-        $pipeline = new AccessPipeline($container);
+        $pipeline = new RestrictionPipeline($container);
 
         $input = ['filter' => ['estado' => 'original']];
-        $result = $pipeline->applyAccessPipeline('TestNamespace', 'Cliente', $input);
+        $result = $pipeline->restrictFilter('TestNamespace', 'Cliente', $input);
 
         $this->assertEquals(['filter' => ['estado' => 'forzado']], $result);
     }
@@ -88,16 +89,16 @@ class AccessPipelineTest extends TestCase
         $container = $this->createMock(ContainerInterface::class);
         $container->method('has')->willReturnMap([
             ['TestNamespace::ClienteFilter', false],
-            ['TestNamespace::ClienteAccess', true],
+            ['TestNamespace::ClienteRestriction', true],
         ]);
         $container->method('get')->willReturnMap([
-            ['TestNamespace::ClienteAccess', [$firstPipelineStep, $secondPipelineStep]],
+            ['TestNamespace::ClienteRestriction', [$firstPipelineStep, $secondPipelineStep]],
         ]);
 
-        $pipeline = new AccessPipeline($container);
+        $pipeline = new RestrictionPipeline($container);
 
         $input = ['filter' => ['estado' => ['original']]];
-        $result = $pipeline->applyAccessPipeline('TestNamespace', 'Cliente', $input);
+        $result = $pipeline->restrictFilter('TestNamespace', 'Cliente', $input);
 
         $this->assertEquals(['filter' => ['estado' => ['original', 'antes-primero', 'antes-segundo', 'despues-segundo', 'despues-primero']]], 
                 $result);

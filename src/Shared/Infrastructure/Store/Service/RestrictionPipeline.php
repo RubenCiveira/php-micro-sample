@@ -5,14 +5,14 @@ namespace Civi\Repomanager\Shared\Infrastructure\Store\Service;
 use Civi\Repomanager\Shared\Kernel\AbstractPipeline;
 use Psr\Container\ContainerInterface;
 
-class AccessPipeline extends AbstractPipeline
+class RestrictionPipeline extends AbstractPipeline
 {
     public function __construct(ContainerInterface $container)
     {
         parent::__construct($container);
     }
 
-    public function applyAccessPipeline(string $namespace, string $typeName, array $query): array
+    public function restrictFilter(string $namespace, string $typeName, array $query): array
     {
         $filterKey = 'filter';
         $filterObject = null;
@@ -25,7 +25,7 @@ class AccessPipeline extends AbstractPipeline
             $filterObject = $this->toObject($filterArray, $filterType);
         }
 
-        $pipelineTag = "$namespace::{$typeName}Access";
+        $pipelineTag = "$namespace::{$typeName}Restriction";
         $handlers = $this->getPipelineHandlers($pipelineTag);
 
         $finalFilter = $this->runPipeline($handlers, $filterObject ?? $filterArray);
