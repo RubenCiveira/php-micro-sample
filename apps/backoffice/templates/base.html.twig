@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gestor de Aplicaciones y Despliegues{% endblock %}</title>
     
-    <script src="https://bootswatch.com/_vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.5/dist/materia/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.5/dist/cosmo/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hover.css/2.3.1/css/hover-min.css">
 
@@ -22,6 +21,11 @@
     {% endnav %}
 
     {% main %}
+        {% if indicator %}
+            {% indicator kind=indicator.kind %}
+                {{ indicator.message | raw }}
+            {% endindicator %}
+        {% endif %}
         {% block content %}{% endblock %}
     {% endmain %}
     
@@ -30,5 +34,6 @@
     {% endfooter %}
     
     {% block javascripts %}{% endblock %}
+    <script src="https://bootswatch.com/_vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

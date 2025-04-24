@@ -8,9 +8,7 @@ use Twig\Node\Node;
 
 class ComponentTokenParser extends AbstractTokenParser
 {
-    private readonly ?string $kind;
-    public function __construct(private readonly ?string $name, private readonly ?string $as = null, private readonly array $attributes = [], private readonly bool $withBody = false) {
-        $this->kind = $this->name ? 'Civi\\Repomanager\\Shared\\Infrastructure\\View\\Twig\\Bootstrap\\' . ucfirst($name) . 'Node' : null;
+    public function __construct(private readonly ?string $as = null, private readonly array $attributes = [], private readonly bool $withBody = false) {
     }
 
     public function parse(Token $token): Node
@@ -28,20 +26,16 @@ class ComponentTokenParser extends AbstractTokenParser
 
         $stream->expect(Token::BLOCK_END_TYPE);
 
-        $tag = $this->name ?? lcfirst($this->as);
+        $tag = lcfirst($this->as);
 
         $body = $this->parser->subparse(fn(Token $t) => $t->test("end{$tag}"), true);
 
         $stream->expect(Token::BLOCK_END_TYPE); // for endcard
-        if( $this->kind ) {
-            return new $this->kind($body, $attributes, $lineno, $this->getTag());
-        } else {
-            return new ComponentNode($body, $attributes, $lineno, $this->getTag(), $this->as, $this->attributes, $this->withBody);
-        }
+        return new ComponentNode($body, $attributes, $lineno, $this->getTag(), $this->as, $this->attributes, $this->withBody);
     }
 
     public function getTag(): string
     {
-        return $this->name ?? lcfirst($this->as);
+        return lcfirst($this->as);
     }
 }

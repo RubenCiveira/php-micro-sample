@@ -26,19 +26,23 @@ class Action
     }
     public function render(): string
     {
-        $body = "Accion {$this->action['label']}";
-            $form = null;
+        $body =  "";// "Accion {$this->action['label']}";
+        $form = null;
+        $code = $this->action['code']??'';
         if( $this->action['template'] ?? false) {
             $body .= $this->action['template'];
         } else if( $this->action['form']  ?? false ) {
             $form = new Form($this->action['name'], $this->target, $this->meta, $this->action['form']);
             $body .= $form->render();
+            $code .= $form->assign("value");
         } else {
+            $code = "document.getElementById('sel-{$this->id}').value = value ? value.{$this->meta['id']} : '';{$code}";
             $body = "<form method=\"POST\" target=\"{$this->target}\" id=\"frm-{$this->id}\">"
                 . "<input type=\"hidden\" name=\"{$this->action['name']}\" id=\"sel-{$this->id}\" /></form>"
                 . "<p>¿Estás seguro de que deseas {$this->action['label']}?</p>";
         }
-        $dialog = new Dialog(id: "{$this->action['name']}-{$this->id}", title: $this->action['label'], size: null, subtitle: null, body: $body);
+        $dialog = new Dialog(id: "{$this->action['name']}-{$this->id}", title: $this->action['label'], size: null, subtitle: null, body: '');
+        $dialog->appendBody( new DialogBody($body));
         $footer = new DialogFooter(null);
         if( $this->action['buttons'] ?? false ) {
             foreach($this->action['buttons'] as $btCall => $btLabel) {
@@ -49,12 +53,6 @@ class Action
             $footer->addButton(new DialogButton("submit{$this->id}()", $this->action['name']));
         }
         $dialog->appendFooter( $footer );
-        $code = $this->action['code']??'';
-        if( $form ) {
-            $code .= $form->assign("value");
-        } else {
-            $code = "document.getElementById('sel-{$this->id}').value = value ? value.{$this->meta['id']} : '';{$code}";
-        }
         return $dialog->render() . "<script>
             function run{$this->id}(value) {
                 const myModal = new bootstrap.Modal(document.getElementById('{$this->action['name']}-{$this->id}'));

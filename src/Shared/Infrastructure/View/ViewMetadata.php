@@ -31,12 +31,11 @@ class ViewMetadata
                 }
             }
         }
+        // Llamada para obtener los datos aqui.
         return [
             'title' => $this->name,
             'description' => $this->title,
             'id' => $this->id,
-            'canUpdate' => false, // $this->canUpdate,
-            'canDelete' => false, // $this->canDelete,
             'fields' => $fields,
             'filters' => $this->filters,
             'columns' => $columns,
@@ -96,9 +95,9 @@ class ViewMetadata
         return $this;
     }
 
-    public function exec(array $data): bool
+    public function exec(array $data): ?string
     {
-        $processed = false;
+        $processed = null;
         foreach($this->actions as $name => $info) {
             if( isset($data[$name]) && isset($info['callback'])) {
                 $data[$this->id] = $data[$name];
@@ -110,7 +109,7 @@ class ViewMetadata
                 } else {
                     call_user_func( $info['callback'], $data);
                 }
-                $processed = true;
+                $processed = "Se ha {$name} correctamente";
             }
         }
         return $processed;

@@ -41,17 +41,17 @@ class Form
                     ";
                 }
                 if ( $type == 'textarea' ) {
-                    $input = "<textarea {$att} rows=\"3\"></textarea>";
+                    $input = "<textarea class=\"form-control\" {$att} rows=\"3\"></textarea>";
                 } else if( $field['enum'] ?? false ) {
                     $options = "";
                     foreach($field['enum'] as $v) {
                         $options .= "<option value=\"{$v}\">{$v}</option>";
                     }
-                    $input = "<select {$att}>{$options}</option>";
+                    $input = "<select class=\"form-select\" {$att}>{$options}</select>";
                 } else {
-                    $input = "<input {$att} type=\"{$type}\" />";
+                    $input = "<input class=\"form-control\" {$att} type=\"{$type}\" />";
                 }
-                $inputs .= "<div class=\"form-group\"><label for=\"{$field['name']}\">{$field['label']}</label>{$input}</div>\n";
+                $inputs .= "<div class=\"form-group\"><label class=\"col-form-label mt-4\" for=\"{$field['name']}\">{$field['label']}</label>{$input}</div>\n";
             }
             $assignsWithValue .= $assignWithValue . "\n";
             $assignsWithoutValue .= $assignWithoutValue . "\n";

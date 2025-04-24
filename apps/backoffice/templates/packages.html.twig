@@ -4,8 +4,9 @@
 
 {% block content %}
 
-{% import 'fragment/_master_page.twig' as master %}
-    {{ master.master_page(meta, values, 'packages') }}
+    {% masterDetail meta=meta values=values target=path('packages') %}
+    {% endmasterDetail %}
+
 {% endblock %}
 
 {% block javascripts %}
