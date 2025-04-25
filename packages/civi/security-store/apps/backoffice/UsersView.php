@@ -3,6 +3,7 @@ namespace Civi\SecurityStoreBackoffice;
 
 use Civi\SecurityStore\Features\Access\User\Gateway\UserGateway;
 use Civi\SecurityStore\Features\Access\User\View\UserViewMetadata;
+use Civi\View\Twig\MasterDetailListQuery;
 use Civi\View\Twig\MasterDetailView;
 use Civi\View\ViewConfig;
 use Civi\View\ViewMetadata;
@@ -14,9 +15,9 @@ class UsersView extends MasterDetailView
         parent::__construct($config, 'users', __DIR__ . '/templates');
     }
 
-    protected function list(): array
+    protected function list(MasterDetailListQuery $query): array
     {
-        return $this->users->listUsers();
+        return $this->users->listUsers($query->query, $query->include);
     }
 
     protected function meta(): ViewMetadata

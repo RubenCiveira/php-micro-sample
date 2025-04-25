@@ -8,7 +8,7 @@ use ArrayAccess;
 use Civi\Store\Service\DataService;
 use Civi\Store\DataQueryParam;
 use Civi\Store\Service\ExtractMutation;
-
+use DI\Definition\ObjectDefinition;
 use GraphQL\Deferred;
 use GraphQL\Error\Error;
 use GraphQL\Error\FormattedError;
@@ -146,9 +146,10 @@ class GraphQLProcessor
             }
             if (!$property) {
                 if (is_array($objectValue)) {
-                    return "";
-                } else if ($info->parentType && $info->parentType->name) {
-                    return  $this->expand($objectValue, $info);
+                    return null;
+                } else {
+                    $baseType = Type::getNamedType($info->fieldDefinition->getType());
+                    return $baseType instanceof ObjectDefinition ? null : $this->expand($objectValue, $info);
                 }
             }
             return $property instanceof \Closure
@@ -213,21 +214,26 @@ class GraphQLProcessor
             }
         }
         $theId = is_array($objectValue) ? $objectValue[$id] : $objectValue;
-        if (!in_array($theId, $this->pending[$on])) {
-            $this->pending[$on][] = $theId;
-        }
-        return new Deferred(function () use ($namespace, $schema, $type, $field, $on, $id, $theId) {
-            if (!isset($this->batches[$on])) {
-                $query = new DataQueryParam($schema, $type->name, []);
-                $query->idIn($this->pending[$on]);
-                $this->batches[$on] = [];
-                $all = $this->datas->fetch($namespace, $on, $query);
-                foreach ($all as $row) {
-                    $this->batches[$on][$row[$id]] = $row;
-                }
+        if( $theId ) {
+            if (!in_array($theId, $this->pending[$on])) {
+                $this->pending[$on][] = $theId;
             }
-            return $this->batches[$on][$theId][$field] ?? null;
-        });
+            return new Deferred(function () use ($namespace, $schema, $type, $field, $on, $id, $theId) {
+                if (!isset($this->batches[$on])) {
+                    $query = new DataQueryParam($schema, $type->name, []);
+                    $query->idIn($this->pending[$on]);
+                    $this->batches[$on] = [];
+                    $all = $this->datas->fetch($namespace, $on, $query);
+                    foreach ($all as $row) {
+                        $this->batches[$on][$row[$id]] = $row;
+                    }
+                }
+                return $this->batches[$on][$theId][$field] ?? null;
+            });
+        } else {
+            echo "<h1>Retornamos un valor nulo....</h1>";
+            return null;
+        }
     }
 }
 

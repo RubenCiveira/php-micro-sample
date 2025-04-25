@@ -41,7 +41,23 @@ class Form
                         document.getElementById('{$this->id}-{$field['name']}-label').innerHTML = '';
                     ";
                 }
-                if ($type == 'textarea') {
+                if( $field['reference'] ?? false) {
+                    $id = $field['reference']['id'];
+                    $name = $field['reference']['label'];
+                    $tempId = md5("{$this->id}{$field['name']}");
+                    $assignWithoutValue = "document.select{$tempId}.clear();";
+                    $assignWithValue = "if(value.{$field['name']} && value.{$field['name']}.{$id}) { document.select{$tempId}.setValue( value.{$field['name']}.{$id} ); } else { document.select{$tempId}.clear(); }";
+                    $input = "<link href=\"https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.css\" rel=\"stylesheet\"><script src=\"https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js\"></script>"
+                            . "<select {$att}></select>"
+                            . "<script>"
+                            . "function loadFor{$tempId}(query, callback){"
+                            . "fetch('?fetch=true&field=rol&q=' + encodeURIComponent(query)).then(response => response.json()).then(json => { callback(json); }).catch(() => { callback(); });"
+                            . "};"
+                            . "loadFor{$tempId}(\"\", (data) => { "
+                            . "document.select{$tempId} = new TomSelect('#{$this->id}-{$field['name']}', { allowEmptyOption: true, preload: false, valueField: '{$id}', labelField: '{$name}', searchField: '{$name}', options: data, load: loadFor{$tempId} });"
+                            . "});"
+                            . "</script>";
+                } else if ($type == 'textarea') {
                     $input = "<textarea class=\"form-control\" {$att} rows=\"3\"></textarea>";
                 } else if ($field['enum'] ?? false) {
                     $options = "";

@@ -6,6 +6,7 @@ namespace Civi\View\Twig;
 
 use Civi\View\ViewMetadata;
 use Civi\View\ViewConfig;
+use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
@@ -37,13 +38,29 @@ abstract class MasterDetailView extends BaseView
     public function get(Request $request, Response $response, array $args): Response
     {
         $params = $request->getQueryParams();
+        $meta = $this->meta()->export();
         if (isset($params['fetch'])) {
-            $values = array_map(fn($row) => is_array($row) ? $row : get_object_vars($row), $this->list());
+            $values = [];
+            if( isset($params['field']) ) {
+                if( isset($meta['fields'][$params['field']]['reference']['load'] )) {
+                    $values = $meta['fields'][$params['field']]['reference']['load']();
+                } else {
+                    throw new InvalidArgumentException("To load refence a callback is needed");
+                }
+            } else {
+                $query = [];
+                $includes = [];
+                foreach($meta['fields'] as $fieldName => $fieldInfo) {
+                    if( $fieldInfo['reference'] ?? false ) {
+                        $includes[] = "{$fieldName}.{$fieldInfo['reference']['label']}";
+                    }
+                }
+                $query = new MasterDetailListQuery(query: $query, include: $includes);
+                $values = array_map(fn($row) => is_array($row) ? $row : get_object_vars($row), $this->list($query, $includes) );
+            }
             $response->getBody()->write(json_encode($values));
             return $response->withHeader('Content-Type', 'application/json');
         } else {
-            $meta = $this->meta()->export();
-            // $values = array_map(fn($row) => is_array($row) ? $row : get_object_vars($row), $this->list());
             $context = [
                 'meta' => $meta,
                 'values' => []
@@ -53,5 +70,6 @@ abstract class MasterDetailView extends BaseView
     }
 
     protected abstract function meta(): ViewMetadata;
-    protected abstract function list(): array;
+
+    protected abstract function list(MasterDetailListQuery $query): array;
 }

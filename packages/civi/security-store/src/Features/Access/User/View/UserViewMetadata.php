@@ -22,6 +22,7 @@ class UserViewMetadata
      */
     public function build(): ViewMetadata
     {
-        return $this->repository->build();
+        $meta = $this->repository->build();
+        return $meta;
     }
 }

@@ -63,20 +63,25 @@ class MasterDetail
         $cells = "";
         $first = true;
         foreach ($this->meta['columns'] as $column) {
-            $cells .= "const td{$column['name']} = document.createElement('td');\n";
+            $as = md5($column['name']);
+            $read = str_replace('.', '?.', $column['name']);
+            $cells .= "const td{$as} = document.createElement('td');\n";
             $field = $this->field($column);
             if ($first) {
-                $cells .= "td{$column['name']}.attributes.scope = \"row\";";
+                $cells .= "td{$as}.attributes.scope = \"row\";";
                 $first = false;
             }
             if ($field['type'] == 'date') {
                 $cells .= "
-                    const [yyyy{$column['name']}, mm{$column['name']}, dd{$column['name']}] = item.{$column['name']}.split('-');\n 
-                    td{$column['name']}.textContent = `\${dd{$column['name']}-\${mm{$column['name']}-\${yyyy{$column['name']}`;\n";
+                    cons read$as = item.{$read};
+                    if( read$as ) {
+                        const [yyyy{$as}, mm{$as}, dd{$as}] = item.{$read}.split('-');\n 
+                        td{$as}.textContent = `\${dd{$as}-\${mm{$as}-\${yyyy{$as}`;
+                    }\n";
             } else {
-                $cells .= "td{$column['name']}.textContent = item.{$column['name']}\n";
+                $cells .= "td{$as}.textContent = item.{$read};\n";
             }
-            $cells .= "tr.appendChild(td{$column['name']});\n";
+            $cells .= "tr.appendChild(td{$as});\n";
         }
         // const values = [\n" . $rows . "]\n;
         return "\n
@@ -110,7 +115,6 @@ class MasterDetail
             tbody.appendChild(tr);
             return;
         }
-
         values.forEach(item => {
             const tr = document.createElement('tr');
             {$cells}
@@ -135,9 +139,7 @@ class MasterDetail
     });
 
     function search() {
-        console.log('INIT: ', values);
         const filtered = values.filter( this.filter );
-        console.log('FILTERED: ', filtered);
         format(filtered, (!values || values.length === 0) ? 'No hay registos' : 'No se encuentran coincidencias');
     }" . $this->writeFilterMethod();
     }
@@ -154,7 +156,6 @@ class MasterDetail
         foreach ($this->meta['filters'] as $filter) {
             $lookup .= "
             const {$filter['name']}Value = document.getElementById('{$filter['name']}-filter').value;
-            console.log( \"HAS ALREADY: \" + {$filter['name']}Value );
             if( {$filter['name']}Value ) {
                 match = match && {$filter['name']}Value == item.{$filter['name']};
             }
@@ -253,7 +254,8 @@ class MasterDetail
 
     private function field(array $from)
     {
-        return $this->meta['fields'][$from['name']];
+        $parts = explode(".", $from['name']);
+        return $this->meta['fields'][$parts[0]];
     }
 
     private function dateFormat($value)
@@ -263,9 +265,5 @@ class MasterDetail
         } else {
             return date('Y-m-d', (int) $value);
         }
-    }
-    private function actionButton(array $action): string
-    {
-        return "<button class=\"btn btn-" . $action['kind'] . " onclick=\"run" . $action['name'] . "()\">" . $action['label'] . "</button>";
     }
 }

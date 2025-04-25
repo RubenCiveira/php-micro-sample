@@ -44,9 +44,19 @@ class EntityViewMetadata
                 if (isset($info['format'])) {
                     $detail['type'] = $info['format'];
                 }
-                // if( $info['type'] == 'datetime-local' ) 
                 $detail['required'] = in_array($name, $jsonSchema['required']);
-                // $defaultForm[] = $name;
+                if( $type instanceof ObjectType) {
+                    $field = $type->getField($name);
+                    $baseType = Type::getNamedType($field->getType());
+                    if( $baseType instanceof ObjectType ) {
+                        $detail['reference'] = ['id' => 'id', 'label' => 'name', 'load' => function() use ($baseType, $schema) {
+                            $targetNamespace = $this->namespace;
+                            $targetType = $baseType->toString();
+                            $query = new DataQueryParam($schema, $targetType, []);
+                            return $this->dataService->fetch($targetNamespace, $targetType, $query);
+                        }];
+                    }
+                }
                 $meta->addField($name, $detail);
             }
         }
@@ -60,7 +70,6 @@ class EntityViewMetadata
                     if (isset($info['format'])) {
                         $detail['type'] = $info['format'];
                     }
-                    // if( $info['type'] == 'datetime-local' ) 
                     $detail['required'] = in_array($name, $jsonSchema['required']);
                     $form[] = $asName;
                 }

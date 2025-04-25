@@ -3,6 +3,7 @@ namespace Civi\SecurityStoreBackoffice;
 
 use Civi\SecurityStore\Features\Access\Rol\Gateway\RolGateway;
 use Civi\SecurityStore\Features\Access\Rol\View\RolViewMetadata;
+use Civi\View\Twig\MasterDetailListQuery;
 use Civi\View\Twig\MasterDetailView;
 use Civi\View\ViewConfig;
 use Civi\View\ViewMetadata;
@@ -14,7 +15,7 @@ class RolesView extends MasterDetailView
         parent::__construct($config, 'roles', __DIR__ . '/templates');
     }
 
-    protected function list(): array
+    protected function list(MasterDetailListQuery $query): array
     {
         return $this->roles->listRoles();
     }

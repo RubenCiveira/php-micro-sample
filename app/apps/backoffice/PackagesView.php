@@ -3,6 +3,7 @@ namespace Civi\RepomanagerBackoffice;
 
 use Civi\Repomanager\Features\Repository\Package\View\PackageViewMetadata;
 use Civi\Repomanager\Features\Repository\Package\Gateway\PackageGateway;
+use Civi\View\Twig\MasterDetailListQuery;
 use Civi\View\Twig\MasterDetailView;
 use Civi\View\ViewConfig;
 use Civi\View\ViewMetadata;
@@ -14,7 +15,7 @@ class PackagesView extends MasterDetailView
         parent::__construct($config, 'packages', __DIR__ . '/templates');
     }
 
-    protected function list(): array
+    protected function list(MasterDetailListQuery $query): array
     {
         return $this->packages->listPackages();
     }

@@ -28,27 +28,31 @@ class EntityRepository
         $name = $this->className($this->type);
         $schema = $this->schemas->schema($this->namespace);
         $type = $schema->getType($name);
-        $fields = $type->getFields();
-        foreach ($fields as $field) {
-            $baseType = Type::getNamedType($field->getType());
-            if (is_a($baseType, ObjectType::class)) {
-                $include[] = "{$field->name}." . $this->searchIdField($baseType);
-            } else {
-                $include[] = $field->name;
+        if( $type instanceof ObjectType ) {
+            $fields = $type->getFields();
+            foreach ($fields as $field) {
+                $baseType = Type::getNamedType($field->getType());
+                if (is_a($baseType, ObjectType::class)) {
+                    $include[] = "{$field->name}." . $this->searchIdField($baseType);
+                } else {
+                    $include[] = $field->name;
+                }
             }
+            $query = "query { " . lcfirst($this->className($this->type)) . "s " . ($arguments ? "($arguments)" : "") . " { "
+                . $this->expandGraphQLFields($include)
+                . " } }";
+            $query = new GraphQLProcessor($this->schemas, $this->dataService, $this->validator, $this->namespace, $query, null);
+            $result = $query->result()->toArray(self::FLAG);
+            if (!isset($result['data']) && isset($result['errors'])) {
+                throw $this->errorException($result['errors']);
+            } else if (!isset($result['data'])) {
+                print_r($result);
+                throw new InvalidArgumentException('Unable to retrieve');
+            }
+            return $result['data'][lcfirst($this->className($this->type)) . 's'];
+        } else {
+            throw new InvalidArgumentException("The type {$name} dont exists as ObjectType");
         }
-        $query = "query { " . lcfirst($this->className($this->type)) . "s " . ($arguments ? "($arguments)" : "") . " { "
-            . $this->expandGraphQLFields($include)
-            . " } }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataService, $this->validator, $this->namespace, $query, null);
-        $result = $query->result()->toArray(self::FLAG);
-        if (!isset($result['data']) && isset($result['errors'])) {
-            throw $this->errorException($result['errors']);
-        } else if (!isset($result['data'])) {
-            print_r($result);
-            throw new InvalidArgumentException('Unable to retrieve');
-        }
-        return $result['data'][lcfirst($this->className($this->type)) . 's'];
     }
 
     public function retrieveView(string $id, array $include)
@@ -73,34 +77,38 @@ class EntityRepository
         $name = $this->className($this->type);
         $schema = $this->schemas->schema($this->namespace);
         $type = $schema->getType($name);
-        $fields = $type->getFields();
-        $insert = "";
-        $retrieve = "";
-        foreach ($fields as $field) {
-            $baseType = Type::getNamedType($field->getType());
-            if ($baseType->name == 'String' || $baseType->name == 'ID') {
-                $insert .= ", {$field->name}: \"" . $instance->{$field->name} . "\"";
-            } else if (is_a($baseType, ObjectType::class)) {
-                $insert .= ", {$field->name}: \"" . $instance->{$field->name} . "\"";
-            } else {
-                $insert .= ", {$field->name}: " . $instance->{$field->name} . "";
+        if( $type instanceof ObjectType ) {
+            $fields = $type->getFields();
+            $insert = "";
+            $retrieve = "";
+            foreach ($fields as $field) {
+                $baseType = Type::getNamedType($field->getType());
+                if ($baseType->name == 'String' || $baseType->name == 'ID') {
+                    $insert .= ", {$field->name}: \"" . $instance->{$field->name} . "\"";
+                } else if (is_a($baseType, ObjectType::class)) {
+                    $insert .= ", {$field->name}: \"" . $instance->{$field->name} . "\"";
+                } else {
+                    $insert .= ", {$field->name}: " . $instance->{$field->name} . "";
+                }
+                if (is_a($baseType, ObjectType::class)) {
+                    $retrieve .= ", {$field->name} { " . $this->searchIdField($baseType) . " }";
+                } else {
+                    $retrieve .= ", {$field->name}";
+                }
             }
-            if (is_a($baseType, ObjectType::class)) {
-                $retrieve .= ", {$field->name} { " . $this->searchIdField($baseType) . " }";
+            $query = "mutation { " . lcfirst($name) . ucfirst($for). "(input: {" . substr($insert, 2) . "}) { " . substr($retrieve, 2) . " } }";
+            $query = new GraphQLProcessor($this->schemas, $this->dataService, $this->validator, $this->namespace, $query, null);
+            $result = $query->result();
+            $result = $result->toArray(self::FLAG);
+            if (!isset($result['data']) && isset($result['errors'])) {
+                throw $this->errorException($result['errors']);
+            } else if (!isset($result['data'])) {
+                throw new InvalidArgumentException('Unable to store');
             } else {
-                $retrieve .= ", {$field->name}";
+                return $result['data'];
             }
-        }
-        $query = "mutation { " . lcfirst($name) . ucfirst($for). "(input: {" . substr($insert, 2) . "}) { " . substr($retrieve, 2) . " } }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataService, $this->validator, $this->namespace, $query, null);
-        $result = $query->result();
-        $result = $result->toArray(self::FLAG);
-        if (!isset($result['data']) && isset($result['errors'])) {
-            throw $this->errorException($result['errors']);
-        } else if (!isset($result['data'])) {
-            throw new InvalidArgumentException('Unable to store');
         } else {
-            return $result['data'];
+            throw new InvalidArgumentException("The type {$name} dont exists as ObjectType");
         }
     }
 

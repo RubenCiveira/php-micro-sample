@@ -27,7 +27,11 @@ class ViewMetadata
         if( empty($columns) ) {
             foreach($fields as $v) {
                 if( !in_array($v['name'], $this->hideColumns) ) {
-                    $columns[$v['name']] = [ 'name' => $v['name'], 'label' => $v['label']];
+                    if( isset($v['reference'])) {
+                        $columns[$v['name']] = [ 'name' => "{$v['name']}.{$v['reference']['label']}", 'label' => $v['label']];
+                    } else {
+                        $columns[$v['name']] = [ 'name' => $v['name'], 'label' => $v['label']];
+                    }
                 }
             }
         }
