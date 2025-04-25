@@ -7,9 +7,11 @@ namespace Civi\Micro;
 use Civi\Micro\Management\HealthManagement;
 use Civi\Micro\Management\HealthProviderInterface;
 use Civi\Micro\Management\ManagementInterface;
+use Civi\Micro\Management\MetricsManagement;
 use Civi\Micro\Middleware\GzipMiddleware;
 use Civi\Micro\Telemetry\Helper\SlimMetricMiddleware;
 use Civi\Micro\Telemetry\LoggerAwareInterface;
+use Civi\Micro\Telemetry\MetricAwareInterface;
 use Civi\Micro\Telemetry\TelemetryConfig;
 use Civi\Micro\Telemetry\TelemetryFactory;
 use DI\Container;
@@ -76,23 +78,36 @@ class AppBuilder
         $app->addRoutingMiddleware();
         
         // Los registros de management
-        $base = "management";
+        $appConfig = $container->get(AppConfig::class);
+        $base = $appConfig->managementEndpoint;
         $interfaces = $container->get(ManagementInterface::class);
         foreach($interfaces as $interface) {
             $name = $interface->name();
             $get = $interface->get();
             if( $get ) {
-                $app->get("/{$base}/{$name}", function(Request $request, Response $response) use ($get) {
-                    $response->getBody()->write(json_encode($get()));
-                    return $response->withHeader('Content-Type', 'application/json');
+                $app->get("{$base}/{$name}", function(Request $request, Response $response) use ($get) {
+                    $value = $get();
+                    if( is_string($value) ) {
+                        $response->getBody()->write($value);
+                        return $response->withHeader('Content-Type', 'text/plain');    
+                    } else {
+                        $response->getBody()->write(json_encode($value));
+                        return $response->withHeader('Content-Type', 'application/json');
+                    }
                 });
             }
             $set = $interface->set();
             if( $set ) {
-                $app->post("/{$base}/{$name}", function(Request $request, Response $response) use ($set) {
+                $app->post("{$base}/{$name}", function(Request $request, Response $response) use ($set) {
                     $data = $request->getParsedBody();
-                    $response->getBody()->write(json_encode($set( $data )));
-                    return $response->withHeader('Content-Type', 'application/json');
+                    $value = $set($data);
+                    if( is_string($value) ) {
+                        $response->getBody()->write($value);
+                        return $response->withHeader('Content-Type', 'text/plain');    
+                    } else {
+                        $response->getBody()->write(json_encode($value));
+                        return $response->withHeader('Content-Type', 'application/json');
+                    }
                 });
             }
         }
@@ -115,6 +130,9 @@ class AppBuilder
             CollectorRegistry::class => \DI\factory(function(TelemetryFactory $factory) {
                 return $factory->metrics();
             }),
+            AppConfig::class => \DI\factory(function () {
+                return Config::load('app.server', AppConfig::class, 'application');
+            }),
             TelemetryConfig::class => \DI\factory(function () {
                 return Config::load('app.telemetry', TelemetryConfig::class, 'application');
             }),
@@ -127,12 +145,16 @@ class AppBuilder
                 $interfaces = $container->get(HealthProviderInterface::class);
                 return new HealthManagement( $interfaces ?? [] );
             }),
-            // MetricAwareInterface::class => \DI\autowire()
-            //     ->method('setMetricRegistry', \DI\get(CollectorRegistry::class)),
+            MetricAwareInterface::class => \DI\autowire()
+                 ->method('setMetricRegistry', \DI\get(CollectorRegistry::class)),
             LoggerAwareInterface::class => \DI\autowire()
                 ->method('setLogger', \DI\get(LoggerInterface::class)),
             // TracerAwareInterface::class => \DI\autowire()
             //     ->method('setTracer', \DI\get(Logger::class)),
+        ]);
+
+        $builder->addDefinitions([
+            ManagementInterface::class => \DI\add(\DI\get(MetricsManagement::class)),
         ]);
     }
 }

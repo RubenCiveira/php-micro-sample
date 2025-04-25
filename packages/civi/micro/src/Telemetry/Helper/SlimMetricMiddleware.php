@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Telemetry\Helper;
 
+use Civi\Micro\AppConfig;
 use Civi\Micro\Telemetry\TelemetryConfig;
 use Prometheus\CollectorRegistry;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -14,6 +15,7 @@ use Slim\Routing\RouteContext;
 class SlimMetricMiddleware
 {
     public function __construct(
+        private readonly AppConfig $appConfig,
         private readonly TelemetryConfig $config,
         private readonly CollectorRegistry $registry
     ) {}
@@ -24,8 +26,18 @@ class SlimMetricMiddleware
         $routeContext = RouteContext::fromRequest($request);
         $response = $handler->handle($request);
         $route = $routeContext->getRoute();
-        $this->serverLoad($route);
+        $path = $route->getPattern();
+        if (!$this->isManagementPath($path)) {
+            $this->serverLoad($path);
+            $this->executionTime($path, $start);
+            $this->httpStatus($path, $response->getStatusCode());
+        }
         return $response;
+    }
+
+    private function isManagementPath($path)
+    {
+        return str_starts_with($path, $this->appConfig->managementEndpoint);
     }
 
     private function serverLoad($path)
@@ -153,6 +165,6 @@ class SlimMetricMiddleware
 
     private function namespace()
     {
-        return str_replace('.', '_', $this->config->appName );
+        return str_replace('.', '_', $this->config->appName);
     }
 }
