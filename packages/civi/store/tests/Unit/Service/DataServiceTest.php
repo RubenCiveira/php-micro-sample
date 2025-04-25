@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Tests\Shared\Infrastructure\Gateway;
 
@@ -9,6 +11,8 @@ use Civi\Store\Service\RestrictionPipeline;
 use Civi\Security\Guard\AccessGuard;
 use Civi\Security\Redaction\OutputRedactor;
 use Civi\Security\Sanitization\InputSanitizer;
+use Civi\Security\UnauthorizedException;
+use Civi\Store\Gateway\DataGateway;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 use PHPUnit\Framework\TestCase;
@@ -18,147 +22,125 @@ class DataServiceTest extends TestCase
     private Schema $schema;
     private DataService $adapter;
 
+    private $allow = true;
+    private $accessPipeline;
+    private $execPipeline;
+    private $guardMock;
+    private $inputMock;
+    private $outputMock;
+    private $gatewayMock;
+
     protected function setUp(): void
     {
         $sdl = file_get_contents(__DIR__ . '/../../Resources/store/schema_full.graphql');
-        $accessPipeline = $this->createMock(RestrictionPipeline::class);
-        $accessPipeline->method('restrictFilter')->willReturnCallback(fn(...$args) => $args[2]);
-        $execPipeline = $this->createMock(ExecPipeline::class);
-        $execPipeline->method('executeOperation')->willReturnCallback(fn(...$args) => $args[4]);
         $this->schema = BuildSchema::build($sdl);
-        $guardMock = $this->createMock(AccessGuard::class);
-        $guardMock->method('canExecute')->willReturn(true);
-        $inputMock = $this->createMock( InputSanitizer::class );
-        $inputMock->method('sanitizeInput')->willReturnCallback(fn(...$args) => $args[2]);
-        $outputMock = $this->createMock( OutputRedactor::class );
-        $outputMock->method('filterOutput')->willReturnCallback(fn(...$args) => $args[2]);
 
-        $this->adapter = new DataService( $accessPipeline, $execPipeline, $guardMock, $inputMock, $outputMock, __DIR__ . '/../../Resources/store/' );
+        $this->accessPipeline = $this->createMock(RestrictionPipeline::class);
+        $this->accessPipeline->method('restrictFilter')->willReturnCallback(fn(...$args) => $args[2]);
+        $this->execPipeline = $this->createMock(ExecPipeline::class);
+        $this->execPipeline->method('executeOperation')->willReturnCallback(function (...$args) {
+            if (is_callable($args[3])) {
+                $args[3]($args[4]);
+            }
+            return $args[4];
+        });
+        $this->guardMock = $this->createMock(AccessGuard::class);
+        $this->guardMock->method('canExecute')->willReturnCallback(function(...$args){ 
+            return $this->allow; 
+        });
+        $this->inputMock = $this->createMock(InputSanitizer::class);
+        $this->inputMock->method('sanitizeInput')->willReturnCallback(fn(...$args) => $args[2]);
+        $this->outputMock = $this->createMock(OutputRedactor::class);
+        $this->outputMock->method('filterOutput')->willReturnCallback(fn(...$args) => $args[2]);
+        $this->gatewayMock = $this->createMock(DataGateway::class);
+
+        $this->adapter = new DataService(
+            $this->gatewayMock, 
+            $this->accessPipeline, 
+            $this->execPipeline, 
+            $this->guardMock, 
+            $this->inputMock, 
+            $this->outputMock);
+        /*
+private readonly DataGateway $gateway,
+        private readonly RestrictionPipeline $restrictor,
+        private readonly ExecPipeline $execPipeline,
+        private readonly AccessGuard $guard,
+        private readonly InputSanitizer $sanitizer,
+        private readonly OutputRedactor $redactor,
+        */
     }
 
-    public function test_filter_by_provincia_nombre(): void
+    public function testCreateShouldSaveData()
     {
-        $args = [
-            'filter' => [
-                 'oficinaProvinciaNombreEquals' => 'Galicia'
-            ]
-        ];
+        $this->gatewayMock->expects($this->once())
+            ->method('save')
+            ->with('namespace', 'typeName', 'id123', ['id' => 'id123', 'foo' => 'bar']);
 
-        $param = new DataQueryParam($this->schema, 'Empleado', $args);
-        $result = $this->adapter->fetch('schema_full', 'Empleado', $param);
+        $result = $this->adapter->create('namespace', 'typeName', 'id', 'create', ['id' => 'id123', 'foo' => 'bar']);
 
         $this->assertIsArray($result);
-        $this->assertEQuals(35, count($result));
-        foreach ($result as $empleado) {
-            $this->assertEquals('Galicia', $empleado['oficina']['provincia']['nombre']);
-        }
+        $this->assertEquals([['id' => 'id123', 'foo' => 'bar']], $result);
     }
 
-    public function test_filter_by_nombre_like(): void
+    public function testModifyShouldUpdateExistingData()
     {
-        $args = [
-            'filter' => [
-                'nombreLike' => '4'
-            ]
-        ];
+        $this->gatewayMock->expects($this->exactly(1))
+            ->method('read')
+            ->willReturn([['id' => 'id123', 'foo' => 'bar']]);
 
-        $param = new DataQueryParam($this->schema, 'Empleado', $args);
-        $result = $this->adapter->fetch('schema_full', 'Empleado', $param);
+        $this->gatewayMock->expects($this->once())
+            ->method('save')
+            ->with('namespace', 'typeName', 'id123', ['id' => 'id123', 'foo' => 'baz']);
 
-        $this->assertIsArray($result);
-        $this->assertEQuals(19, count($result));
-        foreach ($result as $empleado) {
-            $this->assertStringContainsString('Empleado', $empleado['nombre']);
-        }
+        $filters = new DataQueryParam($this->schema, 'Empleado', []);
+        $result = $this->adapter->modify('namespace', 'typeName', 'id', 'update', $filters, ['foo' => 'baz']);
+
+        $this->assertCount(1, $result);
+        $this->assertEquals(['id' => 'id123', 'foo' => 'baz'], $result[0]);
     }
 
-    public function test_filter_by_salario_between(): void
+    public function testDeleteShouldCallGatewayDelete()
     {
-        $args = [
-            'filter' => [
-                'salarioBetween' => '30000,70000'
-            ]
-        ];
+        $readed = [['id' => 'id123']];
 
-        $param = new DataQueryParam($this->schema, 'Empleado', $args);
-        $result = $this->adapter->fetch('schema_full', 'Empleado', $param);
+        $this->gatewayMock->expects($this->once())
+            ->method('read')
+            ->willReturn($readed);
 
-        $this->assertIsArray($result);
-        $this->assertEQuals(45, count($result));
-        foreach ($result as $empleado) {
-            $this->assertGreaterThanOrEqual(30000, $empleado['salario']);
-            $this->assertLessThanOrEqual(70000, $empleado['salario']);
-        }
+        $this->gatewayMock->expects($this->once())
+            ->method('delete')
+            ->with(
+                'namespace',
+                'typeName',
+                $readed[0],
+                'id'
+            );
+
+        $filters = new DataQueryParam($this->schema, 'Empleado', []);
+        $this->adapter->delete('namespace', 'typeName', 'id', 'delete', $filters);
     }
 
-    public function test_filter_by_id_in(): void
+    public function testFetchShouldReturnRedactedData()
     {
-        $args = [
-            'filter' => [
-                'idIn' => '1,2,3'
-            ]
-        ];
+        $this->gatewayMock->expects($this->once())
+            ->method('read')
+            ->willReturn([['id' => 'id123', 'foo' => 'bar']]);
 
-        $param = new DataQueryParam($this->schema, 'Empleado', $args);
-        $result = $this->adapter->fetch('schema_full', 'Empleado', $param);
+        $filters = new DataQueryParam($this->schema, 'Empleado', []);
+        $result = $this->adapter->fetch('namespace', 'typeName', $filters);
 
-        $this->assertIsArray(actual: $result);
-        $this->assertEQuals(3, count($result));
-        foreach ($result as $empleado) {
-            $this->assertContains($empleado['id'], ['1', '2', '3']);
-        }
+        $this->assertCount(1, $result);
+        $this->assertEquals(['id' => 'id123', 'foo' => 'bar'], $result[0]);
     }
 
-    public function test_filter_by_fecha_ingreso_after(): void
+    public function testCreateShouldThrowUnauthorizedException()
     {
-        $args = [
-            'filter' => [
-                'fechaIngresoGreaterThan' => '2022-01-01'
-            ]
-        ];
+        $this->allow = false;
 
-        $param = new DataQueryParam($this->schema, 'Empleado', $args);
-        $result = $this->adapter->fetch('schema_full', 'Empleado', $param);
+        $this->expectException(UnauthorizedException::class);
+        $this->expectExceptionMessage('Not allowed to create onver namespace:typeName');
 
-        $this->assertIsArray($result);
-        $this->assertEQuals(40, count($result));
-        foreach ($result as $empleado) {
-            $this->assertGreaterThan('2022-01-01', $empleado['fechaIngreso']);
-        }
-    }
-
-    public function test_filter_by_salario_gt(): void
-    {
-        $args = [
-            'filter' => [
-                'salarioGreaterThan' => 50000
-            ]
-        ];
-
-        $param = new DataQueryParam($this->schema, 'Empleado', $args);
-        $result = $this->adapter->fetch('schema_full', 'Empleado', $param);
-
-        $this->assertIsArray($result);
-        $this->assertEQuals(58, count($result));
-        foreach ($result as $empleado) {
-            $this->assertGreaterThan(50000, $empleado['salario']);
-        }
-    }
-
-    public function test_filter_by_salario_lte(): void
-    {
-        $args = [
-            'filter' => [
-                'salarioLessThanEqual' => 50000
-            ]
-        ];
-        $param = new DataQueryParam($this->schema, 'Empleado', $args);
-        $result = $this->adapter->fetch('schema_full', 'Empleado', $param);
-
-        $this->assertIsArray($result);
-        $this->assertEQuals(42, count($result));
-        foreach ($result as $empleado) {
-            $this->assertLessThanOrEqual(50000, $empleado['salario']);
-        }
+        $this->adapter->create('namespace', 'typeName', 'id', 'create', ['id' => 'id123', 'foo' => 'bar']);
     }
 }
