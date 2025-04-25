@@ -2,7 +2,7 @@
 
 namespace Civi\Store;
 
-use Civi\Store\Gateway\DataGateway;
+use Civi\Store\Service\DataService;
 use Civi\Store\Service\ExtractMutation;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Type\Definition\ObjectType;
@@ -17,7 +17,7 @@ class EntityRepository
         private readonly string $namespace,
         private readonly string $type,
         private readonly Schemas $schemas,
-        private readonly DataGateway $dataGateway,
+        private readonly DataService $dataService,
         private readonly Validator $validator
     ) {
     }
@@ -40,7 +40,7 @@ class EntityRepository
         $query = "query { " . lcfirst($this->className($this->type)) . "s " . ($arguments ? "($arguments)" : "") . " { "
             . $this->expandGraphQLFields($include)
             . " } }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
+        $query = new GraphQLProcessor($this->schemas, $this->dataService, $this->validator, $this->namespace, $query, null);
         $result = $query->result()->toArray(self::FLAG);
         if (!isset($result['data']) && isset($result['errors'])) {
             throw $this->errorException($result['errors']);
@@ -92,7 +92,7 @@ class EntityRepository
             }
         }
         $query = "mutation { " . lcfirst($name) . ucfirst($for). "(input: {" . substr($insert, 2) . "}) { " . substr($retrieve, 2) . " } }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
+        $query = new GraphQLProcessor($this->schemas, $this->dataService, $this->validator, $this->namespace, $query, null);
         $result = $query->result();
         $result = $result->toArray(self::FLAG);
         if (!isset($result['data']) && isset($result['errors'])) {
@@ -136,7 +136,7 @@ class EntityRepository
         }
         $input = $insert ? ", input: {".substr($insert, 2)."}": "";
         $query = "mutation { " . lcfirst($name) . ucfirst($for). "(id: \"" . $id . "\"{$input}) { " . substr($retrieve, 2) . " } }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
+        $query = new GraphQLProcessor($this->schemas, $this->dataService, $this->validator, $this->namespace, $query, null);
         $result = $query->result();
         $result = $result->toArray(self::FLAG);
         if (!isset($result['data']) && isset($result['errors'])) {
@@ -152,7 +152,7 @@ class EntityRepository
     {
         $name = $this->className($this->type);
         $query = "mutation { " . lcfirst($name) . ucfirst($for) . "(id: \"" . $id . "\") }";
-        $query = new GraphQLProcessor($this->schemas, $this->dataGateway, $this->validator, $this->namespace, $query, null);
+        $query = new GraphQLProcessor($this->schemas, $this->dataService, $this->validator, $this->namespace, $query, null);
         $result = $query->result();
         $result = $result->toArray();
         if (!isset($result['data']) && isset($result['errors'])) {

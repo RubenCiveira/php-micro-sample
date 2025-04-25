@@ -2,7 +2,7 @@
 
 namespace Tests\Shared\Infrastructure\Gateway;
 
-use Civi\Store\Gateway\DataGateway;
+use Civi\Store\Service\DataService;
 use Civi\Store\DataQueryParam;
 use Civi\Store\Service\ExecPipeline;
 use Civi\Store\Service\RestrictionPipeline;
@@ -13,10 +13,10 @@ use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 use PHPUnit\Framework\TestCase;
 
-class DataFileAdapterTest extends TestCase
+class DataServiceTest extends TestCase
 {
     private Schema $schema;
-    private DataGateway $adapter;
+    private DataService $adapter;
 
     protected function setUp(): void
     {
@@ -33,7 +33,7 @@ class DataFileAdapterTest extends TestCase
         $outputMock = $this->createMock( OutputRedactor::class );
         $outputMock->method('filterOutput')->willReturnCallback(fn(...$args) => $args[2]);
 
-        $this->adapter = new DataGateway( $accessPipeline, $execPipeline, $guardMock, $inputMock, $outputMock, __DIR__ . '/../../Resources/store/' );
+        $this->adapter = new DataService( $accessPipeline, $execPipeline, $guardMock, $inputMock, $outputMock, __DIR__ . '/../../Resources/store/' );
     }
 
     public function test_filter_by_provincia_nombre(): void

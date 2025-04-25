@@ -4,7 +4,7 @@ namespace Civi\Store;
 
 use Civi\Store\Service\ExtractMutation;
 use Civi\View\ViewMetadata;
-use Civi\Store\Gateway\DataGateway;
+use Civi\Store\Service\DataService;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
@@ -16,14 +16,14 @@ class EntityViewMetadata
         private readonly string $namespace,
         private readonly string $type,
         private readonly Schemas $schemas,
-        private readonly DataGateway $dataGateway,
+        private readonly DataService $dataService,
         private readonly Validator $validator
     ) {
         $this->repository = new EntityRepository(
             $this->namespace,
             $this->type,
             $this->schemas,
-            $this->dataGateway,
+            $this->dataService,
             $this->validator
         );
     }

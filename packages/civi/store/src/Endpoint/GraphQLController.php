@@ -2,7 +2,7 @@
 
 namespace Civi\Store\Endpoint;
 
-use Civi\Store\Gateway\DataGateway;
+use Civi\Store\Service\DataService;
 use Civi\Store\GraphQLProcessor;
 use Civi\Store\Schemas;
 use Civi\Store\Validator;
@@ -13,7 +13,7 @@ class GraphQLController
 {
     public function __construct(
         private readonly Schemas $schemas,
-        private readonly DataGateway $datas,
+        private readonly DataService $datas,
         private readonly Validator $validator
     ) {
     }

@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Civi\Store\Gateway;
+namespace Civi\Store\Service;
 
 use Civi\Store\DataQueryParam;
 use Civi\Store\Filter\DataQueryFilter;
@@ -15,7 +15,7 @@ use Civi\Security\Sanitization\InputSanitizer;
 use Civi\Security\UnauthorizedException;
 use InvalidArgumentException;
 
-class DataGateway
+class DataService
 {
     private readonly string $baseDir;
     public function __construct(

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Civi\Store;
 
 use ArrayAccess;
-use Civi\Store\Gateway\DataGateway;
+use Civi\Store\Service\DataService;
 use Civi\Store\DataQueryParam;
 use Civi\Store\Service\ExtractMutation;
 
@@ -30,7 +30,7 @@ class GraphQLProcessor
 
     public function __construct(
         private readonly Schemas $schemas,
-        private readonly DataGateway $datas,
+        private readonly DataService $datas,
         private readonly Validator $validator,
         private readonly string $namespace,
         private readonly string $query,
