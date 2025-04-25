@@ -4,9 +4,23 @@ declare(strict_types=1);
 
 namespace Civi\Micro;
 
+use Civi\Micro\Management\HealthManagement;
+use Civi\Micro\Management\HealthProviderInterface;
+use Civi\Micro\Management\ManagementInterface;
+use Civi\Micro\Middleware\GzipMiddleware;
+use Civi\Micro\Telemetry\Helper\SlimMetricMiddleware;
+use Civi\Micro\Telemetry\LoggerAwareInterface;
+use Civi\Micro\Telemetry\TelemetryConfig;
+use Civi\Micro\Telemetry\TelemetryFactory;
 use DI\Container;
+use DI\ContainerBuilder;
+use Prometheus\CollectorRegistry;
+use Psr\Log\LoggerInterface;
 use Slim\App;
 use Slim\Factory\AppFactory;
+
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Message\ResponseInterface as Response;
 
 class AppBuilder
 {
@@ -14,7 +28,6 @@ class AppBuilder
     private static array $routes = [];
     private static array $dependencies = [];
     
-
     public static function registerView(string $app, string $name, string $path): bool
     {
         self::$views[$app][$name] = $path;
@@ -37,7 +50,10 @@ class AppBuilder
     public static function buildApp(): App
     {
         $root = ProjectLocator::getRootPath();
-        $container = new Container();
+        $builder = new ContainerBuilder();
+        $builder->useAutowiring(true);
+        self::standarContext($builder);
+        $container = $builder->build();
         foreach (self::$dependencies as $dep) {
             $di = require $dep;
             $di($container);
@@ -54,6 +70,33 @@ class AppBuilder
 
         // Middleware para parsear json
         $app->addBodyParsingMiddleware();
+        $app->add(GzipMiddleware::class);
+        $app->add(SlimMetricMiddleware::class);
+        // $app->add( CorsMiddeleware::class );
+        $app->addRoutingMiddleware();
+        
+        // Los registros de management
+        $base = "management";
+        $interfaces = $container->get(ManagementInterface::class);
+        foreach($interfaces as $interface) {
+            $name = $interface->name();
+            $get = $interface->get();
+            if( $get ) {
+                $app->get("/{$base}/{$name}", function(Request $request, Response $response) use ($get) {
+                    $response->getBody()->write(json_encode($get()));
+                    return $response->withHeader('Content-Type', 'application/json');
+                });
+            }
+            $set = $interface->set();
+            if( $set ) {
+                $app->post("/{$base}/{$name}", function(Request $request, Response $response) use ($set) {
+                    $data = $request->getParsedBody();
+                    $response->getBody()->write(json_encode($set( $data )));
+                    return $response->withHeader('Content-Type', 'application/json');
+                });
+            }
+        }
+
         foreach (self::$routes as $route) {
             $routes = require $route;
             $routes($app);
@@ -64,5 +107,32 @@ class AppBuilder
         }
         $container->set(App::class, \DI\value($app));
         return $app;
+    }
+
+    private static function standarContext(ContainerBuilder $builder)
+    {
+        $builder->addDefinitions([
+            CollectorRegistry::class => \DI\factory(function(TelemetryFactory $factory) {
+                return $factory->metrics();
+            }),
+            TelemetryConfig::class => \DI\factory(function () {
+                return Config::load('app.telemetry', TelemetryConfig::class, 'application');
+            }),
+            LoggerInterface::class => \DI\factory(function(TelemetryFactory $factory) {
+                return $factory->logger();
+            }),
+            HealthProviderInterface::class => [],
+            ManagementInterface::class => [\DI\get(HealthManagement::class)],
+            HealthManagement::class => \DI\factory(function(Container $container) {
+                $interfaces = $container->get(HealthProviderInterface::class);
+                return new HealthManagement( $interfaces ?? [] );
+            }),
+            // MetricAwareInterface::class => \DI\autowire()
+            //     ->method('setMetricRegistry', \DI\get(CollectorRegistry::class)),
+            LoggerAwareInterface::class => \DI\autowire()
+                ->method('setLogger', \DI\get(LoggerInterface::class)),
+            // TracerAwareInterface::class => \DI\autowire()
+            //     ->method('setTracer', \DI\get(Logger::class)),
+        ]);
     }
 }

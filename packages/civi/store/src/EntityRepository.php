@@ -2,6 +2,8 @@
 
 namespace Civi\Store;
 
+use Civi\Micro\Telemetry\LoggerAwareInterface;
+use Civi\Micro\Telemetry\LoggerAwareTrait;
 use Civi\Store\Service\DataService;
 use Civi\Store\Service\ExtractMutation;
 use GraphQL\Error\DebugFlag;
@@ -9,9 +11,11 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use InvalidArgumentException;
 
-class EntityRepository
+class EntityRepository implements LoggerAwareInterface
 {
     private const FLAG = DebugFlag::RETHROW_INTERNAL_EXCEPTIONS;
+
+    use LoggerAwareTrait;
 
     public function __construct(
         private readonly string $namespace,
@@ -53,18 +57,6 @@ class EntityRepository
         } else {
             throw new InvalidArgumentException("The type {$name} dont exists as ObjectType");
         }
-    }
-
-    public function retrieveView(string $id, array $include)
-    {
-    }
-
-    public function listEntities(array $args)
-    {
-    }
-
-    public function retrieveEntity(string $id)
-    {
     }
 
     public function create(string $for, $instance): array

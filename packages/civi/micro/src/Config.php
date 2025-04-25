@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Civi\Micro;
 
@@ -23,8 +25,9 @@ class Config
         $instance = new self('../config', '../', $file);
         return $instance->build($prefix, $className);
     }
-    
-    public function build($prefix, $className) {
+
+    public function build($prefix, $className)
+    {
         $data = $this->getFlatConfig($prefix);
         return $this->instantiate($className, $data);
     }
@@ -41,7 +44,7 @@ class Config
         if ($profile && file_exists("{$this->envPath}/.env.$profile")) {
             $dotenv = Dotenv::createMutable($this->envPath, [".env.$profile"]);
             $readed = $dotenv->load();
-            foreach($readed as $k=>$v) {
+            foreach ($readed as $k => $v) {
                 $_ENV[$k] = $v;
             }
             $this->loadedFiles[] = "{$this->envPath}/.env.$profile";
@@ -77,15 +80,15 @@ class Config
 
         foreach ($array as $key => $value) {
             // Normalizamos el nombre de la clave: minúsculas y puntos
-            $normalizedKey = strtolower(str_replace(['_', '-'], '.', $this->camelToDotNotation( (string) $key)) );
+            $normalizedKey = strtolower(str_replace(['_', '-'], '.', $this->camelToDotNotation((string) $key)));
             $fullKey = $prefix ? "$prefix.$normalizedKey" : $normalizedKey;
 
             if (is_array($value) && array_keys($value) !== range(0, count($value) - 1)) {
                 // Si es array asociativo, continuar recursión
                 $result += $this->flatten($value, $fullKey);
-            } else if (is_array($value) ) {
+            } else if (is_array($value)) {
                 $replaced = [];
-                foreach($value as $v) {
+                foreach ($value as $v) {
                     $replaced[] = $this->resolveEnvVar($v);
                 }
                 $result[$fullKey] = $replaced;
@@ -98,7 +101,7 @@ class Config
         return $result;
     }
 
-    private function camelToDotNotation(string $input): string 
+    private function camelToDotNotation(string $input): string
     {
         return strtolower(preg_replace('/(?<!^)[A-Z]/', '.$0', $input));
     }
@@ -129,7 +132,7 @@ class Config
         $args = [];
         $refClass = new ReflectionClass($className);
         foreach ($refClass->getConstructor()->getParameters() as $param) {
-            $name = $this->camelToDotNotation( $param->getName() );
+            $name = $this->camelToDotNotation($param->getName());
             $type = $param->getType();
             if ($type instanceof ReflectionNamedType && $type->getName() === 'array') {
                 $arg = $data[$name] ?? [];

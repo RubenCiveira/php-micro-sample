@@ -2,14 +2,18 @@
 
 namespace Civi\Store;
 
+use Civi\Micro\Telemetry\LoggerAwareInterface;
+use Civi\Micro\Telemetry\LoggerAwareTrait;
 use Civi\Store\Service\ExtractMutation;
 use Civi\View\ViewMetadata;
 use Civi\Store\Service\DataService;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 
-class EntityViewMetadata
+class EntityViewMetadata implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+    
     private readonly EntityRepository $repository;
 
     public function __construct(

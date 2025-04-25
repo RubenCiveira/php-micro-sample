@@ -4,23 +4,32 @@ declare(strict_types=1);
 
 namespace Civi\Store;
 
+use Civi\Micro\Telemetry\LoggerAwareInterface;
 use Civi\Store\Service\DataService;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerTrait;
 
 class Repository
 {
     public function __construct(
         private readonly Schemas $schemas,
         private readonly DataService $dataService,
-        private readonly Validator $validator
+        private readonly Validator $validator,
+        private readonly LoggerInterface $logger,
     ) {}
 
     public function entityRepository(string $namespace, string $kind): EntityRepository
     {
-        return new EntityRepository($namespace, $kind, $this->schemas, $this->dataService, $this->validator);
+        $repo = new EntityRepository($namespace, $kind, $this->schemas, $this->dataService, $this->validator);
+        $this->dataService->setLogger( $this->logger );
+        $repo->setLogger( $this->logger );
+        return $repo;
     }
 
     public function formMetadata(string $namespace, string $kind): EntityViewMetadata
     {
-        return new EntityViewMetadata($namespace, $kind, $this->schemas, $this->dataService, $this->validator);
+        $repo = new EntityViewMetadata($namespace, $kind, $this->schemas, $this->dataService, $this->validator);
+        $this->dataService->setLogger( $this->logger );
+        return $repo;
     }
 }

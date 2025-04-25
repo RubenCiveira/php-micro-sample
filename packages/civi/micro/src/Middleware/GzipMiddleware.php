@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Civi\Micro\Middleware;
 
@@ -17,16 +19,16 @@ class GzipMiddleware
         if (strpos($acceptEncoding, 'gzip') !== false) {
             $body = (string) $response->getBody();
             $gzipped = gzencode($body);
-    
+
             $response = $response
                 ->withHeader('Content-Encoding', 'gzip')
                 ->withHeader('Vary', 'Accept-Encoding')
-                ->withHeader('Content-Length', ''.strlen($gzipped));
-    
+                ->withHeader('Content-Length', '' . strlen($gzipped));
+
             $response->getBody()->rewind();
             $response->getBody()->write($gzipped);
         }
-    
+
         return $response;
     }
 }

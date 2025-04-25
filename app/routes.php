@@ -15,7 +15,6 @@ return function (App $app) {
     $container = $app->getContainer();
     $config = $container->get(SecurityConfig::class);
     $app->add(GoogleSecurityMiddleware::class);
-    $app->add(GzipMiddleware::class);
 
     if( AppBuilder::registerView('backoffice', 'home', "/") ) {
         $app->get("/" . basename($config->googleRedirectUri), [GoogleSecurityMiddleware::class, 'verifyAuthorization']);

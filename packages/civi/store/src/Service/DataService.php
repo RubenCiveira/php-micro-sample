@@ -9,14 +9,18 @@ use Civi\Store\Filter\DataQueryCondition;
 use Civi\Store\Service\ExecPipeline;
 use Civi\Store\Service\RestrictionPipeline;
 use Civi\Micro\ProjectLocator;
+use Civi\Micro\Telemetry\LoggerAwareInterface;
+use Civi\Micro\Telemetry\LoggerAwareTrait;
 use Civi\Security\Guard\AccessGuard;
 use Civi\Security\Redaction\OutputRedactor;
 use Civi\Security\Sanitization\InputSanitizer;
 use Civi\Security\UnauthorizedException;
 use InvalidArgumentException;
 
-class DataService
+class DataService implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     private readonly string $baseDir;
     public function __construct(
         private readonly RestrictionPipeline $restrictor,
