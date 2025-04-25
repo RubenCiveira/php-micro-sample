@@ -13,6 +13,7 @@ use Civi\Security\Redaction\OutputRedactor;
 use Civi\Security\Sanitization\InputSanitizer;
 use Civi\Security\UnauthorizedException;
 use Civi\Store\Gateway\DataGateway;
+use Civi\Store\SchemaMetadata;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 use PHPUnit\Framework\TestCase;
@@ -61,23 +62,15 @@ class DataServiceTest extends TestCase
             $this->guardMock, 
             $this->inputMock, 
             $this->outputMock);
-        /*
-private readonly DataGateway $gateway,
-        private readonly RestrictionPipeline $restrictor,
-        private readonly ExecPipeline $execPipeline,
-        private readonly AccessGuard $guard,
-        private readonly InputSanitizer $sanitizer,
-        private readonly OutputRedactor $redactor,
-        */
     }
 
     public function testCreateShouldSaveData()
     {
+        $meta = new SchemaMetadata('id', []);
         $this->gatewayMock->expects($this->once())
             ->method('save')
-            ->with('namespace', 'typeName', 'id123', ['id' => 'id123', 'foo' => 'bar']);
-
-        $result = $this->adapter->create('namespace', 'typeName', 'id', 'create', ['id' => 'id123', 'foo' => 'bar']);
+            ->with('namespace', 'typeName', $meta, ['id' => 'id123', 'foo' => 'bar']);
+        $result = $this->adapter->create('namespace', 'typeName', $meta, 'create', ['id' => 'id123', 'foo' => 'bar']);
 
         $this->assertIsArray($result);
         $this->assertEquals([['id' => 'id123', 'foo' => 'bar']], $result);
@@ -89,12 +82,13 @@ private readonly DataGateway $gateway,
             ->method('read')
             ->willReturn([['id' => 'id123', 'foo' => 'bar']]);
 
+            $meta = new SchemaMetadata('id', []);
         $this->gatewayMock->expects($this->once())
             ->method('save')
-            ->with('namespace', 'typeName', 'id123', ['id' => 'id123', 'foo' => 'baz']);
+            ->with('namespace', 'typeName', $meta, ['id' => 'id123', 'foo' => 'baz']);
 
         $filters = new DataQueryParam($this->schema, 'Empleado', []);
-        $result = $this->adapter->modify('namespace', 'typeName', 'id', 'update', $filters, ['foo' => 'baz']);
+        $result = $this->adapter->modify('namespace', 'typeName', $meta, 'update', $filters, ['foo' => 'baz']);
 
         $this->assertCount(1, $result);
         $this->assertEquals(['id' => 'id123', 'foo' => 'baz'], $result[0]);
@@ -108,17 +102,18 @@ private readonly DataGateway $gateway,
             ->method('read')
             ->willReturn($readed);
 
+        $meta = new SchemaMetadata('id', []);
         $this->gatewayMock->expects($this->once())
             ->method('delete')
             ->with(
                 'namespace',
                 'typeName',
                 $readed[0],
-                'id'
+                $meta
             );
 
         $filters = new DataQueryParam($this->schema, 'Empleado', []);
-        $this->adapter->delete('namespace', 'typeName', 'id', 'delete', $filters);
+        $this->adapter->delete('namespace', 'typeName', $meta, 'delete', $filters);
     }
 
     public function testFetchShouldReturnRedactedData()
@@ -127,8 +122,9 @@ private readonly DataGateway $gateway,
             ->method('read')
             ->willReturn([['id' => 'id123', 'foo' => 'bar']]);
 
+        $meta = new SchemaMetadata('id', []);
         $filters = new DataQueryParam($this->schema, 'Empleado', []);
-        $result = $this->adapter->fetch('namespace', 'typeName', $filters);
+        $result = $this->adapter->fetch('namespace', 'typeName', $meta, $filters);
 
         $this->assertCount(1, $result);
         $this->assertEquals(['id' => 'id123', 'foo' => 'bar'], $result[0]);
@@ -141,6 +137,7 @@ private readonly DataGateway $gateway,
         $this->expectException(UnauthorizedException::class);
         $this->expectExceptionMessage('Not allowed to create onver namespace:typeName');
 
-        $this->adapter->create('namespace', 'typeName', 'id', 'create', ['id' => 'id123', 'foo' => 'bar']);
+        $meta = new SchemaMetadata('id', []);
+        $this->adapter->create('namespace', 'typeName', $meta, 'create', ['id' => 'id123', 'foo' => 'bar']);
     }
 }

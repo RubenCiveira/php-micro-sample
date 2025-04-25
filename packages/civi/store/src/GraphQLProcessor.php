@@ -43,10 +43,12 @@ class GraphQLProcessor
         $schema = $this->schemas->schema($namepace);
         $rootQuery = $schema->getQueryType();
 
+        $schemaMeta = new SchemaMetadata("id", ["name"]);
+
         $resolvers = [];
         $names = $rootQuery->getFieldNames();
         foreach ($names as $name) {
-            $resolvers[$name] = function ($root, array $args, $context, ResolveInfo $resolveInfo) use ($namepace, $schema, $name, $rootQuery) {
+            $resolvers[$name] = function ($root, array $args, $context, ResolveInfo $resolveInfo) use ($namepace, $schema, $name, $rootQuery, $schemaMeta) {
                 if (isset($args['id'])) {
                     $args['filter'] = ['idEquals' => $args['id']];
                     unset($args['id']);
@@ -57,6 +59,7 @@ class GraphQLProcessor
                 $response = $this->datas->fetch(
                     $namepace,
                     $theType->toString(),
+                    $schemaMeta,
                     $filter
                 );
                 if ($type instanceof NonNull) {
@@ -69,8 +72,7 @@ class GraphQLProcessor
         $mutations = $extractor->fromSchema($schema);
         foreach ($mutations as $theType => $hisMutations) {
             foreach ($hisMutations as $mutation) {
-                $resolvers[lcfirst($theType) . ucfirst($mutation['name'])] = function ($root, array $args, $context, ResolveInfo $resolveInfo) use ($namepace, $schema, $mutation, $theType) {
-                    $idName = 'id';
+                $resolvers[lcfirst($theType) . ucfirst($mutation['name'])] = function ($root, array $args, $context, ResolveInfo $resolveInfo) use ($namepace, $schema, $mutation, $theType, $schemaMeta) {
                     $data = [];
                     // Suposition, first argument ID, segund argument is a data array
                     foreach ($args as $ks => $vs) {
@@ -92,7 +94,7 @@ class GraphQLProcessor
                             $this->datas->delete(
                                 $namepace,
                                 $theType,
-                                $idName,
+                                $schemaMeta,
                                 $mutation['name'],
                                 new DataQueryParam($schema, $theType, $condition),
                             );
@@ -109,7 +111,7 @@ class GraphQLProcessor
                             return $this->datas->modify(
                                 $namepace,
                                 $theType,
-                                $idName,
+                                $schemaMeta,
                                 $mutation['name'],
                                 $filter,
                                 $data
@@ -123,7 +125,7 @@ class GraphQLProcessor
                             return $this->datas->create(
                                 $namepace,
                                 $theType,
-                                $idName,
+                                $schemaMeta,
                                 $mutation['name'],
                                 $data
                             )[0];

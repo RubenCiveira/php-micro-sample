@@ -14,6 +14,7 @@ use Civi\Security\Redaction\OutputRedactor;
 use Civi\Security\Sanitization\InputSanitizer;
 use Civi\Security\UnauthorizedException;
 use Civi\Store\Gateway\DataGateway;
+use Civi\Store\SchemaMetadata;
 use InvalidArgumentException;
 
 class DataService implements LoggerAwareInterface
@@ -30,22 +31,22 @@ class DataService implements LoggerAwareInterface
     ) {
     }
 
-    public function create(string $namespace, string $typeName, string $idName, string $from, array $data): array
+    public function create(string $namespace, string $typeName, SchemaMetadata $meta, string $from, array $data): array
     {
         $sanitized = $this->sanitizer->sanitizeInput($namespace, $typeName, $data);
         if (!$this->guard->canExecute($from, $namespace, $typeName, $sanitized, [])) {
             throw new UnauthorizedException("Not allowed to $from onver $namespace:$typeName");
         }
-        $sanitized = $this->execPipeline->executeOperation($namespace, $typeName, [ucfirst($from), 'Write', 'Read'], function () use ($namespace, $typeName, $sanitized, $idName) {
-            $this->save($namespace, $typeName, $sanitized[$idName], $sanitized);
+        $sanitized = $this->execPipeline->executeOperation($namespace, $typeName, [ucfirst($from), 'Write', 'Read'], function () use ($namespace, $typeName, $sanitized, $meta) {
+            $this->save($namespace, $typeName, $meta, $sanitized);
         }, $sanitized);
         return [$this->redactor->filterOutput($namespace, $typeName, $sanitized)];
     }
 
-    public function modify(string $namespace, string $typeName, string $idName, string $from, DataQueryParam $filters, array $data): array
+    public function modify(string $namespace, string $typeName, SchemaMetadata $meta, string $from, DataQueryParam $filters, array $data): array
     {
         $sanitized = $this->sanitizer->sanitizeInput($namespace, $typeName, $data);
-        $readed = $this->read($namespace, $typeName, $filters);
+        $readed = $this->read($namespace, $typeName, $meta, $filters);
         if (!count($readed)) {
             throw new InvalidArgumentException("Not found");
         }
@@ -55,8 +56,8 @@ class DataService implements LoggerAwareInterface
         $saved = [];
         foreach ($readed as $read) {
             $save = array_merge($read, $sanitized);
-            $output = $this->execPipeline->executeOperation($namespace, $typeName, [ucfirst($from), 'Write', 'Read'], function () use ($namespace, $typeName, $read, $save, $idName) {
-                $this->save($namespace, $typeName, $read[$idName], $save);
+            $output = $this->execPipeline->executeOperation($namespace, $typeName, [ucfirst($from), 'Write', 'Read'], function () use ($namespace, $typeName, $read, $save, $meta) {
+                $this->save($namespace, $typeName, $meta, $save);
                 return $save;
             }, $save, $read);
             $saved[] = $this->redactor->filterOutput($namespace, $typeName, $output);
@@ -64,33 +65,33 @@ class DataService implements LoggerAwareInterface
         return $saved;
     }
 
-    public function delete(string $namespace, string $typeName, string $idName, string $from, DataQueryParam $filters): void
+    public function delete(string $namespace, string $typeName, SchemaMetadata $meta, string $from, DataQueryParam $filters): void
     {
-        $readed = $this->read($namespace, $typeName, $filters);
+        $readed = $this->read($namespace, $typeName, $meta, $filters);
         if (!$this->guard->canExecute($from, $namespace, $typeName, $readed, $readed)) {
             throw new UnauthorizedException("Not allowed to $from onver $namespace:$typeName");
         }
         foreach ($readed as $read) {
-            $this->execPipeline->executeOperation($namespace, $typeName, ['Delete'], function () use ($namespace, $typeName, $read, $idName) {
-                $this->gateway->delete($namespace, $typeName, $read, $idName);
+            $this->execPipeline->executeOperation($namespace, $typeName, ['Delete'], function () use ($namespace, $typeName, $read, $meta) {
+                $this->gateway->delete($namespace, $typeName, $read, $meta);
             }, $read, $read);
         }
     }
 
-    public function fetch(string $namespace, string $typeName, DataQueryParam $originalFilter): array
+    public function fetch(string $namespace, string $typeName, SchemaMetadata $meta, DataQueryParam $originalFilter): array
     {
         if (!$this->guard->canExecute('read', $namespace, $typeName, [], [])) {
             throw new UnauthorizedException("Not allowed to read over $namespace:$typeName");
         }
-        $all = $this->read($namespace, $typeName, $originalFilter);
+        $all = $this->read($namespace, $typeName, $meta, $originalFilter);
         return array_map(fn($row) => $this->redactor->filterOutput($namespace, $typeName, $row), $all);
     }
 
-    private function read(string $namespace, string $typeName, DataQueryParam $originalFilter): array
+    private function read(string $namespace, string $typeName, SchemaMetadata $meta, DataQueryParam $originalFilter): array
     {
         $filter = $this->restrictor->restrictFilter($namespace, $typeName, $originalFilter->toArray());
         $filters = DataQueryParam::replaceInto($originalFilter, $filter);
-        $values = $this->gateway->read($namespace, $typeName, $filters);
+        $values = $this->gateway->read($namespace, $typeName, $meta, $filters);
         $result = [];
         foreach ($values as $value) {
             $result[] = $this->execPipeline->executeOperation($namespace, $typeName, ['Read'], null, $value);
@@ -98,8 +99,8 @@ class DataService implements LoggerAwareInterface
         return $result;
     }
 
-    private function save(string $namespace, string $typeName, string $id, array $data) 
+    private function save(string $namespace, string $typeName, SchemaMetadata $meta, array $data) 
     {
-        $this->gateway->save($namespace, $typeName, $id, $data);
+        $this->gateway->save($namespace, $typeName, $meta, $data);
     }
 }
