@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="Default Rules"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
+                             http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+
+    <description>
+        Conjunto de reglas por defecto para detectar código problemático, complejo o de baja calidad.
+    </description>
+
+    <!-- Reglas de diseño: clases demasiado grandes, métodos muy complejos, etc. -->
+    <rule ref="rulesets/design.xml"/>
+
+    <!-- Reglas de codificación: nombres poco claros, métodos muy largos, etc. -->
+    <rule ref="rulesets/codesize.xml"/>
+
+    <!-- Reglas de uso de variables: variables no utilizadas, argumentos innecesarios, etc. -->
+    <rule ref="rulesets/unusedcode.xml"/>
+
+    <!-- Reglas de errores: patrones de errores comunes. -->
+    <rule ref="rulesets/cleancode.xml"/>
+
+    <!-- Reglas de convenciones de naming (opcional, se puede comentar si molesta mucho) -->
+    <rule ref="rulesets/naming.xml"/>
+
+</ruleset>

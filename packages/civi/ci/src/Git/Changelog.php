@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Civi\Ci\Git;
 
+use Civi\Ci\Artifact\ArtifactCommon;
+
 class Changelog extends GitCommon
 {
-    public static function generate(string $version): void
+    public static function generate(?string $version=null): void
     {
+        if( !$version ) {
+            $version = ArtifactCommon::getCurrentVersion();
+        }
         echo "📌 Generando changelog para la versión '$version'...\n";
 
         $fromTag = trim(self::runGit(['describe', '--tags', '--abbrev=0', self::getDevelopBranch()]));

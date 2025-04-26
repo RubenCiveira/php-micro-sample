@@ -11,8 +11,6 @@ use RuntimeException;
 
 class PrometeusFileStorage implements Adapter
 {
-    private string $filePath;
-
     private bool $change = false;
 
     /**

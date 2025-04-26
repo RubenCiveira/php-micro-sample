@@ -13,4 +13,9 @@ class ArtifactCommon
     {
         return ComposerCommon::getCurrentVersion();
     }
+
+    public static function setVersion(string $version): void
+    {
+        ComposerCommon::setVersion($version);
+    }
 }
