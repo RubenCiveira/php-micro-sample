@@ -19,6 +19,7 @@
         }
     ],
     "require": {
+        "php": "^8.4",
         "civi/micro": "*",
         "slim/slim": "^4.14",
         "slim/psr7": "^1.7",

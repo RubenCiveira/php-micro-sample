@@ -32,6 +32,7 @@
         }
     ],
     "require": {
+        "php": "^8.4",
         "civi/micro": "*",
         "civi/security": "*",
         "slim/slim": "^4.14",

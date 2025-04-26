@@ -41,6 +41,7 @@
     }
   ],
     "require": {
+        "php": "^8.4",
         "civi/micro": "*",
         "civi/store": "*",
         "civi/view": "*",

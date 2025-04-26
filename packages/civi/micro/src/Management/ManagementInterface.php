@@ -10,5 +10,5 @@ interface ManagementInterface
 {
     public function name(): string;
     public function get(): ?Closure;
-    public function set(): ?Closure; 
+    public function set(): ?Closure;
 }
