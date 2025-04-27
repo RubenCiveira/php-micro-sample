@@ -9,6 +9,9 @@ test:
 	mkdir -p $(REPORT_DIR)
 	vendor/bin/phpunit --log-junit $(REPORT_DIR)/test-report.xml
 
+format:
+	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/
+
 lint:
 	mkdir -p $(REPORT_DIR)
 	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/ --dry-run --format=checkstyle > $(REPORT_DIR)/lint-report.xml

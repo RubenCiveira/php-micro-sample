@@ -19,7 +19,8 @@ class TelemetryConfig
     public readonly string $appVersion;
 
     public function __construct(
-        ?string $logPath, ?string $logLevel
+        ?string $logPath,
+        ?string $logLevel
     ) {
         $this->logFile = ProjectLocator::getRootPath() . '/var/log/app.log';
         $this->logLevel = Level::Debug;

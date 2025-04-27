@@ -16,7 +16,7 @@ trait TracerAwareTrait
     }
 
     /**
-     * Inicia un span de trazado. 
+     * Inicia un span de trazado.
      * Si no hay tracer configurado, escribe en error_log.
      */
     public function startSpan(string $operationName, array $attributes = []): SpanHolder

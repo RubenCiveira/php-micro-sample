@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Civi\Micro\Schema;
 
@@ -21,13 +23,14 @@ class EntitySchema
         $this->ActionSchema = new ActionSchema();
     }
 
-    public function export() {
+    public function export()
+    {
         $fields = $this->ActionSchema->export()['fields'];
         $columns = $this->columns;
-        if( empty($columns) ) {
-            foreach($fields as $v) {
-                if( !in_array($v['name'], $this->hideColumns) ) {
-                    if( isset($v['reference'])) {
+        if (empty($columns)) {
+            foreach ($fields as $v) {
+                if (!in_array($v['name'], $this->hideColumns)) {
+                    if (isset($v['reference'])) {
                         $columns[$v['name']] = [ 'name' => "{$v['name']}.{$v['reference']['label']}", 'label' => $v['label']];
                     } else {
                         $columns[$v['name']] = [ 'name' => $v['name'], 'label' => $v['label']];
@@ -59,7 +62,7 @@ class EntitySchema
         return $this;
     }
 
-    public function addContextualConfirmAction(string $name, string $label, $callback ): EntitySchema
+    public function addContextualConfirmAction(string $name, string $label, $callback): EntitySchema
     {
         $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'danger', 'callback' => $callback ];
         return $this;
@@ -67,16 +70,16 @@ class EntitySchema
 
     public function addStandaloneFormAction(string $name, string $label, ActionSchema|array $form, $callback): EntitySchema
     {
-        if( is_array($form) ) {
+        if (is_array($form)) {
             $defaults = $this->ActionSchema->export()['fields'];
             $formView = new ActionSchema();
-            foreach($form as $field) {
-                $formView->addField( $field, $defaults[$field] );
+            foreach ($form as $field) {
+                $formView->addField($field, $defaults[$field]);
             }
         } else {
             $formView = $form;
         }
-        $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => false, 'kind' => 'success', 
+        $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => false, 'kind' => 'success',
                 'form' => $formView->export()['fields'],
                 'callback' => $callback ];
         return $this;
@@ -84,16 +87,16 @@ class EntitySchema
     }
     public function addContextualFormAction(string $name, string $label, ActionSchema|array $form, $callback): EntitySchema
     {
-        if( is_array($form) ) {
+        if (is_array($form)) {
             $defaults = $this->ActionSchema->export()['fields'];
             $formView = new ActionSchema();
-            foreach($form as $field) {
-                $formView->addField( $field, $defaults[$field] );
+            foreach ($form as $field) {
+                $formView->addField($field, $defaults[$field]);
             }
         } else {
             $formView = $form;
         }
-        $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'warn', 
+        $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'warn',
                 'form' => $formView->export()['fields'],
                 'callback' => $callback ];
         return $this;
@@ -102,16 +105,16 @@ class EntitySchema
     public function exec(array $data): ?string
     {
         $processed = null;
-        foreach($this->actions as $name => $info) {
-            if( isset($data[$name]) && isset($info['callback'])) {
+        foreach ($this->actions as $name => $info) {
+            if (isset($data[$name]) && isset($info['callback'])) {
                 $data[$this->id] = $data[$name];
-                if( !$data[$this->id] ) {
+                if (!$data[$this->id]) {
                     $data[$this->id] = Uuid::uuid4()->toString();
                 }
-                if( $info['callback'] instanceof \Closure) {
+                if ($info['callback'] instanceof \Closure) {
                     $info['callback']($data);
                 } else {
-                    call_user_func( $info['callback'], $data);
+                    call_user_func($info['callback'], $data);
                 }
                 $processed = "Se ha {$name} correctamente";
             }
@@ -124,7 +127,7 @@ class EntitySchema
         $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'info',
             'code' => <<<JS
                 document.getElementById('jsonContent').textContent = {$format}
-                JS, 
+                JS,
             'template' => <<<HTML
                 <div id="jsonContent" class="json-display"></div>
                 HTML,

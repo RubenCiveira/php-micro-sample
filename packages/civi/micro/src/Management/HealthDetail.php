@@ -6,7 +6,6 @@ namespace Civi\Micro\Management;
 
 class HealthDetail
 {
-
     public static function up(string $name, ?array $details = null): HealthDetail
     {
         return new HealthDetail(name: $name, status: 'UP', details: $details);
@@ -26,5 +25,6 @@ class HealthDetail
         public readonly string $status,
         public readonly string $name,
         public readonly ?array $details
-    ) {}
+    ) {
+    }
 }

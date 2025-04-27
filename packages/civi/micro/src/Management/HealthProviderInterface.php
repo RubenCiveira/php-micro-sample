@@ -8,5 +8,3 @@ interface HealthProviderInterface
 {
     public function check(): HealthDetail;
 }
-
-

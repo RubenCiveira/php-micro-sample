@@ -18,7 +18,8 @@ class SlimMetricMiddleware
         private readonly AppConfig $appConfig,
         private readonly TelemetryConfig $config,
         private readonly CollectorRegistry $registry
-    ) {}
+    ) {
+    }
 
     public function __invoke(Request $request, RequestHandlerInterface $handler): Response
     {
@@ -122,9 +123,9 @@ class SlimMetricMiddleware
         }
         if ($status == 401) {
             $this->unauthorized($path);
-        } else if ($status == 403) {
+        } elseif ($status == 403) {
             $this->forbidden($path);
-        } else if ($status == 502) {
+        } elseif ($status == 502) {
             $this->bad_gateway($path);
         }
     }

@@ -17,7 +17,7 @@ class SpanHolder
 
     public function end()
     {
-        if( $this->span ) {
+        if ($this->span) {
             $this->span->end();
         }
     }

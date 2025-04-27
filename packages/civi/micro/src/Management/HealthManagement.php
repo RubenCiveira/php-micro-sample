@@ -8,7 +8,9 @@ use Closure;
 
 class HealthManagement implements ManagementInterface
 {
-    public function __construct(private readonly array $providers) {}
+    public function __construct(private readonly array $providers)
+    {
+    }
 
     public function name(): string
     {
@@ -24,7 +26,7 @@ class HealthManagement implements ManagementInterface
                 $detail = $provider->check();
                 if ($detail->status === 'DOWN') {
                     $status = 'DOWN';
-                } else if ($detail->status === 'UNKWOWN') {
+                } elseif ($detail->status === 'UNKWOWN') {
                     $status = $status === 'DOWN' ? 'DOWN' : 'UNKWOWN';
                 }
                 $details[$detail->name] = ['status' => $detail->status];

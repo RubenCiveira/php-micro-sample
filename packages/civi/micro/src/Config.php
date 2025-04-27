@@ -86,7 +86,7 @@ class Config
             if (is_array($value) && array_keys($value) !== range(0, count($value) - 1)) {
                 // Si es array asociativo, continuar recursión
                 $result += $this->flatten($value, $fullKey);
-            } else if (is_array($value)) {
+            } elseif (is_array($value)) {
                 $replaced = [];
                 foreach ($value as $v) {
                     $replaced[] = $this->resolveEnvVar($v);
@@ -94,7 +94,8 @@ class Config
                 $result[$fullKey] = $replaced;
             } else {
                 // Si es array indexado o valor simple, asignar directamente
-                $result[$fullKey] = $this->resolveEnvVar($value);;
+                $result[$fullKey] = $this->resolveEnvVar($value);
+                ;
             }
         }
 

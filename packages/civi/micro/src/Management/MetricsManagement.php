@@ -10,7 +10,9 @@ use Prometheus\RenderTextFormat;
 
 class MetricsManagement implements ManagementInterface
 {
-    public function __construct(private readonly CollectorRegistry $collector) {}
+    public function __construct(private readonly CollectorRegistry $collector)
+    {
+    }
 
     public function name(): string
     {

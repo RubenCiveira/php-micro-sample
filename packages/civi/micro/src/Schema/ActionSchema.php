@@ -1,25 +1,28 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Civi\Micro\Schema;
 
 class ActionSchema
 {
     private array $fields = [];
-    
-    public function export(): array {
+
+    public function export(): array
+    {
         return [ 'fields' => $this->fields ];
     }
 
     public function markCalculated(array $names): ActionSchema
     {
-        foreach($names as $name) {
+        foreach ($names as $name) {
             $this->fields[$name]['calculated'] = true;
         }
         return $this;
     }
     public function markReadonly(array $names): ActionSchema
     {
-        foreach($names as $name) {
+        foreach ($names as $name) {
             $this->fields[$name]['readonly'] = true;
         }
         return $this;
@@ -27,13 +30,13 @@ class ActionSchema
     public function addField(string $name, array $info): ActionSchema
     {
         $info['name'] = $name;
-        if( !isset($info['required']) ) {
+        if (!isset($info['required'])) {
             $info['required'] = false;
         }
-        if( !isset($info['type']) ) {
+        if (!isset($info['type'])) {
             $info['type'] = 'text';
         }
-        if( !isset($info['label']) ) {
+        if (!isset($info['label'])) {
             $info['label'] = ucfirst($name);
         }
         $this->fields[$name] = $info;

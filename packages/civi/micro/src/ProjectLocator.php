@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Civi\Micro;
 
@@ -21,11 +23,11 @@ class ProjectLocator
         $vendorAutolad = __DIR__ . '/../../../../autoload.php';
         if (file_exists("{$innerAutoload}autoload.php")) {
             return realpath(dirname($innerAutoload));
-        } else if (file_exists("{$vendorAutolad}autoload.php")) {
+        } elseif (file_exists("{$vendorAutolad}autoload.php")) {
             return realpath(dirname($vendorAutolad));
         }
         $pwd = getcwd();
-        while( $pwd && !file_exists("$pwd/composer.json") ) {
+        while ($pwd && !file_exists("$pwd/composer.json")) {
             $pwd = dirname($pwd);
         }
         return $pwd;

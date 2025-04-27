@@ -32,7 +32,7 @@ class TelemetryFactory
 
     public function metrics(): CollectorRegistry
     {
-        $storage = new PrometeusFileStorage( $this->config->metricsFile );
+        $storage = new PrometeusFileStorage($this->config->metricsFile);
         return new CollectorRegistry($storage);
     }
 }

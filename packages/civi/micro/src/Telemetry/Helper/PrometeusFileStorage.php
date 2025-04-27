@@ -49,7 +49,7 @@ class PrometeusFileStorage implements Adapter
 
     public function __destruct()
     {
-        if( $this->change ) {
+        if ($this->change) {
             $this->persist();
         }
     }
