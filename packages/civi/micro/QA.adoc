@@ -1,0 +1,27 @@
+= Resumen de Calidad del Proyecto
+
+== Indicadores generales
+
+[options="header"]
+|===
+| Indicador | Valor
+
+| Tests totales
+| 3
+
+| Tests pasados
+| 3
+
+| Porcentaje de cobertura
+| 7.9%
+
+| Errores de estilo
+| 0
+
+| Problemas de análisis estático
+| 0
+
+| Vulnerabilidades detectadas
+| 0
+
+|===

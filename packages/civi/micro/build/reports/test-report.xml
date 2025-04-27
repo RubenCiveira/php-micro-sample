@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/micro/phpunit.xml.dist" tests="3" assertions="13" errors="0" failures="0" skipped="0" time="0.031307">
+    <testsuite name="Application Test Suite" tests="3" assertions="13" errors="0" failures="0" skipped="0" time="0.031307">
+      <testsuite name="ConfigUnitTest" file="/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/micro/tests/Unit/ConfigUnitTest.php" tests="3" assertions="13" errors="0" failures="0" skipped="0" time="0.031307">
+        <testcase name="testLoadedFilesTracking" file="/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/micro/tests/Unit/ConfigUnitTest.php" line="56" class="ConfigUnitTest" classname="ConfigUnitTest" assertions="8" time="0.017200"/>
+        <testcase name="testEnvVariableSubstitutionAndFlattening" file="/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/micro/tests/Unit/ConfigUnitTest.php" line="79" class="ConfigUnitTest" classname="ConfigUnitTest" assertions="2" time="0.011547"/>
+        <testcase name="testClassInstantiation" file="/Users/ruben.civeiraiglesia/Documents/Proyectos/Personal/php-micros/apps/repo-manager/packages/civi/micro/tests/Unit/ConfigUnitTest.php" line="99" class="ConfigUnitTest" classname="ConfigUnitTest" assertions="3" time="0.002560"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

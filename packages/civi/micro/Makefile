@@ -1,14 +1,28 @@
 PHP_FILES := src/ tests/ # Ajusta a tus carpetas
+REPORT_DIR=build/reports
+COVERAGE_DIR=build/coverage
 
 .PHONY: lint test
 
 # Ejecuta los tests unitarios
 test:
-	vendor/bin/phpunit
+	mkdir -p $(REPORT_DIR)
+	vendor/bin/phpunit --log-junit $(REPORT_DIR)/test-report.xml
 
+coverage:
+	mkdir -p $(REPORT_DIR)
+	php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-clover $(REPORT_DIR)/coverage-report.xml --coverage-filter src/
+#	mkdir -p $(COVERAGE_DIR)
+#	php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html coverage/ --coverage-clover $(REPORT_DIR)/coverage-report.xml --coverage-filter src/
+	
 # Ejecuta análisis de estilo de código (linting)
-lint:
-	vendor/bin/psalm --no-cache
+static-analysis:
+	mkdir -p $(REPORT_DIR)
+	vendor/bin/psalm --no-cache --no-progress --output-format=xml > $(REPORT_DIR)/static-analysis-report.xml
+
+sast:
+	mkdir -p $(REPORT_DIR)
+	vendor/bin/psalm --no-cache --taint-analysis  --no-progress --output-format=xml > $(REPORT_DIR)/sast-report.xml
 
 # Formatea automáticamente el código
 #format:

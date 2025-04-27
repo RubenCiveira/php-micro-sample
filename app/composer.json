@@ -68,5 +68,11 @@
   "require-dev": {
     "phpunit/phpunit": "^12.1",
     "nikic/php-parser": "^5.4"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": false,
+      "tbachert/spi": false
+    }
   }
 }

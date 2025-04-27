@@ -4,6 +4,7 @@ namespace Civi\Ci;
 
 use Civi\Ci\Command\FeatureEndCommand;
 use Civi\Ci\Command\FeatureStartCommand;
+use Civi\Ci\Command\GenerateReportCommand;
 use Civi\Ci\Command\HotfixEndCommand;
 use Civi\Ci\Command\HotfixStartCommand;
 use Civi\Ci\Command\ReleaseProposeCommand;
@@ -19,6 +20,7 @@ class Application extends SymfonyApplication
         $this->add(new ReleaseProposeCommand());
         $this->add(new HotfixStartCommand());
         $this->add(new HotfixEndCommand());
+        $this->add(new GenerateReportCommand());
         // Aquí luego añadiremos los comandos, pero ahora dejamos la base
     }
 }
