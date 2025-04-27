@@ -12,7 +12,7 @@ use Civi\Security\Guard\AccessGuard;
 use Civi\Security\Redaction\OutputRedactor;
 use Civi\Security\Sanitization\InputSanitizer;
 use Civi\Store\Gateway\DataGateway;
-use Civi\Store\SchemaMetadata;
+use Civi\Store\StoreSchema;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 use PHPUnit\Framework\TestCase;
@@ -99,7 +99,7 @@ class DataGatewayTest extends TestCase
                 'oficinaProvinciaNombreEquals' => 'Galicia'
             ]
         ];
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $param = new DataQueryParam($this->schema, 'Empleado', $args);
         $result = $this->adapter->read('schema_full', 'Empleado', $meta, $param);
 
@@ -118,7 +118,7 @@ class DataGatewayTest extends TestCase
             ]
         ];
 
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $param = new DataQueryParam($this->schema, 'Empleado', $args);
         $result = $this->adapter->read('schema_full', 'Empleado', $meta, $param);
 
@@ -137,7 +137,7 @@ class DataGatewayTest extends TestCase
             ]
         ];
 
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $param = new DataQueryParam($this->schema, 'Empleado', $args);
         $result = $this->adapter->read('schema_full', 'Empleado', $meta, $param);
 
@@ -157,7 +157,7 @@ class DataGatewayTest extends TestCase
             ]
         ];
 
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $param = new DataQueryParam($this->schema, 'Empleado', $args);
         $result = $this->adapter->read('schema_full', 'Empleado', $meta, $param);
 
@@ -176,7 +176,7 @@ class DataGatewayTest extends TestCase
             ]
         ];
 
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $param = new DataQueryParam($this->schema, 'Empleado', $args);
         $result = $this->adapter->read('schema_full', 'Empleado', $meta, $param);
 
@@ -195,7 +195,7 @@ class DataGatewayTest extends TestCase
             ]
         ];
 
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $param = new DataQueryParam($this->schema, 'Empleado', $args);
         $result = $this->adapter->read('schema_full', 'Empleado', $meta, $param);
 
@@ -214,7 +214,7 @@ class DataGatewayTest extends TestCase
             ]
         ];
 
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $param = new DataQueryParam($this->schema, 'Empleado', $args);
         $result = $this->adapter->read('schema_full', 'Empleado', $meta, $param);
 

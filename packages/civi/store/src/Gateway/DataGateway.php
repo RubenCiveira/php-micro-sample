@@ -9,7 +9,7 @@ use Civi\Store\DataQueryParam;
 use Civi\Store\Filter\DataQueryCondition;
 use Civi\Store\Filter\DataQueryFilter;
 use Civi\Store\Filter\DataQueryOperator;
-use Civi\Store\SchemaMetadata;
+use Civi\Store\StoreSchema;
 
 class DataGateway
 {
@@ -20,7 +20,7 @@ class DataGateway
         $this->baseDir = $baseDir !== '' ? $baseDir : ProjectLocator::getRootPath() . '/storage';
     }
 
-    public function read(string $namespace, string $typeName, SchemaMetadata $meta, DataQueryParam $filters): array
+    public function read(string $namespace, string $typeName, StoreSchema $meta, DataQueryParam $filters): array
     {
         $path = "{$this->baseDir}/$namespace/$typeName/";
         if (!is_dir($path)) {
@@ -225,7 +225,7 @@ class DataGateway
         return array_values($items);
     }
 
-    public function save(string $namespace, string $typeName, SchemaMetadata $meta, array $data)
+    public function save(string $namespace, string $typeName, StoreSchema $meta, array $data)
     {
         register_shutdown_function(function () use ($namespace, $typeName, $meta, $data) {
             $this->updateIndexes($namespace, $typeName, $data, $meta);
@@ -257,7 +257,7 @@ class DataGateway
         rename($tempFile, $file); // operación atómica
     }
 
-    public function delete(string $namespace, string $typeName, array $read, SchemaMetadata $meta): void
+    public function delete(string $namespace, string $typeName, array $read, StoreSchema $meta): void
     {
         $idName = $meta->idName;
         $file = $this->getPathForId($namespace, $typeName, $read[$idName]);
@@ -401,7 +401,7 @@ class DataGateway
         }
     }
 
-    private function updateIndexes(string $namespace, string $typeName, array $data, SchemaMetadata $meta): void
+    private function updateIndexes(string $namespace, string $typeName, array $data, StoreSchema $meta): void
     {
         $id = $data[$meta->idName];
         $fields = array_merge([$meta->idName], $meta->indexFields);
@@ -448,7 +448,7 @@ class DataGateway
         }
     }
 
-    private function removeFromIndexes(string $namespace, string $typeName, array $data, SchemaMetadata $meta): void
+    private function removeFromIndexes(string $namespace, string $typeName, array $data, StoreSchema $meta): void
     {
         $id = $data[$meta->idName];
         $fields = array_merge([$meta->idName], $meta->indexFields);
@@ -492,7 +492,7 @@ class DataGateway
         }
     }
 
-    public function rebuildIndexes(string $namespace, string $typeName, SchemaMetadata $meta): void
+    public function rebuildIndexes(string $namespace, string $typeName, StoreSchema $meta): void
     {
         $fields = array_merge([$meta->idName], $meta->indexFields);
         $path = "{$this->baseDir}/$namespace/$typeName/";

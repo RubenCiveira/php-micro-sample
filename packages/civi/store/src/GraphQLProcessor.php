@@ -43,7 +43,7 @@ class GraphQLProcessor
         $schema = $this->schemas->schema($namepace);
         $rootQuery = $schema->getQueryType();
 
-        $schemaMeta = new SchemaMetadata("id", ["name"]);
+        $schemaMeta = new StoreSchema("id", ["name"]);
 
         $resolvers = [];
         $names = $rootQuery->getFieldNames();

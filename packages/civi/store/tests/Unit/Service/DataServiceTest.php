@@ -13,7 +13,7 @@ use Civi\Security\Redaction\OutputRedactor;
 use Civi\Security\Sanitization\InputSanitizer;
 use Civi\Security\UnauthorizedException;
 use Civi\Store\Gateway\DataGateway;
-use Civi\Store\SchemaMetadata;
+use Civi\Store\StoreSchema;
 use GraphQL\Type\Schema;
 use GraphQL\Utils\BuildSchema;
 use PHPUnit\Framework\TestCase;
@@ -66,7 +66,7 @@ class DataServiceTest extends TestCase
 
     public function testCreateShouldSaveData()
     {
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $this->gatewayMock->expects($this->once())
             ->method('save')
             ->with('namespace', 'typeName', $meta, ['id' => 'id123', 'foo' => 'bar']);
@@ -82,7 +82,7 @@ class DataServiceTest extends TestCase
             ->method('read')
             ->willReturn([['id' => 'id123', 'foo' => 'bar']]);
 
-            $meta = new SchemaMetadata('id', []);
+            $meta = new StoreSchema('id', []);
         $this->gatewayMock->expects($this->once())
             ->method('save')
             ->with('namespace', 'typeName', $meta, ['id' => 'id123', 'foo' => 'baz']);
@@ -102,7 +102,7 @@ class DataServiceTest extends TestCase
             ->method('read')
             ->willReturn($readed);
 
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $this->gatewayMock->expects($this->once())
             ->method('delete')
             ->with(
@@ -122,7 +122,7 @@ class DataServiceTest extends TestCase
             ->method('read')
             ->willReturn([['id' => 'id123', 'foo' => 'bar']]);
 
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $filters = new DataQueryParam($this->schema, 'Empleado', []);
         $result = $this->adapter->fetch('namespace', 'typeName', $meta, $filters);
 
@@ -137,7 +137,7 @@ class DataServiceTest extends TestCase
         $this->expectException(UnauthorizedException::class);
         $this->expectExceptionMessage('Not allowed to create onver namespace:typeName');
 
-        $meta = new SchemaMetadata('id', []);
+        $meta = new StoreSchema('id', []);
         $this->adapter->create('namespace', 'typeName', $meta, 'create', ['id' => 'id123', 'foo' => 'bar']);
     }
 }
