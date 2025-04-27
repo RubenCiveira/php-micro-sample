@@ -34,6 +34,9 @@ class AdocDetailedReportGenerator implements ReportGeneratorInterface
 | Errores de estilo
 | {$summary->lintReport->getTotalErrors()}
 
+| Avisos de estilo
+| {$summary->lintReport->getTotalWarnings()}
+
 | Problemas de análisis estático
 | {$summary->staticAnalysisReport->getTotalIssues()}
 
@@ -115,16 +118,32 @@ ADOC;
 | Fichero | Línea | Tipo | Mensaje
 ADOC;
 
-        foreach ($summary->staticAnalysisReport->issues as $issue) {
-            /** @var StaticAnalysisIssue $issue */
+$groupedIssues = $summary->staticAnalysisReport->getIssuesBySeverity();
+foreach ($groupedIssues as $severity => $issues) {
+        $title = ucfirst($severity);
+        $adoc .= <<<ADOC
+    
+    == {$title} ({$severity})
+    
+    [options="header"]
+    |===
+    | Fichero | Línea | Columna | Tipo | Mensaje | Enlace
+    ADOC;
+    
+        foreach ($issues as $issue) {
             $adoc .= <<<ADOC
-
-| {$issue->file}
-| {$issue->line}
-| {$issue->type}
-| {$issue->message}
-ADOC;
+    
+    | {$issue->fileName}
+    | {$issue->lineFrom}
+    | {$issue->columnFrom}
+    | {$issue->type}
+    | {$issue->message}
+    | https://psalm.dev/{$issue->shortcode}
+    ADOC;
         }
+    
+        $adoc .= "\n|===";
+    }
 
         $adoc .= <<<ADOC
 

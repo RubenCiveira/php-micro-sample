@@ -24,8 +24,8 @@ class ReportAnalyzer
         $testReport = $this->testParser->parse("$reportDir/test-report.xml");
         $coverageReport = $this->coverageParser->parse("$reportDir/coverage-report.xml");
         $staticAnalysisReport = $this->staticAnalysisParser->parse("$reportDir/static-analysis-report.xml");
-        $lintReport = new LintReportResult([]);
-        // $lintReport = $this->lintParser->parse("$reportDir/lint-report.xml");
+        // $lintReport = new LintReportResult([]);
+        $lintReport = $this->lintParser->parse("$reportDir/lint-report.xml");
         $sastReport = $this->sastParser->parse("$reportDir/sast-report.xml");
 
         return new ReportSummary(

@@ -51,6 +51,10 @@ class HtmlSummaryReportGenerator implements ReportGeneratorInterface
                 <td>{$summary->lintReport->getTotalErrors()}</td>
             </tr>
             <tr>
+                <td>Avisos de estilo</td>
+                <td>{$summary->lintReport->getTotalWarnings()}</td>
+            </tr>
+            <tr>
                 <td>Problemas de calidad</td>
                 <td>{$summary->staticAnalysisReport->getTotalIssues()}</td>
             </tr>

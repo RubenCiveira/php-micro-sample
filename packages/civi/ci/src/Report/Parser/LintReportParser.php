@@ -17,15 +17,16 @@ class LintReportParser
             $filePath = (string) $file['name'];
 
             foreach ($file->error as $error) {
+                $line = isset($error['line']) ? (int) $error['line'] : 0; // Línea opcional
+
                 $errors[] = new LintError(
                     file: $filePath,
-                    line: (int) $error['line'],
+                    line: $line,
                     severity: (string) $error['severity'],
                     message: (string) $error['message']
                 );
             }
         }
-
         return new LintReportResult($errors);
     }
 }

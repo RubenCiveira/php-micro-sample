@@ -27,12 +27,12 @@ class StaticAnalysisReportResult
         return $grouped;
     }
 
-    public function getIssuesByType(): array
+    public function getIssuesBySeverity(): array
     {
         $grouped = [];
 
         foreach ($this->issues as $issue) {
-            $grouped[$issue->type][] = $issue;
+            $grouped[$issue->severity][] = $issue;
         }
 
         return $grouped;

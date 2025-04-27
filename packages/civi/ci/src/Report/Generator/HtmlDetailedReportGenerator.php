@@ -39,6 +39,7 @@ class HtmlDetailedReportGenerator implements ReportGeneratorInterface
         <li><strong>Tests pasados:</strong> {$summary->testReport->getPassedTests()}</li>
         <li><strong>Porcentaje cobertura:</strong> {$summary->coverageReport->getOverallCoveragePercent()}%</li>
         <li><strong>Errores de estilo:</strong> {$summary->lintReport->getTotalErrors()}</li>
+        <li><strong>Avisos de estilo:</strong> {$summary->lintReport->getTotalWarnings()}</li>
         <li><strong>Problemas de calidad:</strong> {$summary->staticAnalysisReport->getTotalIssues()}</li>
         <li><strong>Vulnerabilidades:</strong> {$summary->sastReport->getTotalIssues()}</li>
     </ul>
@@ -143,19 +144,22 @@ HTML;
         </thead>
         <tbody>
 HTML;
+        $groupedIssues = $summary->staticAnalysisReport->getIssuesBySeverity();
+        foreach ($groupedIssues as $severity => $issues) {
+            $title = ucfirst($severity);
 
         foreach ($summary->staticAnalysisReport->issues as $issue) {
             /** @var StaticAnalysisIssue $issue */
             $html .= <<<HTML
 <tr>
-    <td>{$issue->file}</td>
-    <td>{$issue->line}</td>
+    <td>{$issue->fileName}</td>
+    <td>{$issue->lineFrom}</td>
     <td>{$issue->type}</td>
     <td>{$issue->message}</td>
 </tr>
 HTML;
         }
-
+        }
         $html .= <<<HTML
         </tbody>
     </table>
