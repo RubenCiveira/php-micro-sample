@@ -10,27 +10,29 @@ use Civi\RepomanagerBackoffice\IndexView;
 use Civi\RepomanagerBackoffice\PackagesView;
 use Slim\App;
 use Civi\Repomanager\Bootstrap\Security\GoogleSecurityMiddleware;
+use Civi\View\ViewBuilder;
+use Civi\View\ViewSection;
 
 return function (App $app) {
     $container = $app->getContainer();
     $config = $container->get(SecurityConfig::class);
     $app->add(GoogleSecurityMiddleware::class);
 
-    if( AppBuilder::registerView('backoffice', 'home', "/") ) {
+    if( ViewBuilder::registerView(new ViewSection('backoffice', 'home', "/")) ) {
         $app->get("/" . basename($config->googleRedirectUri), [GoogleSecurityMiddleware::class, 'verifyAuthorization']);
         $app->get("/", [IndexView::class, 'get']);
     }
 
-    if( AppBuilder::registerView('backoffice', 'Configuration', "/configuration") ) {
+    if( ViewBuilder::registerView(new ViewSection('backoffice', 'Configuration', "/configuration")) ) {
         $app->get("/configuration", [ConfigurationView::class, 'get']);
     }
 
-    if( AppBuilder::registerView('backoffice', 'Credentials', "/credentials") ) {
+    if( ViewBuilder::registerView(new ViewSection('backoffice', 'Credentials', "/credentials")) ) {
         $app->get("/credentials", [CredentialsView::class, 'get']);
         $app->post("/credentials", [CredentialsView::class, 'post']);
     }
     
-    if( AppBuilder::registerView('backoffice', 'Packages', "/packages") ) {
+    if( ViewBuilder::registerView(new ViewSection('backoffice', 'Packages', "/packages")) ) {
         $app->get("/packages", [PackagesView::class, 'get']);
         $app->post("/packages", [PackagesView::class, 'post']);
     }

@@ -26,20 +26,9 @@ use Psr\Http\Message\ResponseInterface as Response;
 
 class AppBuilder
 {
-    private static array $views = [];
     private static array $routes = [];
     private static array $dependencies = [];
     
-    public static function registerView(string $app, string $name, string $path): bool
-    {
-        self::$views[$app][$name] = $path;
-        return true;
-    }
-
-    public static function getViews(string $app) {
-        return array_reverse( self::$views[$app], true);
-    }
-
     public static function dependencies(string $file)
     {
         self::$dependencies[] = $file;
