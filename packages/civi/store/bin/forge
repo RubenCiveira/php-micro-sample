@@ -85,7 +85,7 @@ HELP;
         require_once __DIR__. '/use/repository_builder.php';
         generateEntityRepositoryFromType($type, $namespace, "{$package}.{$type->name}", "{$directory}/Gateway/{$type->name}Gateway.php");
         require_once __DIR__. '/use/view_builder.php';
-        generateEntityViewFromType($type, $namespace, "{$package}.{$type->name}", "{$directory}/View/{$type->name}ViewMetadata.php");
+        generateEntityViewFromType($type, $namespace, "{$package}.{$type->name}", "{$directory}/View/{$type->name}EntitySchema.php");
 
         // echo $txt;
         // Aquí colocarías tu lógica para leer DSL, generar archivos, etc.

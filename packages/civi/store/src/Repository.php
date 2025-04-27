@@ -26,9 +26,9 @@ class Repository
         return $repo;
     }
 
-    public function formMetadata(string $namespace, string $kind): EntityViewMetadata
+    public function formMetadata(string $namespace, string $kind): EntitySchemaBuilder
     {
-        $repo = new EntityViewMetadata($namespace, $kind, $this->schemas, $this->dataService, $this->validator);
+        $repo = new EntitySchemaBuilder($namespace, $kind, $this->schemas, $this->dataService, $this->validator);
         $this->dataService->setLogger( $this->logger );
         return $repo;
     }

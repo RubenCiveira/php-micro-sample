@@ -1,13 +1,13 @@
 <?php declare(strict_types=1);
 
-namespace Civi\View;
+namespace Civi\Micro\Schema;
 
 use Ramsey\Uuid\Uuid;
 
-class ViewMetadata
+class EntitySchema
 {
     // private array $fields = [];
-    private readonly FormMetadata $formMetadata;
+    private readonly ActionSchema $ActionSchema;
     private array $columns = [];
     private array $hideColumns = [];
     private array $hideFilters = [];
@@ -18,11 +18,11 @@ class ViewMetadata
 
     public function __construct(private readonly string $name, private readonly string $title, private readonly string $id)
     {
-        $this->formMetadata = new FormMetadata();
+        $this->ActionSchema = new ActionSchema();
     }
 
     public function export() {
-        $fields = $this->formMetadata->export()['fields'];
+        $fields = $this->ActionSchema->export()['fields'];
         $columns = $this->columns;
         if( empty($columns) ) {
             foreach($fields as $v) {
@@ -47,29 +47,29 @@ class ViewMetadata
         ];
     }
 
-    public function addField(string $name, array $info): ViewMetadata
+    public function addField(string $name, array $info): EntitySchema
     {
-        $this->formMetadata->addField($name, $info);
+        $this->ActionSchema->addField($name, $info);
         return $this;
     }
 
-    public function addColumn(string $name, string $label): ViewMetadata
+    public function addColumn(string $name, string $label): EntitySchema
     {
         $this->columns[$name] = ['name' => $name, 'label' => $label];
         return $this;
     }
 
-    public function addContextualConfirmAction(string $name, string $label, $callback ): ViewMetadata
+    public function addContextualConfirmAction(string $name, string $label, $callback ): EntitySchema
     {
         $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'danger', 'callback' => $callback ];
         return $this;
     }
 
-    public function addStandaloneFormAction(string $name, string $label, FormMetadata|array $form, $callback): ViewMetadata
+    public function addStandaloneFormAction(string $name, string $label, ActionSchema|array $form, $callback): EntitySchema
     {
         if( is_array($form) ) {
-            $defaults = $this->formMetadata->export()['fields'];
-            $formView = new FormMetadata();
+            $defaults = $this->ActionSchema->export()['fields'];
+            $formView = new ActionSchema();
             foreach($form as $field) {
                 $formView->addField( $field, $defaults[$field] );
             }
@@ -82,11 +82,11 @@ class ViewMetadata
         return $this;
 
     }
-    public function addContextualFormAction(string $name, string $label, FormMetadata|array $form, $callback): ViewMetadata
+    public function addContextualFormAction(string $name, string $label, ActionSchema|array $form, $callback): EntitySchema
     {
         if( is_array($form) ) {
-            $defaults = $this->formMetadata->export()['fields'];
-            $formView = new FormMetadata();
+            $defaults = $this->ActionSchema->export()['fields'];
+            $formView = new ActionSchema();
             foreach($form as $field) {
                 $formView->addField( $field, $defaults[$field] );
             }
@@ -119,7 +119,7 @@ class ViewMetadata
         return $processed;
     }
 
-    public function addResumeAction(string $name, string $label, string $format): ViewMetadata
+    public function addResumeAction(string $name, string $label, string $format): EntitySchema
     {
         $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'info',
             'code' => <<<JS
@@ -166,12 +166,12 @@ class ViewMetadata
         return $this;
     }
 
-    public function excludeColumn(string $name): ViewMetadata
+    public function excludeColumn(string $name): EntitySchema
     {
         $this->hideColumns[] = $name;
         return $this;
     }
-    public function addFilter(string $name): ViewMetadata
+    public function addFilter(string $name): EntitySchema
     {
         $this->filters[$name] = ['name' => $name];
         return $this;

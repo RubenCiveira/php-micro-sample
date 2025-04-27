@@ -134,7 +134,7 @@ class GraphQLProcessor
             }
         }
 
-        $customFieldResolver = function ($objectValue, array $args, $context, ResolveInfo $info) {
+        $customFieldResolver = function ($objectValue, array $args, $context, ResolveInfo $info) use($schemaMeta) {
             $fieldName = trim($info->fieldName);
             $property = null;
             if (is_array($objectValue) || $objectValue instanceof ArrayAccess) {
@@ -151,7 +151,7 @@ class GraphQLProcessor
                     return null;
                 } else {
                     $baseType = Type::getNamedType($info->fieldDefinition->getType());
-                    return $baseType instanceof ObjectDefinition ? null : $this->expand($objectValue, $info);
+                    return $baseType instanceof ObjectDefinition ? null : $this->expand($objectValue, $schemaMeta, $info);
                 }
             }
             return $property instanceof \Closure
@@ -171,7 +171,7 @@ class GraphQLProcessor
         return $result;
     }
 
-    private function validateReferences(string $namespace, Schema $schema, NamedType|Type|null $type, $data)
+    private function validateReferences(string $namespace, Schema $schema, StoreSchema $meta, NamedType|Type|null $type, $data)
     {
         if ($type instanceof ObjectType) {
             foreach ($type->getFields() as $field) {
@@ -188,7 +188,7 @@ class GraphQLProcessor
                         }
                     }
                     $filter = new DataQueryParam($schema, $baseType->name, ["{$id}Equals", $data[$field->name]]);
-                    if (!$this->datas->fetch($namespace, $baseType->name, $filter)) {
+                    if (!$this->datas->fetch($namespace, $baseType->name, $meta, $filter)) {
                         throw new NotFountException('Unable to find ' . $data[$field->name] . ' on ' . $field->name . ' for ' . $type->name);
                     }
                 }
@@ -196,7 +196,7 @@ class GraphQLProcessor
         }
     }
 
-    private function expand($objectValue, ResolveInfo $info): mixed
+    private function expand($objectValue, StoreSchema $meta, ResolveInfo $info): mixed
     {
         $namespace = $this->namespace;
         $schema = $this->schemas->schema($namespace);
@@ -220,12 +220,12 @@ class GraphQLProcessor
             if (!in_array($theId, $this->pending[$on])) {
                 $this->pending[$on][] = $theId;
             }
-            return new Deferred(function () use ($namespace, $schema, $type, $field, $on, $id, $theId) {
+            return new Deferred(function () use ($namespace, $meta, $schema, $type, $field, $on, $id, $theId) {
                 if (!isset($this->batches[$on])) {
                     $query = new DataQueryParam($schema, $type->name, []);
                     $query->idIn($this->pending[$on]);
                     $this->batches[$on] = [];
-                    $all = $this->datas->fetch($namespace, $on, $query);
+                    $all = $this->datas->fetch($namespace, $on, $meta, $query);
                     foreach ($all as $row) {
                         $this->batches[$on][$row[$id]] = $row;
                     }

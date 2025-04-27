@@ -2,15 +2,15 @@
 namespace Civi\RepomanagerBackoffice;
 
 use Civi\Repomanager\Features\Repository\Credential\Gateway\CredentialGateway;
-use Civi\Repomanager\Features\Repository\Credential\View\CredentialViewMetadata;
+use Civi\Repomanager\Features\Repository\Credential\Schema\CredentialEntitySchema;
 use Civi\View\Twig\MasterDetailListQuery;
 use Civi\View\Twig\MasterDetailView;
 use Civi\View\ViewConfig;
-use Civi\View\ViewMetadata;
+use Civi\Micro\Schema\EntitySchema;
 
 class CredentialsView extends MasterDetailView
 {
-    public function __construct(ViewConfig $config, private readonly CredentialGateway $credentials, private readonly CredentialViewMetadata $meta)
+    public function __construct(ViewConfig $config, private readonly CredentialGateway $credentials, private readonly CredentialEntitySchema $meta)
     {
         parent::__construct($config, 'credentials', __DIR__ . '/templates');
     }
@@ -20,7 +20,7 @@ class CredentialsView extends MasterDetailView
         return $this->credentials->listCredentials();
     }
 
-    protected function meta(): ViewMetadata
+    protected function meta(): EntitySchema
     {
         $url = "composer.civeira.net";
 

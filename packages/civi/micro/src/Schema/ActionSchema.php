@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Civi\View;
+namespace Civi\Micro\Schema;
 
-class FormMetadata
+class ActionSchema
 {
     private array $fields = [];
     
@@ -10,21 +10,21 @@ class FormMetadata
         return [ 'fields' => $this->fields ];
     }
 
-    public function markCalculated(array $names): FormMetadata
+    public function markCalculated(array $names): ActionSchema
     {
         foreach($names as $name) {
             $this->fields[$name]['calculated'] = true;
         }
         return $this;
     }
-    public function markReadonly(array $names): FormMetadata
+    public function markReadonly(array $names): ActionSchema
     {
         foreach($names as $name) {
             $this->fields[$name]['readonly'] = true;
         }
         return $this;
     }
-    public function addField(string $name, array $info): FormMetadata
+    public function addField(string $name, array $info): ActionSchema
     {
         $info['name'] = $name;
         if( !isset($info['required']) ) {
@@ -39,52 +39,52 @@ class FormMetadata
         $this->fields[$name] = $info;
         return $this;
     }
-    // public function addRequiredTextField(string $name, string $label): ViewMetadata
+    // public function addRequiredTextField(string $name, string $label): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'text' ];
     //     return $this;
     // }
-    // public function addTextField(string $name, string $label): ViewMetadata
+    // public function addTextField(string $name, string $label): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'text' ];
     //     return $this;
     // }
-    // public function addRequiredTextareaField(string $name, string $label): ViewMetadata
+    // public function addRequiredTextareaField(string $name, string $label): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'textare' ];
     //     return $this;
     // }
-    // public function addTextareaField(string $name, string $label): ViewMetadata
+    // public function addTextareaField(string $name, string $label): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'textare' ];
     //     return $this;
     // }
-    // public function addRequiedDateField(string $name, string $label): ViewMetadata
+    // public function addRequiedDateField(string $name, string $label): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'date' ];
     //     return $this;
     // }
-    // public function addDateField(string $name, string $label): ViewMetadata
+    // public function addDateField(string $name, string $label): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'date' ];
     //     return $this;
     // }
-    // public function addRequiredOptionsField(string $name, string $label, array $options): ViewMetadata
+    // public function addRequiredOptionsField(string $name, string $label, array $options): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'options', 'options' => $options ];
     //     return $this;
     // }
-    // public function addOptionsField(string $name, string $label, array $options): ViewMetadata
+    // public function addOptionsField(string $name, string $label, array $options): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'options', 'options' => $options ];
     //     return $this;
     // }
-    // public function addRequiredPasswordField(string $name, string $label): ViewMetadata
+    // public function addRequiredPasswordField(string $name, string $label): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'password' ];
     //     return $this;
     // }
-    // public function addPasswordField(string $name, string $label): ViewMetadata
+    // public function addPasswordField(string $name, string $label): EntitySchema
     // {
     //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'password' ];
     //     return $this;

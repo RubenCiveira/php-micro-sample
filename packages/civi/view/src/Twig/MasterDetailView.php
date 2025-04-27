@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Civi\View\Twig;
 
-use Civi\View\ViewMetadata;
+use Civi\Micro\Schema\EntitySchema;
 use Civi\View\ViewConfig;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -69,7 +69,7 @@ abstract class MasterDetailView extends BaseView
         }
     }
 
-    protected abstract function meta(): ViewMetadata;
+    protected abstract function meta(): EntitySchema;
 
     protected abstract function list(MasterDetailListQuery $query): array;
 }
