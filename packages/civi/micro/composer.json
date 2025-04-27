@@ -34,7 +34,8 @@
   "require-dev": {
     "civi/ci": "*",
     "phpunit/phpunit": "^12.1",
-    "vimeo/psalm": "^6.10"
+    "vimeo/psalm": "^6.10",
+    "friendsofphp/php-cs-fixer": "^3.75"
   },
   "repositories": [
     {

@@ -9,6 +9,11 @@ test:
 	mkdir -p $(REPORT_DIR)
 	vendor/bin/phpunit --log-junit $(REPORT_DIR)/test-report.xml
 
+lint:
+	mkdir -p $(REPORT_DIR)
+	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/ --dry-run --format=checkstyle > $(REPORT_DIR)/lint-report.xml
+# --config=.php-cs-fixer.php
+
 coverage:
 	mkdir -p $(REPORT_DIR)
 	php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-clover $(REPORT_DIR)/coverage-report.xml --coverage-filter src/
