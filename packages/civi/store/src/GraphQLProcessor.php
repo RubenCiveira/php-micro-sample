@@ -100,7 +100,7 @@ class GraphQLProcessor
                             );
                             return true;
                         case 'modify':
-                            $this->validateReferences($namepace, $schema, $schema->getType($theType), $data);
+                            $this->validateReferences($namepace, $schema, $schemaMeta, $schema->getType($theType), $data);
                             $errors = $this->validator->getErrors($namepace, $theType, $data);
                             if ($errors) {
                                 throw new ConstraintException($errors);
@@ -117,7 +117,7 @@ class GraphQLProcessor
                                 $data
                             )[0];
                         case 'create':
-                            $this->validateReferences($namepace, $schema, $schema->getType($theType), $data);
+                            $this->validateReferences($namepace, $schema, $schemaMeta, $schema->getType($theType), $data);
                             $errors = $this->validator->getErrors($namepace, $theType, $data);
                             if ($errors) {
                                 throw new ConstraintException($errors);
