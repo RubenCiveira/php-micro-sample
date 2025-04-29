@@ -5,17 +5,34 @@ declare(strict_types=1);
 namespace Civi\Micro\Schema;
 
 /**
+ * Represents a dynamic schema for an action, allowing fields to be defined, 
+ * marked as calculated, or set as readonly.
+ *
  * @api
  */
 class ActionSchema
 {
+    /**
+     * @var array<string, array<string, mixed>> Stores the field definitions.
+     */
     private array $fields = [];
 
+    /**
+     * Exports the current schema structure.
+     *
+     * @return array<string, array<string, mixed>> An array containing all defined fields.
+     */
     public function export(): array
     {
         return [ 'fields' => $this->fields ];
     }
 
+    /**
+     * Marks a set of fields as calculated.
+     *
+     * @param string[] $names List of field names to mark as calculated.
+     * @return $this
+     */
     public function markCalculated(array $names): ActionSchema
     {
         foreach ($names as $name) {
@@ -23,6 +40,13 @@ class ActionSchema
         }
         return $this;
     }
+
+    /**
+     * Marks a set of fields as readonly.
+     *
+     * @param string[] $names List of field names to mark as readonly.
+     * @return $this
+     */
     public function markReadonly(array $names): ActionSchema
     {
         foreach ($names as $name) {
@@ -30,6 +54,19 @@ class ActionSchema
         }
         return $this;
     }
+
+    /**
+     * Adds a new field to the schema.
+     *
+     * If no type, label, or required flag is provided, default values will be assigned:
+     * - 'type' defaults to 'text'
+     * - 'label' defaults to the field name with the first letter capitalized
+     * - 'required' defaults to false
+     *
+     * @param string $name The field name.
+     * @param array<string, mixed> $info The field properties.
+     * @return $this
+     */
     public function addField(string $name, array $info): ActionSchema
     {
         $info['name'] = $name;
@@ -45,54 +82,4 @@ class ActionSchema
         $this->fields[$name] = $info;
         return $this;
     }
-    // public function addRequiredTextField(string $name, string $label): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'text' ];
-    //     return $this;
-    // }
-    // public function addTextField(string $name, string $label): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'text' ];
-    //     return $this;
-    // }
-    // public function addRequiredTextareaField(string $name, string $label): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'textare' ];
-    //     return $this;
-    // }
-    // public function addTextareaField(string $name, string $label): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'textare' ];
-    //     return $this;
-    // }
-    // public function addRequiedDateField(string $name, string $label): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'date' ];
-    //     return $this;
-    // }
-    // public function addDateField(string $name, string $label): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'date' ];
-    //     return $this;
-    // }
-    // public function addRequiredOptionsField(string $name, string $label, array $options): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'options', 'options' => $options ];
-    //     return $this;
-    // }
-    // public function addOptionsField(string $name, string $label, array $options): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'options', 'options' => $options ];
-    //     return $this;
-    // }
-    // public function addRequiredPasswordField(string $name, string $label): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => true, 'type' => 'password' ];
-    //     return $this;
-    // }
-    // public function addPasswordField(string $name, string $label): EntitySchema
-    // {
-    //     $this->fields[$name] = ['name' => $name, 'label' => $label, 'required' => false, 'type' => 'password' ];
-    //     return $this;
-    // }
 }

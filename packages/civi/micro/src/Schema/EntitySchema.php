@@ -8,26 +8,66 @@ use Ramsey\Uuid\Uuid;
 
 /**
  * @api
+ *
+ * Represents the schema definition for an entity within the Civi Micro framework.
+ * It allows the configuration of fields, columns, actions, and filters associated with an entity.
+ * Provides export capabilities for UI representation and action execution logic.
  */
 class EntitySchema
 {
-    // private array $fields = [];
-    private readonly ActionSchema $ActionSchema;
+    /**
+     * Internal schema for managing fields.
+     *
+     * @var ActionSchema
+     */
+    private readonly ActionSchema $fieldsSchema;
+    /**
+     * Custom columns definitions to override default field-based columns.
+     *
+     * @var array<string, array>
+     */
     private array $columns = [];
+    /**
+     * List of field names to exclude from columns automatically generated from fields.
+     *
+     * @var string[]
+     */
     private array $hideColumns = [];
 
+    /**
+     * Registered actions associated with the entity (contextual, standalone, resume, etc.).
+     *
+     * @var array<string, array>
+     */
     private array $actions = [];
 
+    /**
+     * Registered filters available for querying the entity.
+     *
+     * @var array<string, array>
+     */
     private array $filters = [];
 
+    /**
+     * Creates a new EntitySchema.
+     *
+     * @param string $name Unique entity name.
+     * @param string $title Human-readable title of the entity.
+     * @param string $id Field used as unique identifier.
+     */
     public function __construct(private readonly string $name, private readonly string $title, private readonly string $id)
     {
-        $this->ActionSchema = new ActionSchema();
+        $this->fieldsSchema = new ActionSchema();
     }
 
+    /**
+     * Exports the entire entity schema structure, including fields, filters, columns, and actions.
+     *
+     * @return array<string, mixed> The exported schema definition.
+     */
     public function export()
     {
-        $fields = $this->ActionSchema->export()['fields'];
+        $fields = $this->fieldsSchema->export()['fields'];
         $columns = $this->columns;
         if (empty($columns)) {
             foreach ($fields as $v) {
@@ -52,28 +92,59 @@ class EntitySchema
         ];
     }
 
+    /**
+     * Adds a new field to the entity.
+     *
+     * @param string $name Field name.
+     * @param array<string, mixed> $info Field configuration details.
+     * @return $this
+     */
     public function addField(string $name, array $info): EntitySchema
     {
-        $this->ActionSchema->addField($name, $info);
+        $this->fieldsSchema->addField($name, $info);
         return $this;
     }
 
+    /**
+     * Adds a custom column to the entity.
+     *
+     * @param string $name Column internal name.
+     * @param string $label Column display label.
+     * @return $this
+     */
     public function addColumn(string $name, string $label): EntitySchema
     {
         $this->columns[$name] = ['name' => $name, 'label' => $label];
         return $this;
     }
 
+    /**
+     * Adds a contextual confirmation action, typically used for dangerous operations.
+     *
+     * @param string $name Action name.
+     * @param string $label Action display label.
+     * @param callable|\Closure $callback Callback to execute when the action is triggered.
+     * @return $this
+     */
     public function addContextualConfirmAction(string $name, string $label, $callback): EntitySchema
     {
         $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'danger', 'callback' => $callback ];
         return $this;
     }
 
+    /**
+     * Adds a standalone form action (non-contextual).
+     *
+     * @param string $name Action name.
+     * @param string $label Action display label.
+     * @param ActionSchema|array<string> $form Form schema or list of field names to use.
+     * @param callable|\Closure $callback Callback to execute.
+     * @return $this
+     */
     public function addStandaloneFormAction(string $name, string $label, ActionSchema|array $form, $callback): EntitySchema
     {
         if (is_array($form)) {
-            $defaults = $this->ActionSchema->export()['fields'];
+            $defaults = $this->fieldsSchema->export()['fields'];
             $formView = new ActionSchema();
             foreach ($form as $field) {
                 $formView->addField($field, $defaults[$field]);
@@ -85,12 +156,21 @@ class EntitySchema
                 'form' => $formView->export()['fields'],
                 'callback' => $callback ];
         return $this;
-
     }
+    
+    /**
+     * Adds a contextual form action.
+     *
+     * @param string $name Action name.
+     * @param string $label Action display label.
+     * @param ActionSchema|array<string> $form Form schema or list of field names to use.
+     * @param callable|\Closure $callback Callback to execute.
+     * @return $this
+     */
     public function addContextualFormAction(string $name, string $label, ActionSchema|array $form, $callback): EntitySchema
     {
         if (is_array($form)) {
-            $defaults = $this->ActionSchema->export()['fields'];
+            $defaults = $this->fieldsSchema->export()['fields'];
             $formView = new ActionSchema();
             foreach ($form as $field) {
                 $formView->addField($field, $defaults[$field]);
@@ -104,6 +184,12 @@ class EntitySchema
         return $this;
     }
 
+    /**
+     * Executes the appropriate action based on provided data.
+     *
+     * @param array<string, mixed> $data Request data.
+     * @return string|null Result message, or null if no action was matched.
+     */
     public function exec(array $data): ?string
     {
         $processed = null;
@@ -124,6 +210,14 @@ class EntitySchema
         return $processed;
     }
 
+    /**
+     * Adds a resume action to present information as downloadable or copyable JSON.
+     *
+     * @param string $name Action name.
+     * @param string $label Action label.
+     * @param string $format JavaScript expression to generate JSON content.
+     * @return $this
+     */
     public function addResumeAction(string $name, string $label, string $format): EntitySchema
     {
         $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'info',
@@ -171,11 +265,24 @@ class EntitySchema
         return $this;
     }
 
+    /**
+     * Marks a column to be excluded from default columns list.
+     *
+     * @param string $name Column name.
+     * @return $this
+     */
     public function excludeColumn(string $name): EntitySchema
     {
         $this->hideColumns[] = $name;
         return $this;
     }
+
+    /**
+     * Adds a filter field to the entity.
+     *
+     * @param string $name Filter field name.
+     * @return $this
+     */
     public function addFilter(string $name): EntitySchema
     {
         $this->filters[$name] = ['name' => $name];
