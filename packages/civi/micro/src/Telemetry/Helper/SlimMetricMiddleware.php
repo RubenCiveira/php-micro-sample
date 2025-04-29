@@ -14,7 +14,7 @@ use Slim\Routing\RouteContext;
 
 /**
  * Middleware to record application metrics for each HTTP request.
- * 
+ *
  * It captures memory usage, CPU load, request duration, and HTTP status codes,
  * and registers these metrics in a Prometheus CollectorRegistry.
  */
@@ -22,7 +22,7 @@ class SlimMetricMiddleware
 {
     /**
      * @api
-     * 
+     *
      * @param AppConfig $appConfig Configuration for application paths and management endpoints
      * @param TelemetryConfig $config Telemetry-specific configuration
      * @param CollectorRegistry $registry Prometheus registry where metrics are collected

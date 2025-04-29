@@ -11,9 +11,9 @@ namespace Civi\Micro\Schema;
  */
 class FilterTypeCollection implements \IteratorAggregate, \Countable
 {
-/**
-     * @var FilterType[] Internal list of filters.
-     */
+    /**
+         * @var FilterType[] Internal list of filters.
+         */
     private readonly array $filters;
 
     /**

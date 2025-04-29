@@ -9,7 +9,7 @@ use Override;
 
 /**
  * Management class responsible for reporting the health status of different application components.
- * 
+ *
  * It aggregates health details from multiple providers and computes an overall health status.
  * Implements the {@see ManagementInterface}.
  *
@@ -80,7 +80,7 @@ class HealthManagement implements ManagementInterface
     /**
      * Returns a Closure to update or set health status.
      *
-     * Health status management is read-only in this implementation, 
+     * Health status management is read-only in this implementation,
      * so this method always returns null.
      *
      * @return Closure|null Always returns null.

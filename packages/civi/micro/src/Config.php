@@ -9,12 +9,11 @@ use Dotenv\Dotenv;
 use ReflectionClass;
 use ReflectionNamedType;
 
-
 /**
  * Class Config
  *
  * Loads and manages configuration from YAML files and environment variables.
- * 
+ *
  * It supports environment profiles (e.g., `.env.dev`, `security.dev.yaml`) and
  * automatically flattens hierarchical YAML structures into dot-notated keys.
  */

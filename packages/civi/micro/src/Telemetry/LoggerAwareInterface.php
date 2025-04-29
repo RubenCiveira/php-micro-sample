@@ -6,7 +6,6 @@ namespace Civi\Micro\Telemetry;
 
 use Psr\Log\LoggerInterface;
 
-
 /**
  * Interface for components that are aware of a logger instance.
  *

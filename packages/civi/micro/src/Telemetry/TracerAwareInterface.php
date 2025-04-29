@@ -9,7 +9,7 @@ use OpenTelemetry\API\Trace\TracerInterface;
 /**
  * Interface for components that are aware of an OpenTelemetry Tracer instance.
  *
- * Classes implementing this interface can receive a Tracer to create and manage spans 
+ * Classes implementing this interface can receive a Tracer to create and manage spans
  * for distributed tracing purposes.
  *
  * @api

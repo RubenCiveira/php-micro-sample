@@ -43,7 +43,7 @@ class ObjectMapper
     /**
      * Creates an object of the given type from an associative array.
      *
-     * Properties are assigned based on their names. 
+     * Properties are assigned based on their names.
      * If a property has a declared type, the method attempts to cast the value accordingly:
      * - `int`, `float`, `bool`, and `string` are cast natively.
      * - `DateTimeInterface` properties are instantiated from a string value.

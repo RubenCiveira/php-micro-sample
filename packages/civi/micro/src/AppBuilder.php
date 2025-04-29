@@ -69,7 +69,7 @@ class AppBuilder
         $app->addRoutingMiddleware();
 
         // Los registros de management
-        self::registerManagers( $app, $container );
+        self::registerManagers($app, $container);
 
         foreach (self::$routes as $route) {
             $routes = require $route;

@@ -83,10 +83,10 @@ class TypeSchemaBuilder
             name: $this->name,
             title: $this->title,
             id: $this->id,
-            fields: new FieldSchemaCollection( $fields ),
-            filters: new FilterTypeCollection( $this->filters ),
-            columns: new ColumnTypeCollection( $columns ),
-            actions: new ActionSchemaCollection( $this->actions )
+            fields: new FieldSchemaCollection($fields),
+            filters: new FilterTypeCollection($this->filters),
+            columns: new ColumnTypeCollection($columns),
+            actions: new ActionSchemaCollection($this->actions)
         );
     }
 
@@ -153,7 +153,7 @@ class TypeSchemaBuilder
         $this->actions[$name] = new ActionSchema($name, $label, 'success', false, $formView->export(), $callback);
         return $this;
     }
-    
+
     /**
      * Adds a contextual form action.
      *
@@ -215,7 +215,11 @@ class TypeSchemaBuilder
      */
     public function addResumeAction(string $name, string $label, string $format): TypeSchemaBuilder
     {
-        $this->actions[$name] = new ActionSchema($name, $label, 'info', true,
+        $this->actions[$name] = new ActionSchema(
+            $name,
+            $label,
+            'info',
+            true,
             code: <<<JS
                 document.getElementById('jsonContent').textContent = {$format}
                 JS,
@@ -256,7 +260,8 @@ class TypeSchemaBuilder
                         window.URL.revokeObjectURL(url);
                     }, 0);
                 }
-                JS);
+                JS
+        );
         return $this;
     }
 

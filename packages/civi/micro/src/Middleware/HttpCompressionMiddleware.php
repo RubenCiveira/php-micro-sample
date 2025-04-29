@@ -11,7 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 /**
  * Middleware that applies gzip compression if the client supports it,
  * and generates an ETag header based on the content for cache validation.
- * 
+ *
  * @api
  */
 class HttpCompressionMiddleware

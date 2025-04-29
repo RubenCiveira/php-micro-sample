@@ -103,11 +103,14 @@ class FieldsetSchemaBuilder
      */
     public function addField(string $name, array|FieldSchema $info): FieldsetSchemaBuilder
     {
-        if( is_array($info) ) {
+        if (is_array($info)) {
             $reference = null;
-            if( isset($info['reference']) ) {
-                $reference = new ReferenceType($info['reference']['id'], 
-                    $info['reference']['label'], $info['reference']['load']);
+            if (isset($info['reference'])) {
+                $reference = new ReferenceType(
+                    $info['reference']['id'],
+                    $info['reference']['label'],
+                    $info['reference']['load']
+                );
             }
             $info = new FieldSchema(
                 name: $name,

@@ -15,8 +15,8 @@ use RuntimeException;
  *
  * A file-based storage adapter for Prometheus metrics, supporting counters, gauges,
  * histograms, and summaries. Metrics are serialized and persisted as JSON files.
- * 
- * This adapter enables durable metrics collection across server restarts 
+ *
+ * This adapter enables durable metrics collection across server restarts
  * and allows aggregation of Prometheus data in environments without full
  * in-memory collectors.
  *
@@ -26,11 +26,11 @@ use RuntimeException;
  */
 class PrometeusFileStorage implements Adapter
 {
-/**
-     * The file path where metrics are persisted.
-     *
-     * @var string
-     */
+    /**
+         * The file path where metrics are persisted.
+         *
+         * @var string
+         */
     private string $filePath;
 
     /**
@@ -46,7 +46,7 @@ class PrometeusFileStorage implements Adapter
      * @var mixed[]
      */
     protected $counters = [];
-    
+
     /**
      * Registered gauges.
      *
@@ -575,7 +575,7 @@ class PrometeusFileStorage implements Adapter
             'histograms' => $this->histograms,
             'summaries' => $this->summaries,
         ];
-        if( file_exists(dirname($this->filePath))) {
+        if (file_exists(dirname($this->filePath))) {
             file_put_contents($this->filePath, json_encode($data, JSON_PRETTY_PRINT));
         }
     }

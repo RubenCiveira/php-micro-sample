@@ -51,7 +51,7 @@ class ProjectLocator
         $vendorAutoload = self::$vendorAutoload;
         if (file_exists("{$innerAutoload}/autoload.php")) {
             return realpath(dirname($innerAutoload));
-        } else if (file_exists("{$vendorAutoload}/autoload.php")) {
+        } elseif (file_exists("{$vendorAutoload}/autoload.php")) {
             return realpath(dirname($vendorAutoload));
         }
         $pwd = getcwd();

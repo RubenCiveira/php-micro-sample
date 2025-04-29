@@ -14,9 +14,9 @@ namespace Civi\Micro;
  */
 class AppConfig
 {
-     /**
-     * @var string The base endpoint path used for internal management operations (e.g., health checks, metrics).
-     */
+    /**
+    * @var string The base endpoint path used for internal management operations (e.g., health checks, metrics).
+    */
     public readonly string $managementEndpoint;
 
     /**
