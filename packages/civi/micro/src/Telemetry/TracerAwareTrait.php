@@ -7,20 +7,40 @@ namespace Civi\Micro\Telemetry;
 use OpenTelemetry\API\Trace\TracerInterface;
 
 /**
+ * Trait TracerAwareTrait
+ *
+ * Provides integration with OpenTelemetry's TracerInterface.
+ * It allows starting and ending spans for distributed tracing,
+ * and falls back to simple error logging if no tracer is configured.
+ *
  * @api
  */
 trait TracerAwareTrait
 {
+    /**
+     * Holds the current tracer instance, or null if none is set.
+     */
     protected ?TracerInterface $tracer = null;
 
+
+    /**
+     * Sets the tracer instance used for starting and managing spans.
+     *
+     * @param TracerInterface $tracer The tracer instance to be used.
+     */
     public function setTracer(TracerInterface $tracer): void
     {
         $this->tracer = $tracer;
     }
 
     /**
-     * Inicia un span de trazado.
-     * Si no hay tracer configurado, escribe en error_log.
+     * Starts a new span for a given operation.
+     * If a tracer is configured, it creates a real span with optional attributes.
+     * If no tracer is available, it logs the operation to the error log instead.
+     *
+     * @param string $operationName The name of the operation being traced.
+     * @param array<string, mixed> $attributes Optional attributes to attach to the span.
+     * @return SpanHolder A holder for the active span, or a dummy holder if no tracer is set.
      */
     public function startSpan(string $operationName, array $attributes = []): SpanHolder
     {
@@ -39,13 +59,12 @@ trait TracerAwareTrait
     }
 
     /**
-     * Finaliza un span iniciado previamente.
+     * Fallback method to log trace operations when no tracer is configured.
+     * It writes a formatted message to the PHP error log.
+     *
+     * @param string $operationName The name of the operation.
+     * @param array<string, mixed> $attributes Optional attributes to include in the log.
      */
-    public function endSpan(SpanHolder $span): void
-    {
-        $span->end();
-    }
-
     private function writeTraceFallback(string $operationName, array $attributes = []): void
     {
         $attributesStr = !empty($attributes) ? json_encode($attributes) : '';
