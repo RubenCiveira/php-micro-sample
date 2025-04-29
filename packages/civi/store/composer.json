@@ -2,9 +2,6 @@
     "name": "civi/store",
     "minimum-stability": "dev",
     "prefer-stable": true,  
-    "bin": [
-        "bin/forge"
-    ],
     "autoload": {
         "psr-4": {
             "Civi\\Store\\": "src/"
@@ -49,7 +46,6 @@
         "matthiasmullie/minify": "^1.3"
     },
     "require-dev": {
-        "phpunit/phpunit": "^12.1",
-        "nikic/php-parser": "^5.4"
+        "phpunit/phpunit": "^12.1"
       }
 }
