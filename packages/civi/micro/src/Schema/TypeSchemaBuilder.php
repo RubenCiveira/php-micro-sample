@@ -86,10 +86,10 @@ class TypeSchemaBuilder
             name: $this->name,
             title: $this->title,
             id: $this->id,
-            fields: $fields,
-            filters: $this->filters,
-            columns: $columns,
-            actions: $this->actions
+            fields: new FieldSchemaCollection( $fields ),
+            filters: new FilterTypeCollection( $this->filters ),
+            columns: new ColumnTypeCollection( $columns ),
+            actions: new ActionSchemaCollection( $this->actions )
         );
     }
 

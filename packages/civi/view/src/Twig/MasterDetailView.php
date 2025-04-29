@@ -42,8 +42,9 @@ abstract class MasterDetailView extends BaseView
         if (isset($params['fetch'])) {
             $values = [];
             if( isset($params['field']) ) {
-                if( isset($meta->fields[$params['field']]->reference->load )) {
-                    $callback = $meta->fields[$params['field']]->reference->load;
+                $field = $meta->fields->find( $params['field'] );
+                if( $field?->reference->load ) {
+                    $callback = $field->reference->load;
                     $values = $callback();
                 } else {
                     throw new InvalidArgumentException("To load refence a callback is needed");

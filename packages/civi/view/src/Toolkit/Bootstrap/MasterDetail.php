@@ -261,7 +261,7 @@ class MasterDetail
     private function field(ColumnType|FilterType $from)
     {
         $parts = explode(".", $from->name);
-        return $this->meta->fields[$parts[0]];
+        return $this->meta->fields->find($parts[0]);
     }
 
     private function dateFormat($value)
