@@ -57,7 +57,7 @@ class EntitySchemaBuilder implements LoggerAwareInterface
                             $targetNamespace = $this->namespace;
                             $targetType = $baseType->toString();
                             $query = new DataQueryParam($schema, $targetType, []);
-                            return $this->dataService->fetch($targetNamespace, $targetType, $query);
+                            return $this->dataService->fetch($targetNamespace, $targetType, new StoreSchema('', []), $query);
                         }];
                     }
                 }

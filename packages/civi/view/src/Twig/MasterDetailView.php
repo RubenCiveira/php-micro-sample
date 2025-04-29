@@ -42,17 +42,18 @@ abstract class MasterDetailView extends BaseView
         if (isset($params['fetch'])) {
             $values = [];
             if( isset($params['field']) ) {
-                if( isset($meta['fields'][$params['field']]['reference']['load'] )) {
-                    $values = $meta['fields'][$params['field']]['reference']['load']();
+                if( isset($meta->fields[$params['field']]->reference->load )) {
+                    $callback = $meta->fields[$params['field']]->reference->load;
+                    $values = $callback();
                 } else {
                     throw new InvalidArgumentException("To load refence a callback is needed");
                 }
             } else {
                 $query = [];
                 $includes = [];
-                foreach($meta['fields'] as $fieldName => $fieldInfo) {
-                    if( $fieldInfo['reference'] ?? false ) {
-                        $includes[] = "{$fieldName}.{$fieldInfo['reference']['label']}";
+                foreach($meta->fields as $fieldName => $fieldInfo) {
+                    if( $fieldInfo->reference ?? false ) {
+                        $includes[] = "{$fieldName}.{$fieldInfo->reference->label}";
                     }
                 }
                 $query = new MasterDetailListQuery(query: $query, include: $includes);

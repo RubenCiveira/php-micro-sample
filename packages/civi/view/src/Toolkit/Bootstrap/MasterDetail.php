@@ -2,6 +2,12 @@
 
 namespace Civi\View\Toolkit\Bootstrap;
 
+use Civi\Micro\Schema\ActionSchema;
+use Civi\Micro\Schema\ColumnType;
+use Civi\Micro\Schema\FieldSchema;
+use Civi\Micro\Schema\FilterType;
+use Civi\Micro\Schema\TypeSchema;
+
 class MasterDetail
 {
     private static $counter = 0;
@@ -9,14 +15,14 @@ class MasterDetail
     private array $actions;
 
     public function __construct(
-        private readonly ?array $meta,
+        private readonly TypeSchema $meta,
         private readonly ?array $values,
         private readonly ?string $target,
         private readonly string $body
     ) {
         $this->id = 'md' . (++self::$counter);
         $this->actions = [];
-        foreach ($meta['actions'] as $action) {
+        foreach ($meta->actions as $action) {
             $this->actions[] = new Action($target, $meta, $action);
         }
     }
@@ -50,28 +56,28 @@ class MasterDetail
     {
         $rows = "";
         foreach ($this->values as $value) {
-            $rows .= "{ {$this->meta['id']}: \"{$value[$this->meta['id']]}\",";
-            foreach ($this->meta['fields'] as $field) {
-                if ($field['type'] == 'date') {
-                    $rows .= "{$field['name']}: \"" . $this->dateFormat($value[$field['name']]) . "\", ";
+            $rows .= "{ {$this->meta->id}: \"{$value[$this->meta->id]}\",";
+            foreach ($this->meta->fields as $field) {
+                if ($field->type == 'date') {
+                    $rows .= "{$field->name}: \"" . $this->dateFormat($value[$field->name]) . "\", ";
                 } else {
-                    $rows .= "{$field['name']}: \"{$value[$field['name']]}\", ";
+                    $rows .= "{$field->name}: \"{$value[$field->name]}\", ";
                 }
             }
             $rows .= "},\n";
         }
         $cells = "";
         $first = true;
-        foreach ($this->meta['columns'] as $column) {
-            $as = md5($column['name']);
-            $read = str_replace('.', '?.', $column['name']);
+        foreach ($this->meta->columns as $column) {
+            $as = md5($column->name);
+            $read = str_replace('.', '?.', $column->name);
             $cells .= "const td{$as} = document.createElement('td');\n";
             $field = $this->field($column);
             if ($first) {
                 $cells .= "td{$as}.attributes.scope = \"row\";";
                 $first = false;
             }
-            if ($field['type'] == 'date') {
+            if ($field->type == 'date') {
                 $cells .= "
                     cons read$as = item.{$read};
                     if( read$as ) {
@@ -147,17 +153,17 @@ class MasterDetail
     private function writeFilterMethod(): string
     {
         $matches = "";
-        foreach ($this->meta['fields'] as $field) {
-            if ($field['type'] != 'password') {
-                $matches .= "( item.{$field['name']} || '').toLowerCase().includes(term) ||";
+        foreach ($this->meta->fields as $field) {
+            if ($field->type != 'password') {
+                $matches .= "( item.{$field->name} || '').toLowerCase().includes(term) ||";
             }
         }
         $lookup = "";
-        foreach ($this->meta['filters'] as $filter) {
+        foreach ($this->meta->filters as $filter) {
             $lookup .= "
-            const {$filter['name']}Value = document.getElementById('{$filter['name']}-filter').value;
-            if( {$filter['name']}Value ) {
-                match = match && {$filter['name']}Value == item.{$filter['name']};
+            const {$filter->name}Value = document.getElementById('{$filter->name}-filter').value;
+            if( {$filter->name}Value ) {
+                match = match && {$filter->name}Value == item.{$filter->name};
             }
             ";
         }
@@ -187,8 +193,8 @@ class MasterDetail
     private function writeTable(): string
     {
         $cols = "";
-        foreach ($this->meta['columns'] as $column) {
-            $cols .= "<th scope=\"col\">{$column['label']}</th>";
+        foreach ($this->meta->columns as $column) {
+            $cols .= "<th scope=\"col\">{$column->label}</th>";
         }
         return "<table id=\"table-content{$this->id}\" class=\"table table-hover\"><thead><tr>{$cols}<th class=\"col cell-actions\"></th></tr></thead><tbody></tbody></table>";
     }
@@ -227,35 +233,35 @@ class MasterDetail
     private function writeFilters(): string
     {
         $filters = "";
-        foreach ($this->meta['filters'] as $filter) {
+        foreach ($this->meta->filters as $filter) {
             $field = $this->field($filter);
-            $filters .= "<div class=\"filter-group\"><div class=\"d-flex\"><label class=\"form-label\" for=\"{$field['name']}-filter\">{$field['label']}:</label>" . $this->fieldFilter($field) . "</div></div>";
+            $filters .= "<div class=\"filter-group\"><div class=\"d-flex\"><label class=\"form-label\" for=\"{$field->name}-filter\">{$field->label}:</label>" . $this->fieldFilter($field) . "</div></div>";
         }
         return "<div class=\"filters flex-fill d-flex\">{$filters}</div>";
     }
 
-    private function fieldFilter(array $field): string
+    private function fieldFilter(FieldSchema $field): string
     {
-        if ($field['enum'] ?? false) {
+        if ($field->enum ?? false) {
             $options = "";
-            foreach ($field['enum'] as $v) {
+            foreach ($field->enum as $v) {
                 $options .= "<option value=\"{$v}\">{$v}</option>";
             }
-            return "<select id=\"{$field['name']}-filter\" onchange=\"search()\" class=\"form-select form-select-sm\"><option value=\"\">Todos</option>{$options}</select>";
+            return "<select id=\"{$field->name}-filter\" onchange=\"search()\" class=\"form-select form-select-sm\"><option value=\"\">Todos</option>{$options}</select>";
         } else {
-            return "<input id=\"{$field['name']}-filter\" type=\"search\" class=\"form-control form-control-sm text-search\" />";
+            return "<input id=\"{$field->name}-filter\" type=\"search\" class=\"form-control form-control-sm text-search\" />";
         }
     }
 
     private function title(): string
     {
-        return "<h2>{$this->meta['title']}</h2><p>{$this->meta['description']}</p>";
+        return "<h2>{$this->meta->name}</h2><p>{$this->meta->title}</p>";
     }
 
-    private function field(array $from)
+    private function field(ColumnType|FilterType $from)
     {
-        $parts = explode(".", $from['name']);
-        return $this->meta['fields'][$parts[0]];
+        $parts = explode(".", $from->name);
+        return $this->meta->fields[$parts[0]];
     }
 
     private function dateFormat($value)

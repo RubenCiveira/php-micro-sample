@@ -18,33 +18,34 @@ class TypeSchemaBuilder
     /**
      * Internal schema for managing fields.
      *
-     * @var ActionSchemaBuilder
+     * @var FieldsetSchemaBuilder
      */
-    private readonly ActionSchemaBuilder $fieldsSchema;
+    private readonly FieldsetSchemaBuilder $fieldsSchema;
     /**
      * Custom columns definitions to override default field-based columns.
      *
-     * @var array<string, array>
+     * @var array<string, ColumnType>
      */
     private array $columns = [];
+
     /**
      * List of field names to exclude from columns automatically generated from fields.
      *
-     * @var string[]
+     * @var array<string>
      */
     private array $hideColumns = [];
 
     /**
      * Registered actions associated with the entity (contextual, standalone, resume, etc.).
      *
-     * @var array<string, array>
+     * @var array<string, ActionSchema>
      */
     private array $actions = [];
 
     /**
      * Registered filters available for querying the entity.
      *
-     * @var array<string, array>
+     * @var array<string, FilterType>
      */
     private array $filters = [];
 
@@ -57,39 +58,39 @@ class TypeSchemaBuilder
      */
     public function __construct(private readonly string $name, private readonly string $title, private readonly string $id)
     {
-        $this->fieldsSchema = new ActionSchemaBuilder();
+        $this->fieldsSchema = new FieldsetSchemaBuilder();
     }
 
     /**
      * Exports the entire entity schema structure, including fields, filters, columns, and actions.
      *
-     * @return array<string, mixed> The exported schema definition.
+     * @return TypeSchema The exported schema definition.
      */
-    public function export()
+    public function export(): TypeSchema
     {
-        $fields = $this->fieldsSchema->export()['fields'];
+        $fields = $this->fieldsSchema->export();
         $columns = $this->columns;
         if (empty($columns)) {
             foreach ($fields as $v) {
-                if (!in_array($v['name'], $this->hideColumns)) {
-                    if (isset($v['reference'])) {
-                        $columns[$v['name']] = [ 'name' => "{$v['name']}.{$v['reference']['label']}", 'label' => $v['label']];
+                if (!in_array($v->name, $this->hideColumns)) {
+                    if (isset($v->reference)) {
+                        $columns[$v->name] = new ColumnType("{$v->name}.{$v->reference->label}", $v->label);
                     } else {
-                        $columns[$v['name']] = [ 'name' => $v['name'], 'label' => $v['label']];
+                        $columns[$v->name] = new ColumnType($v->name, $v->label);
                     }
                 }
             }
         }
         // Llamada para obtener los datos aqui.
-        return [
-            'title' => $this->name,
-            'description' => $this->title,
-            'id' => $this->id,
-            'fields' => $fields,
-            'filters' => $this->filters,
-            'columns' => $columns,
-            'actions' => $this->actions,
-        ];
+        return new TypeSchema(
+            name: $this->name,
+            title: $this->title,
+            id: $this->id,
+            fields: $fields,
+            filters: $this->filters,
+            columns: $columns,
+            actions: $this->actions
+        );
     }
 
     /**
@@ -128,7 +129,7 @@ class TypeSchemaBuilder
      */
     public function addContextualConfirmAction(string $name, string $label, $callback): TypeSchemaBuilder
     {
-        $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'danger', 'callback' => $callback ];
+        $this->actions[$name] = new ActionSchema($name, $label, 'danger', true, callback: $callback);
         return $this;
     }
 
@@ -141,20 +142,18 @@ class TypeSchemaBuilder
      * @param callable|\Closure $callback Callback to execute.
      * @return $this
      */
-    public function addStandaloneFormAction(string $name, string $label, ActionSchemaBuilder|array $form, $callback): TypeSchemaBuilder
+    public function addStandaloneFormAction(string $name, string $label, FieldsetSchemaBuilder|array $form, $callback): TypeSchemaBuilder
     {
         if (is_array($form)) {
-            $defaults = $this->fieldsSchema->export()['fields'];
-            $formView = new ActionSchemaBuilder();
+            $defaults = $this->fieldsSchema->export();
+            $formView = new FieldsetSchemaBuilder();
             foreach ($form as $field) {
                 $formView->addField($field, $defaults[$field]);
             }
         } else {
             $formView = $form;
         }
-        $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => false, 'kind' => 'success',
-                'form' => $formView->export()['fields'],
-                'callback' => $callback ];
+        $this->actions[$name] = new ActionSchema($name, $label, 'success', false, $formView->export(), $callback);
         return $this;
     }
     
@@ -167,20 +166,18 @@ class TypeSchemaBuilder
      * @param callable|\Closure $callback Callback to execute.
      * @return $this
      */
-    public function addContextualFormAction(string $name, string $label, ActionSchemaBuilder|array $form, $callback): TypeSchemaBuilder
+    public function addContextualFormAction(string $name, string $label, FieldsetSchemaBuilder|array $form, $callback): TypeSchemaBuilder
     {
         if (is_array($form)) {
-            $defaults = $this->fieldsSchema->export()['fields'];
-            $formView = new ActionSchemaBuilder();
+            $defaults = $this->fieldsSchema->export();
+            $formView = new FieldsetSchemaBuilder();
             foreach ($form as $field) {
                 $formView->addField($field, $defaults[$field]);
             }
         } else {
             $formView = $form;
         }
-        $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'warn',
-                'form' => $formView->export()['fields'],
-                'callback' => $callback ];
+        $this->actions[$name] = new ActionSchema($name, $label, 'warn', true, $formView->export(), $callback);
         return $this;
     }
 
@@ -194,15 +191,16 @@ class TypeSchemaBuilder
     {
         $processed = null;
         foreach ($this->actions as $name => $info) {
-            if (isset($data[$name]) && isset($info['callback'])) {
+            if (isset($data[$name]) && isset($info->callback)) {
                 $data[$this->id] = $data[$name];
                 if (!$data[$this->id]) {
                     $data[$this->id] = Uuid::uuid4()->toString();
                 }
-                if ($info['callback'] instanceof \Closure) {
-                    $info['callback']($data);
+                if ($info->callback instanceof \Closure) {
+                    $callback = $info->callback;
+                    $callback($data);
                 } else {
-                    call_user_func($info['callback'], $data);
+                    call_user_func($info->callback, $data);
                 }
                 $processed = "Se ha {$name} correctamente";
             }
@@ -220,18 +218,18 @@ class TypeSchemaBuilder
      */
     public function addResumeAction(string $name, string $label, string $format): TypeSchemaBuilder
     {
-        $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'info',
-            'code' => <<<JS
+        $this->actions[$name] = new ActionSchema($name, $label, 'info', true,
+            code: <<<JS
                 document.getElementById('jsonContent').textContent = {$format}
                 JS,
-            'template' => <<<HTML
+            template: <<<HTML
                 <div id="jsonContent" class="json-display"></div>
                 HTML,
-            'buttons' => [
+            buttons: [
                 'copyToClipboard()' => 'Copiar al portapapeles',
                 'downloadAuthJson()' => 'Descargar .auth.json'
             ],
-            'functions' => <<<JS
+            functions: <<<JS
                 function copyToClipboard() {
                     const jsonContent = document.getElementById('jsonContent').textContent;
                     navigator.clipboard.writeText(jsonContent)
@@ -261,7 +259,7 @@ class TypeSchemaBuilder
                         window.URL.revokeObjectURL(url);
                     }, 0);
                 }
-                JS];
+                JS);
         return $this;
     }
 
@@ -285,7 +283,7 @@ class TypeSchemaBuilder
      */
     public function addFilter(string $name): TypeSchemaBuilder
     {
-        $this->filters[$name] = ['name' => $name];
+        $this->filters[$name] = new FilterType($name);
         return $this;
     }
 }
