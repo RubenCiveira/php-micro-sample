@@ -38,11 +38,11 @@ abstract class AbstractPipeline
      *
      * @param string $tag The container service tag to look for.
      *
-     * @return Traversable|array The pipeline handlers.
+     * @return mixed[] The pipeline handlers.
      *
      * @throws InvalidArgumentException If the service is not iterable.
      */
-    protected function getPipelineHandlers(string $tag): Traversable|array
+    protected function getPipelineHandlers(string $tag): array
     {
         if (!$this->container->has($tag)) {
             return [];
@@ -51,7 +51,7 @@ abstract class AbstractPipeline
         if (!($handlers instanceof Traversable) && !is_array($handlers)) {
             throw new InvalidArgumentException("El servicio '$tag' debe ser iterable.");
         }
-        return $handlers;
+        return $handlers instanceof Traversable ? iterator_to_array($handlers) : $handlers;
     }
 
     /**
@@ -60,16 +60,16 @@ abstract class AbstractPipeline
      * Each handler can transform the input and pass it to the next one.
      * Handlers are composed dynamically into a single callable.
      *
-     * @param Traversable|array $handlers The list of handlers to execute.
+     * @param mixed[] $handlers The list of handlers to execute.
      * @param mixed             $input    The initial input to process.
      * @param mixed             ...$args  Additional arguments passed to handlers.
      *
      * @return mixed The final result after all handlers have processed the input.
      */
-    protected function runPipeline(Traversable|array $handlers, mixed $input, mixed ...$args): mixed
+    protected function runPipeline(array $handlers, mixed $input, mixed ...$args): mixed
     {
         $handler = array_reduce(
-            array_reverse(iterator_to_array($handlers)),
+            array_reverse([...$handlers]),
             fn ($next, $current) => fn ($filter) => $this->run($current, $filter, $next, ...$args),
             fn ($filter) =>  $filter
         );

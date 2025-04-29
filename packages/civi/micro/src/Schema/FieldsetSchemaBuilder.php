@@ -10,6 +10,8 @@ namespace Civi\Micro\Schema;
  *
  * This builder supports both creating fields from simple arrays or
  * from fully-typed FieldSchema objects.
+ * 
+ * @api
  */
 class FieldsetSchemaBuilder
 {
@@ -44,15 +46,7 @@ class FieldsetSchemaBuilder
         foreach ($names as $name) {
             if (isset($this->fields[$name])) {
                 $field = $this->fields[$name];
-                $this->fields[$name] = new FieldSchema(
-                    $field->name,
-                    $field->type,
-                    $field->label,
-                    $field->required,
-                    true, // calculated
-                    $field->readonly,
-                    $field->reference
-                );
+                $this->fields[$name] = $field->asCalculated();
             }
         }
         return $this;
@@ -72,15 +66,7 @@ class FieldsetSchemaBuilder
         foreach ($names as $name) {
             if (isset($this->fields[$name])) {
                 $field = $this->fields[$name];
-                $this->fields[$name] = new FieldSchema(
-                    $field->name,
-                    $field->type,
-                    $field->label,
-                    $field->required,
-                    $field->calculated,
-                    true, // readonly
-                    $field->reference
-                );
+                $this->fields[$name] = $field->asReadonly();
             }
         }
         return $this;

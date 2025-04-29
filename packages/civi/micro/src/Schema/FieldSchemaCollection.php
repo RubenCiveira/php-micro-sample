@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Schema;
 
+use Override;
+
 /**
  * Represents a strongly-typed, read-only collection of FieldSchema objects.
  *
  * Provides iteration, counting, and lookup capabilities.
  *
+ * @api
+ * 
  * @implements \IteratorAggregate<int, FieldSchema>
  */
 class FieldSchemaCollection implements \IteratorAggregate, \Countable
@@ -35,6 +39,7 @@ class FieldSchemaCollection implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator<int, FieldSchema> The iterator over FieldSchema objects.
      */
+    #[Override]
     public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->fields);
@@ -45,6 +50,7 @@ class FieldSchemaCollection implements \IteratorAggregate, \Countable
      *
      * @return int The total number of FieldSchema elements.
      */
+    #[Override]
     public function count(): int
     {
         return count($this->fields);

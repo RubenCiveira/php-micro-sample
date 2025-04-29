@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Schema;
 
+use Override;
+
 /**
  * Represents a strongly-typed, read-only collection of ColumnType objects.
  *
  * This class ensures that all elements within the collection are instances of ColumnType
  * and provides standard iterable and countable capabilities.
  *
+ * @api
+ * 
  * @implements \IteratorAggregate<int, ColumnType>
  *
  */
@@ -45,6 +49,7 @@ class ColumnTypeCollection implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator<int, ColumnType> An iterator over the collection.
      */
+    #[Override]
     public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->columns);
@@ -55,6 +60,7 @@ class ColumnTypeCollection implements \IteratorAggregate, \Countable
      *
      * @return int The number of ColumnType objects.
      */
+    #[Override]
     public function count(): int
     {
         return count($this->columns);

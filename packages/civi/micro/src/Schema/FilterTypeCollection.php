@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Schema;
 
+use Override;
+
 /**
  * Represents a strongly-typed, read-only collection of FilterType objects.
  *
+ * @api
+ * 
  * @implements \IteratorAggregate<int, FilterType>
  */
 class FilterTypeCollection implements \IteratorAggregate, \Countable
@@ -39,6 +43,7 @@ class FilterTypeCollection implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator<int, FilterType> Iterator over the FilterType objects.
      */
+    #[Override]
     public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->filters);
@@ -49,6 +54,7 @@ class FilterTypeCollection implements \IteratorAggregate, \Countable
      *
      * @return int The number of elements.
      */
+    #[Override]
     public function count(): int
     {
         return count($this->filters);

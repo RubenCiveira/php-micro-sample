@@ -9,6 +9,8 @@ namespace Civi\Micro\Schema;
  *
  * This class is typically used to define relationships between fields and external resources.
  * It encapsulates the reference identifier, label, and a callable closure to load related data.
+ * 
+ * @api
  */
 class ReferenceType
 {

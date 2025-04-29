@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Schema;
 
+use Override;
+
 /**
  * Represents a strongly-typed, read-only collection of ActionSchema objects.
  *
  * This collection ensures that all elements are valid instances of ActionSchema,
  * provides iteration capabilities, counting, and access to the full array of actions.
  *
+ * @api
+ * 
  * @implements \IteratorAggregate<int, ActionSchema>
  */
 class ActionSchemaCollection implements \IteratorAggregate, \Countable
@@ -42,6 +46,7 @@ class ActionSchemaCollection implements \IteratorAggregate, \Countable
      *
      * @return \ArrayIterator<int, ActionSchema> An iterator over ActionSchema elements.
      */
+    #[Override]
     public function getIterator(): \Traversable
     {
         return new \ArrayIterator($this->actions);
@@ -52,6 +57,7 @@ class ActionSchemaCollection implements \IteratorAggregate, \Countable
      *
      * @return int The total number of actions.
      */
+    #[Override]
     public function count(): int
     {
         return count($this->actions);

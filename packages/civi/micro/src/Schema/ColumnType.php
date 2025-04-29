@@ -10,6 +10,7 @@ namespace Civi\Micro\Schema;
  * Each column has a unique internal name and a human-readable label
  * that can be used when presenting data in tabular formats (e.g., list views, data grids).
  *
+ * @api
  */
 class ColumnType
 {

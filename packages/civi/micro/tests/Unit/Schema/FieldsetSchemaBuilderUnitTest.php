@@ -81,6 +81,7 @@ class FieldsetSchemaBuilderUnitTest extends TestCase
     public function testMarkReadonlyUpdatesFields(): void
     {
         $this->builder->addField('readonlyField', [
+            'name' => 'readonlyField',
             'type' => 'number',
             'label' => 'Readonly Field'
         ]);

@@ -9,6 +9,8 @@ namespace Civi\Micro\Schema;
  *
  * A FilterType defines the name of a filter that can be applied to an entity,
  * typically used for querying or restricting entity data based on specific criteria.
+ * 
+ * @api
  */
 class FilterType
 {
