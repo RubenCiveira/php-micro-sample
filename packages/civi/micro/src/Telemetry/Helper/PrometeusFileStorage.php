@@ -10,31 +10,71 @@ use Prometheus\Math;
 use Prometheus\MetricFamilySamples;
 use RuntimeException;
 
+/**
+ * PrometeusFileStorage
+ *
+ * A file-based storage adapter for Prometheus metrics, supporting counters, gauges,
+ * histograms, and summaries. Metrics are serialized and persisted as JSON files.
+ * 
+ * This adapter enables durable metrics collection across server restarts 
+ * and allows aggregation of Prometheus data in environments without full
+ * in-memory collectors.
+ *
+ * Implements the {@see Prometheus\Storage\Adapter} interface.
+ *
+ * @package Civi\Micro\Telemetry\Helper
+ */
 class PrometeusFileStorage implements Adapter
 {
+/**
+     * The file path where metrics are persisted.
+     *
+     * @var string
+     */
     private string $filePath;
+
+    /**
+     * Tracks if any metrics have changed and need to be persisted.
+     *
+     * @var bool
+     */
     private bool $change = false;
 
     /**
+     * Registered counters.
+     *
      * @var mixed[]
      */
     protected $counters = [];
-
+    
     /**
+     * Registered gauges.
+     *
      * @var mixed[]
      */
     protected $gauges = [];
 
     /**
+     * Registered histograms.
+     *
      * @var mixed[]
      */
     protected $histograms = [];
 
     /**
+     * Registered summaries.
+     *
      * @var mixed[]
      */
     protected $summaries = [];
 
+    /**
+     * Constructor.
+     *
+     * Loads existing metrics from a file if it exists.
+     *
+     * @param string $filePath Path to the metrics storage file.
+     */
     public function __construct(string $filePath)
     {
         $this->filePath = $filePath;
@@ -48,6 +88,11 @@ class PrometeusFileStorage implements Adapter
         }
     }
 
+    /**
+     * Destructor.
+     *
+     * Persists metrics to file if any changes occurred during the lifecycle.
+     */
     public function __destruct()
     {
         if ($this->change) {
@@ -56,7 +101,10 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
+     *
+     * Collects all available metrics: counters, gauges, histograms, and summaries.
+     *
      * @return MetricFamilySamples[]
      */
     #[Override]
@@ -70,7 +118,9 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @inheritDoc
+     * {@inheritdoc}
+     *
+     * Clears all stored metrics and persists an empty state to the storage file.
      */
     #[Override]
     public function wipeStorage(): void
@@ -83,6 +133,8 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
+     * Collects all registered histograms into MetricFamilySamples.
+     *
      * @return MetricFamilySamples[]
      */
     protected function collectHistograms(): array
@@ -158,6 +210,8 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
+     * Collects all registered summaries into MetricFamilySamples.
+     *
      * @return MetricFamilySamples[]
      */
     protected function collectSummaries(): array
@@ -233,7 +287,10 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @param mixed[] $metrics
+     * Collects and structures basic metric types (counters or gauges).
+     *
+     * @param mixed[] $metrics Array of raw metrics.
+     * @param bool $sortMetrics Whether to sort samples.
      * @return MetricFamilySamples[]
      */
     protected function internalCollect(array $metrics, bool $sortMetrics = true): array
@@ -269,9 +326,11 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @inheritDoc
-     * @param mixed[] $data
-     * @return void
+     * {@inheritdoc}
+     *
+     * Updates the stored histogram metrics with a new observation.
+     *
+     * @param mixed[] $data Histogram observation data.
      */
     #[Override]
     public function updateHistogram(array $data): void
@@ -309,9 +368,11 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @inheritDoc
-     * @param mixed[] $data
-     * @return void
+     * {@inheritdoc}
+     *
+     * Updates the stored summary metrics with a new observation.
+     *
+     * @param mixed[] $data Summary observation data.
      */
     #[Override]
     public function updateSummary(array $data): void
@@ -337,8 +398,11 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @inheritDoc
-     * @param mixed[] $data
+     * {@inheritdoc}
+     *
+     * Updates the stored gauge metrics.
+     *
+     * @param mixed[] $data Gauge data, supporting increment, decrement, or set.
      */
     #[Override]
     public function updateGauge(array $data): void
@@ -363,8 +427,11 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @inheritDoc
-     * @param mixed[] $data
+     * {@inheritdoc}
+     *
+     * Updates the stored counter metrics.
+     *
+     * @param mixed[] $data Counter data, supporting increment or reset to 0.
      */
     #[Override]
     public function updateCounter(array $data): void
@@ -389,9 +456,10 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @param mixed[]    $data
-     * @param string|int $bucket
+     * Builds the unique key for identifying a histogram bucket sample.
      *
+     * @param mixed[] $data
+     * @param string|int $bucket
      * @return string
      */
     protected function histogramBucketValueKey(array $data, $bucket): string
@@ -405,8 +473,9 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @param mixed[] $data
+     * Builds the unique key for identifying the meta information of a metric.
      *
+     * @param mixed[] $data
      * @return string
      */
     protected function metaKey(array $data): string
@@ -419,8 +488,9 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @param mixed[] $data
+     * Builds the unique key for identifying a specific sample's value.
      *
+     * @param mixed[] $data
      * @return string
      */
     protected function valueKey(array $data): string
@@ -434,8 +504,9 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @param mixed[] $data
+     * Extracts metadata from a sample data array.
      *
+     * @param mixed[] $data
      * @return mixed[]
      */
     protected function metaData(array $data): array
@@ -446,6 +517,8 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
+     * Sorts metric samples by their label values.
+     *
      * @param mixed[] $samples
      */
     protected function sortSamples(array &$samples): void
@@ -456,9 +529,11 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
+     * Encodes an array of label values into a safe base64 string.
+     *
      * @param mixed[] $values
      * @return string
-     * @throws RuntimeException
+     * @throws RuntimeException If encoding fails.
      */
     protected function encodeLabelValues(array $values): string
     {
@@ -470,9 +545,11 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
+     * Decodes a base64-encoded string of label values back to an array.
+     *
      * @param string $values
      * @return mixed[]
-     * @throws RuntimeException
+     * @throws RuntimeException If decoding fails.
      */
     protected function decodeLabelValues(string $values): array
     {
@@ -481,12 +558,15 @@ class PrometeusFileStorage implements Adapter
             throw new RuntimeException('Cannot base64 decode label values');
         }
         $decodedValues = json_decode($json, true);
-        if (false === $decodedValues) {
+        if (null === $decodedValues) {
             throw new RuntimeException(json_last_error_msg());
         }
         return $decodedValues;
     }
 
+    /**
+     * Persists the current metrics state to the storage file.
+     */
     private function persist(): void
     {
         $data = [
