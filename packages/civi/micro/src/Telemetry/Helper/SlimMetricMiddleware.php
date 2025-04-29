@@ -12,10 +12,20 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Routing\RouteContext;
 
+/**
+ * Middleware to record application metrics for each HTTP request.
+ * 
+ * It captures memory usage, CPU load, request duration, and HTTP status codes,
+ * and registers these metrics in a Prometheus CollectorRegistry.
+ */
 class SlimMetricMiddleware
 {
     /**
      * @api
+     * 
+     * @param AppConfig $appConfig Configuration for application paths and management endpoints
+     * @param TelemetryConfig $config Telemetry-specific configuration
+     * @param CollectorRegistry $registry Prometheus registry where metrics are collected
      */
     public function __construct(
         private readonly AppConfig $appConfig,
@@ -24,6 +34,13 @@ class SlimMetricMiddleware
     ) {
     }
 
+    /**
+     * Handles the incoming request, collects and registers metrics if the path is not a management endpoint.
+     *
+     * @param Request $request The incoming HTTP request
+     * @param RequestHandlerInterface $handler The next request handler
+     * @return Response The HTTP response after metric collection
+     */
     public function __invoke(Request $request, RequestHandlerInterface $handler): Response
     {
         $start = microtime(true);
@@ -39,11 +56,22 @@ class SlimMetricMiddleware
         return $response;
     }
 
+    /**
+     * Determines whether the given path is a management endpoint.
+     *
+     * @param string $path
+     * @return bool
+     */
     private function isManagementPath($path)
     {
         return str_starts_with($path, $this->appConfig->managementEndpoint);
     }
 
+    /**
+     * Records memory usage and CPU load for the given path.
+     *
+     * @param string $path
+     */
     private function serverLoad($path)
     {
         // Obtener el uso de memoria actual en bytes
@@ -74,6 +102,12 @@ class SlimMetricMiddleware
         $cpuLoadGauge->set($totalCpuLoad, [$path]);
     }
 
+    /**
+     * Records the execution time for the given path.
+     *
+     * @param string $path
+     * @param float $executionTime
+     */
     private function executionTime($path, $executionTime)
     {
         $histogram = $this->registry->getOrRegisterHistogram(
@@ -86,6 +120,12 @@ class SlimMetricMiddleware
         $histogram->observe($executionTime, [$path]);
     }
 
+    /**
+     * Records HTTP status codes and categorizes them for telemetry.
+     *
+     * @param string $path
+     * @param int $status
+     */
     private function httpStatus($path, $status)
     {
         // Crear y registrar los contadores
@@ -133,6 +173,11 @@ class SlimMetricMiddleware
         }
     }
 
+    /**
+     * Records unauthorized (401) HTTP errors.
+     *
+     * @param string $path
+     */
     private function unauthorized($path)
     {
         // Crear y registrar los contadores para errores de seguridad
@@ -145,6 +190,11 @@ class SlimMetricMiddleware
         $error401Counter->incBy(1, [$path]);
     }
 
+    /**
+     * Records forbidden (403) HTTP errors.
+     *
+     * @param string $path
+     */
     private function forbidden($path)
     {
         $error403Counter = $this->registry->getOrRegisterCounter(
@@ -156,6 +206,11 @@ class SlimMetricMiddleware
         $error403Counter->incBy(1, [$path]);
     }
 
+    /**
+     * Records bad gateway (502) HTTP errors.
+     *
+     * @param string $path
+     */
     private function bad_gateway($path)
     {
         $error502Counter = $this->registry->getOrRegisterCounter(
@@ -167,6 +222,11 @@ class SlimMetricMiddleware
         $error502Counter->incBy(1, [$path]);
     }
 
+    /**
+     * Returns a valid namespace for metrics on prometeus, replacing dots with underscores.
+     *
+     * @return string
+     */
     private function namespace()
     {
         return str_replace('.', '_', $this->config->appName);
