@@ -9,14 +9,39 @@ use InvalidArgumentException;
 use Traversable;
 
 /**
+ * AbstractPipeline
+ *
+ * Base class to manage a sequence of processing handlers (pipeline) dynamically.
+ * It supports retrieving handlers from a container, composing them into a chain,
+ * and running data through them. It also delegates object-to-array and array-to-object
+ * transformations to an injected ObjectMapper.
+ *
  * @api
  */
 abstract class AbstractPipeline
 {
-    public function __construct(protected readonly ContainerInterface $container)
+    /**
+     * Constructor.
+     *
+     * @param ContainerInterface $container The dependency injection container.
+     * @param ObjectMapper        $mapper    The object mapper for array/object transformations.
+     */
+    public function __construct(protected readonly ContainerInterface $container, private readonly ObjectMapper $mapper)
     {
     }
 
+    /**
+     * Retrieves the pipeline handlers associated with a given container tag.
+     *
+     * If no service is found for the tag, an empty array is returned.
+     * If the service exists but is not iterable, an exception is thrown.
+     *
+     * @param string $tag The container service tag to look for.
+     *
+     * @return Traversable|array The pipeline handlers.
+     *
+     * @throws InvalidArgumentException If the service is not iterable.
+     */
     protected function getPipelineHandlers(string $tag): Traversable|array
     {
         if (!$this->container->has($tag)) {
@@ -29,6 +54,18 @@ abstract class AbstractPipeline
         return $handlers;
     }
 
+    /**
+     * Executes the given pipeline handlers sequentially.
+     *
+     * Each handler can transform the input and pass it to the next one.
+     * Handlers are composed dynamically into a single callable.
+     *
+     * @param Traversable|array $handlers The list of handlers to execute.
+     * @param mixed             $input    The initial input to process.
+     * @param mixed             ...$args  Additional arguments passed to handlers.
+     *
+     * @return mixed The final result after all handlers have processed the input.
+     */
     protected function runPipeline(Traversable|array $handlers, mixed $input, mixed ...$args): mixed
     {
         $handler = array_reduce(
@@ -39,66 +76,53 @@ abstract class AbstractPipeline
         return $handler($input);
     }
 
+    /**
+     * Converts an object or array to an array representation.
+     *
+     * Delegates the conversion to the injected ObjectMapper.
+     *
+     * @param array|object $object The object or array to convert.
+     *
+     * @return array The array representation.
+     */
     protected function toArray(array|object $object): array
     {
-        if (is_array($object)) {
-            return $object;
-        } else {
-            $response = [];
-            $extract = get_object_vars($object);
-            foreach ($extract as $k => $v) {
-                if ($v !== null) {
-                    $response[$k] = $v;
-                }
-            }
-            return $response;
-        }
+        return $this->mapper->toArray($object);
     }
 
+    /**
+     * Converts an array to an object of the specified type.
+     *
+     * Delegates the conversion to the injected ObjectMapper.
+     *
+     * @param array|null $data     The data to convert.
+     * @param string     $typeName The fully qualified class name of the target object.
+     *
+     * @return object|null The resulting object, or null if the input is null.
+     */
     protected function toObject(array|null $data, string $typeName): object|null
     {
-        if ($data === null) {
-            return null;
-        }
-
-        $object = new $typeName();
-        $refClass = new \ReflectionClass($typeName);
-
-        foreach ($data as $key => $value) {
-            if (!$refClass->hasProperty($key)) {
-                continue;
-            }
-
-            $prop = $refClass->getProperty($key);
-            $type = $prop->getType();
-
-            if (!$type) {
-                $object->$key = $value;
-                continue;
-            }
-
-            $typeName = $type instanceof \ReflectionNamedType ? $type->getName() : null;
-
-            if ($type->allowsNull() && $value === null) {
-                $object->$key = null;
-            } elseif ($typeName === 'int') {
-                $object->$key = (int) $value;
-            } elseif ($typeName === 'float') {
-                $object->$key = (float) $value;
-            } elseif ($typeName === 'bool') {
-                $object->$key = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-            } elseif ($typeName === 'string') {
-                $object->$key = (string) $value;
-            } elseif (is_a($typeName, \DateTimeInterface::class, true)) {
-                $object->$key = new \DateTimeImmutable($value);
-            } else {
-                // fallback genérico
-                $object->$key = $value;
-            }
-        }
-        return $object;
+        return $this->mapper->toObject($data, $typeName);
     }
 
+    /**
+     * Resolves and executes a handler.
+     *
+     * Supported handler types:
+     *  - Callable (function, closure, invokable class).
+     *  - Class name (retrieved and instantiated from the container).
+     *  - [ClassName, Method] array (static or instance methods).
+     *  - [ObjectInstance, Method] array (instance methods).
+     *
+     * @param mixed $current The handler to run.
+     * @param mixed $filter  The input to pass to the handler.
+     * @param mixed $next    The next handler to call.
+     * @param mixed ...$args Additional arguments for the handler.
+     *
+     * @return mixed The result of the handler execution.
+     *
+     * @throws InvalidArgumentException If the handler cannot be resolved or invoked.
+     */
     private function run($current, $filter, $next, ...$args)
     {
         if (is_callable($current)) {
@@ -113,18 +137,9 @@ abstract class AbstractPipeline
             [$classOrInstance, $method] = $current;
 
             if (is_string($classOrInstance) && class_exists($classOrInstance)) {
-                $reflection = new \ReflectionMethod($classOrInstance, $method);
-                if ($reflection->isStatic()) {
-                    return $classOrInstance::$method($filter, $next, ...$args);
-                }
                 // Instanciar y llamar método no estático
                 $instance = $this->container->get($classOrInstance);
                 return $instance->$method($filter, $next, ...$args);
-            }
-
-            // Ya es una instancia: simplemente invocar
-            if (is_object($classOrInstance) && method_exists($classOrInstance, $method)) {
-                return $classOrInstance->$method($filter, $next, ...$args);
             }
         }
         throw new InvalidArgumentException("Handler no invocable: " . print_r($current, true));

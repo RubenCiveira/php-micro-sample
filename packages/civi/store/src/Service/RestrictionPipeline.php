@@ -3,13 +3,14 @@
 namespace Civi\Store\Service;
 
 use Civi\Micro\Kernel\AbstractPipeline;
+use Civi\Micro\Kernel\ObjectMapper;
 use Psr\Container\ContainerInterface;
 
 class RestrictionPipeline extends AbstractPipeline
 {
-    public function __construct(ContainerInterface $container)
+    public function __construct(ContainerInterface $container, ObjectMapper $mapper)
     {
-        parent::__construct($container);
+        parent::__construct($container, $mapper);
     }
 
     public function restrictFilter(string $namespace, string $typeName, array $query): array
