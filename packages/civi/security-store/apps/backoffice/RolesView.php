@@ -2,15 +2,15 @@
 namespace Civi\SecurityStoreBackoffice;
 
 use Civi\SecurityStore\Features\Access\Rol\Gateway\RolGateway;
-use Civi\SecurityStore\Features\Access\Rol\RolEntitySchema;
 use Civi\View\Twig\MasterDetailListQuery;
 use Civi\View\Twig\MasterDetailView;
 use Civi\View\ViewConfig;
-use Civi\Micro\Schema\EntitySchema;
+use Civi\Micro\Schema\TypeSchemaBuilder;
+use Civi\SecurityStore\Features\Access\Rol\Schema\RolEntitySchemaBuilder;
 
 class RolesView extends MasterDetailView
 {
-    public function __construct(ViewConfig $config, private readonly RolGateway $roles, private readonly RolEntitySchema $meta)
+    public function __construct(ViewConfig $config, private readonly RolGateway $roles, private readonly RolEntitySchemaBuilder $meta)
     {
         parent::__construct($config, 'roles', __DIR__ . '/templates');
     }
@@ -20,7 +20,7 @@ class RolesView extends MasterDetailView
         return $this->roles->listRoles();
     }
 
-    protected function meta(): EntitySchema
+    protected function meta(): TypeSchemaBuilder
     {
         $view = $this->meta->build();
 

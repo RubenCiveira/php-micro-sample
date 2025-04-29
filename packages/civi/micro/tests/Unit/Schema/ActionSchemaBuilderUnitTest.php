@@ -6,13 +6,13 @@ namespace Civi\Micro\Schema;
 
 use PHPUnit\Framework\TestCase;
 
-class ActionSchemaUnitTest extends TestCase
+class ActionSchemaBuilderUnitTest extends TestCase
 {
-    private ActionSchema $schema;
+    private ActionSchemaBuilder $schema;
 
     protected function setUp(): void
     {
-        $this->schema = new ActionSchema();
+        $this->schema = new ActionSchemaBuilder();
     }
 
     public function testExportReturnsInitialEmptyFields(): void

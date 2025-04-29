@@ -2,15 +2,15 @@
 namespace Civi\SecurityStoreBackoffice;
 
 use Civi\SecurityStore\Features\Access\User\Gateway\UserGateway;
-use Civi\SecurityStore\Features\Access\User\Schema\UserEntitySchema;
 use Civi\View\Twig\MasterDetailListQuery;
 use Civi\View\Twig\MasterDetailView;
 use Civi\View\ViewConfig;
-use Civi\Micro\Schema\EntitySchema;
+use Civi\Micro\Schema\TypeSchemaBuilder;
+use Civi\SecurityStore\Features\Access\User\Schema\UserEntitySchemaBuilder;
 
 class UsersView extends MasterDetailView
 {
-    public function __construct(ViewConfig $config, private readonly UserGateway $users, private readonly UserEntitySchema $meta)
+    public function __construct(ViewConfig $config, private readonly UserGateway $users, private readonly UserEntitySchemaBuilder $meta)
     {
         parent::__construct($config, 'users', __DIR__ . '/templates');
     }
@@ -20,7 +20,7 @@ class UsersView extends MasterDetailView
         return $this->users->listUsers($query->query, $query->include);
     }
 
-    protected function meta(): EntitySchema
+    protected function meta(): TypeSchemaBuilder
     {
         $view = $this->meta->build();
 

@@ -13,14 +13,14 @@ use Ramsey\Uuid\Uuid;
  * It allows the configuration of fields, columns, actions, and filters associated with an entity.
  * Provides export capabilities for UI representation and action execution logic.
  */
-class EntitySchema
+class TypeSchemaBuilder
 {
     /**
      * Internal schema for managing fields.
      *
-     * @var ActionSchema
+     * @var ActionSchemaBuilder
      */
-    private readonly ActionSchema $fieldsSchema;
+    private readonly ActionSchemaBuilder $fieldsSchema;
     /**
      * Custom columns definitions to override default field-based columns.
      *
@@ -49,7 +49,7 @@ class EntitySchema
     private array $filters = [];
 
     /**
-     * Creates a new EntitySchema.
+     * Creates a new TypeSchemaBuilder.
      *
      * @param string $name Unique entity name.
      * @param string $title Human-readable title of the entity.
@@ -57,7 +57,7 @@ class EntitySchema
      */
     public function __construct(private readonly string $name, private readonly string $title, private readonly string $id)
     {
-        $this->fieldsSchema = new ActionSchema();
+        $this->fieldsSchema = new ActionSchemaBuilder();
     }
 
     /**
@@ -99,7 +99,7 @@ class EntitySchema
      * @param array<string, mixed> $info Field configuration details.
      * @return $this
      */
-    public function addField(string $name, array $info): EntitySchema
+    public function addField(string $name, array $info): TypeSchemaBuilder
     {
         $this->fieldsSchema->addField($name, $info);
         return $this;
@@ -112,7 +112,7 @@ class EntitySchema
      * @param string $label Column display label.
      * @return $this
      */
-    public function addColumn(string $name, string $label): EntitySchema
+    public function addColumn(string $name, string $label): TypeSchemaBuilder
     {
         $this->columns[$name] = ['name' => $name, 'label' => $label];
         return $this;
@@ -126,7 +126,7 @@ class EntitySchema
      * @param callable|\Closure $callback Callback to execute when the action is triggered.
      * @return $this
      */
-    public function addContextualConfirmAction(string $name, string $label, $callback): EntitySchema
+    public function addContextualConfirmAction(string $name, string $label, $callback): TypeSchemaBuilder
     {
         $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'danger', 'callback' => $callback ];
         return $this;
@@ -137,15 +137,15 @@ class EntitySchema
      *
      * @param string $name Action name.
      * @param string $label Action display label.
-     * @param ActionSchema|array<string> $form Form schema or list of field names to use.
+     * @param ActionSchemaBuilder|array<string> $form Form schema or list of field names to use.
      * @param callable|\Closure $callback Callback to execute.
      * @return $this
      */
-    public function addStandaloneFormAction(string $name, string $label, ActionSchema|array $form, $callback): EntitySchema
+    public function addStandaloneFormAction(string $name, string $label, ActionSchemaBuilder|array $form, $callback): TypeSchemaBuilder
     {
         if (is_array($form)) {
             $defaults = $this->fieldsSchema->export()['fields'];
-            $formView = new ActionSchema();
+            $formView = new ActionSchemaBuilder();
             foreach ($form as $field) {
                 $formView->addField($field, $defaults[$field]);
             }
@@ -163,15 +163,15 @@ class EntitySchema
      *
      * @param string $name Action name.
      * @param string $label Action display label.
-     * @param ActionSchema|array<string> $form Form schema or list of field names to use.
+     * @param ActionSchemaBuilder|array<string> $form Form schema or list of field names to use.
      * @param callable|\Closure $callback Callback to execute.
      * @return $this
      */
-    public function addContextualFormAction(string $name, string $label, ActionSchema|array $form, $callback): EntitySchema
+    public function addContextualFormAction(string $name, string $label, ActionSchemaBuilder|array $form, $callback): TypeSchemaBuilder
     {
         if (is_array($form)) {
             $defaults = $this->fieldsSchema->export()['fields'];
-            $formView = new ActionSchema();
+            $formView = new ActionSchemaBuilder();
             foreach ($form as $field) {
                 $formView->addField($field, $defaults[$field]);
             }
@@ -218,7 +218,7 @@ class EntitySchema
      * @param string $format JavaScript expression to generate JSON content.
      * @return $this
      */
-    public function addResumeAction(string $name, string $label, string $format): EntitySchema
+    public function addResumeAction(string $name, string $label, string $format): TypeSchemaBuilder
     {
         $this->actions[$name] = ['name' => $name, 'label' => $label, 'contextual' => true, 'kind' => 'info',
             'code' => <<<JS
@@ -271,7 +271,7 @@ class EntitySchema
      * @param string $name Column name.
      * @return $this
      */
-    public function excludeColumn(string $name): EntitySchema
+    public function excludeColumn(string $name): TypeSchemaBuilder
     {
         $this->hideColumns[] = $name;
         return $this;
@@ -283,7 +283,7 @@ class EntitySchema
      * @param string $name Filter field name.
      * @return $this
      */
-    public function addFilter(string $name): EntitySchema
+    public function addFilter(string $name): TypeSchemaBuilder
     {
         $this->filters[$name] = ['name' => $name];
         return $this;

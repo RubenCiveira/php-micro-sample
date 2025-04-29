@@ -1,16 +1,17 @@
 <?php
 namespace Civi\RepomanagerBackoffice;
 
-use Civi\Repomanager\Features\Repository\Package\Schema\PackageEntitySchema;
+use Civi\Repomanager\Features\Repository\Package\Schema\PackageTypeSchemaBuilder;
 use Civi\Repomanager\Features\Repository\Package\Gateway\PackageGateway;
 use Civi\View\Twig\MasterDetailListQuery;
 use Civi\View\Twig\MasterDetailView;
 use Civi\View\ViewConfig;
-use Civi\Micro\Schema\EntitySchema;
+use Civi\Micro\Schema\TypeSchemaBuilder;
+use Civi\Repomanager\Features\Repository\Package\Schema\PackageEntitySchemaBuilder;
 
 class PackagesView extends MasterDetailView
 {
-    public function __construct(ViewConfig $config, private readonly PackageGateway $packages, private readonly PackageEntitySchema $meta)
+    public function __construct(ViewConfig $config, private readonly PackageGateway $packages, private readonly PackageEntitySchemaBuilder $meta)
     {
         parent::__construct($config, 'packages', __DIR__ . '/templates');
     }
@@ -20,7 +21,7 @@ class PackagesView extends MasterDetailView
         return $this->packages->listPackages();
     }
 
-    protected function meta(): EntitySchema
+    protected function meta(): TypeSchemaBuilder
     {
         $form = $this->meta->build();
         return $form

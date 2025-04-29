@@ -5,7 +5,7 @@ namespace Civi\Store;
 use Civi\Micro\Telemetry\LoggerAwareInterface;
 use Civi\Micro\Telemetry\LoggerAwareTrait;
 use Civi\Store\Service\ExtractMutation;
-use Civi\Micro\Schema\EntitySchema;
+use Civi\Micro\Schema\TypeSchemaBuilder;
 use Civi\Store\Service\DataService;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
@@ -32,7 +32,7 @@ class EntitySchemaBuilder implements LoggerAwareInterface
         );
     }
 
-    public function build(): EntitySchema
+    public function build(): TypeSchemaBuilder
     {
         $namespace = $this->namespace;
         $resource = $this->className($this->type);
@@ -40,7 +40,7 @@ class EntitySchemaBuilder implements LoggerAwareInterface
         $jsonSchema = $this->schemas->jsonSchema($namespace, $resource);
         $type = $schema->getType($resource);
         $idField = $this->searchIdField($type);
-        $meta = new EntitySchema('', '', $idField);
+        $meta = new TypeSchemaBuilder('', '', $idField);
         // $defaultForm = [];
         foreach ($jsonSchema['properties'] as $name => $info) {
             if ($name !== $idField) {

@@ -10,7 +10,7 @@ namespace Civi\Micro\Schema;
  *
  * @api
  */
-class ActionSchema
+class ActionSchemaBuilder
 {
     /**
      * @var array<string, array<string, mixed>> Stores the field definitions.
@@ -33,7 +33,7 @@ class ActionSchema
      * @param string[] $names List of field names to mark as calculated.
      * @return $this
      */
-    public function markCalculated(array $names): ActionSchema
+    public function markCalculated(array $names): ActionSchemaBuilder
     {
         foreach ($names as $name) {
             $this->fields[$name]['calculated'] = true;
@@ -47,7 +47,7 @@ class ActionSchema
      * @param string[] $names List of field names to mark as readonly.
      * @return $this
      */
-    public function markReadonly(array $names): ActionSchema
+    public function markReadonly(array $names): ActionSchemaBuilder
     {
         foreach ($names as $name) {
             $this->fields[$name]['readonly'] = true;
@@ -67,7 +67,7 @@ class ActionSchema
      * @param array<string, mixed> $info The field properties.
      * @return $this
      */
-    public function addField(string $name, array $info): ActionSchema
+    public function addField(string $name, array $info): ActionSchemaBuilder
     {
         $info['name'] = $name;
         if (!isset($info['required'])) {

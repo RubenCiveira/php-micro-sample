@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Schema\Tests;
 
-use Civi\Micro\Schema\ActionSchema;
-use Civi\Micro\Schema\EntitySchema;
+use Civi\Micro\Schema\ActionSchemaBuilder;
+use Civi\Micro\Schema\TypeSchemaBuilder;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 
-class EntitySchemaUnitTest extends TestCase
+class TypeSchemaBuilderUnitTest extends TestCase
 {
-    private EntitySchema $schema;
+    private TypeSchemaBuilder $schema;
 
     protected function setUp(): void
     {
-        $this->schema = new EntitySchema('TestEntity', 'Entity Title', 'id');
+        $this->schema = new TypeSchemaBuilder('TestEntity', 'Entity Title', 'id');
     }
 
     public function testExportWithoutColumns(): void
@@ -59,9 +59,9 @@ class EntitySchemaUnitTest extends TestCase
         $this->assertSame('danger', $exported['actions']['delete']['kind']);
     }
 
-    public function testAddStandaloneFormActionWithActionSchema(): void
+    public function testAddStandaloneFormActionWithActionSchemaBuilder(): void
     {
-        $form = new ActionSchema();
+        $form = new ActionSchemaBuilder();
         $form->addField('username', []);
         $this->schema->addStandaloneFormAction('register', 'Register', $form, function () {});
         $exported = $this->schema->export();
@@ -81,9 +81,9 @@ class EntitySchemaUnitTest extends TestCase
         $this->assertArrayHasKey('email', $exported['actions']['invite']['form']);
     }
 
-    public function testAddContextualFormActionWithActionSchema(): void
+    public function testAddContextualFormActionWithActionSchemaBuilder(): void
     {
-        $form = new ActionSchema();
+        $form = new ActionSchemaBuilder();
         $form->addField('username', []);
         $this->schema->addContextualFormAction('edit', 'Edit', $form, function () {});
         $exported = $this->schema->export();
