@@ -136,7 +136,7 @@ class SlimMetricMiddleware
             ['status', 'path']   // Etiquetas: código de estado y ruta
         );
         // Incrementar el contador general de códigos de estado
-        $httpStatusCounter->incBy(1, [$status, $path]);
+        $httpStatusCounter->incBy(1, [(string)$status, $path]);
         // Incrementar contadores específicos según el código de estado
         if ($status >= 200 && $status < 300) {
             // Crear contadores adicionales para éxitos y errores

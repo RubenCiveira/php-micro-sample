@@ -135,7 +135,7 @@ class TypeSchemaBuilder
      *
      * @param string $name Action name.
      * @param string $label Action display label.
-     * @param ActionSchemaBuilder|array<string> $form Form schema or list of field names to use.
+     * @param FieldsetSchemaBuilder|array<string> $form Form schema or list of field names to use.
      * @param callable|\Closure $callback Callback to execute.
      * @return $this
      */
@@ -163,7 +163,7 @@ class TypeSchemaBuilder
      * @param callable|\Closure $callback Callback to execute.
      * @return $this
      */
-    public function addContextualFormAction(string $name, string $label, FieldsetSchemaBuilder|array $form, $callback): TypeSchemaBuilder
+    public function addContextualFormAction(string $name, string $label, FieldsetSchemaBuilder|array $form, callable|\Closure $callback): TypeSchemaBuilder
     {
         if (is_array($form)) {
             $defaults = $this->fieldsSchema->export();
