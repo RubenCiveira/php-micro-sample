@@ -7,11 +7,8 @@ namespace Civi\Micro\Schema;
 use Ramsey\Uuid\Uuid;
 
 /**
- * @api
- *
- * Represents the schema definition for an entity within the Civi Micro framework.
- * It allows the configuration of fields, columns, actions, and filters associated with an entity.
- * Provides export capabilities for UI representation and action execution logic.
+ * Represents a builder for defining a dynamic schema of an entity within the Civi Micro framework.
+ * This builder allows configuration of fields, columns, filters, and actions, supporting export to a strongly typed immutable TypeSchema.
  */
 class TypeSchemaBuilder
 {
@@ -115,7 +112,7 @@ class TypeSchemaBuilder
      */
     public function addColumn(string $name, string $label): TypeSchemaBuilder
     {
-        $this->columns[$name] = ['name' => $name, 'label' => $label];
+        $this->columns[$name] = new ColumnType($name, $label);
         return $this;
     }
 

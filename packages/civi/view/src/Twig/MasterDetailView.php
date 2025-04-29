@@ -42,7 +42,7 @@ abstract class MasterDetailView extends BaseView
         if (isset($params['fetch'])) {
             $values = [];
             if( isset($params['field']) ) {
-                $field = $meta->fields->find( $params['field'] );
+                $field = $meta->getField( $params['field'] );
                 if( $field?->reference->load ) {
                     $callback = $field->reference->load;
                     $values = $callback();

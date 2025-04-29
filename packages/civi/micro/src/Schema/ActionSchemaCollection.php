@@ -7,25 +7,40 @@ namespace Civi\Micro\Schema;
 /**
  * Represents a strongly-typed, read-only collection of ActionSchema objects.
  *
+ * This collection ensures that all elements are valid instances of ActionSchema,
+ * provides iteration capabilities, counting, and access to the full array of actions.
+ *
  * @implements \IteratorAggregate<int, ActionSchema>
  */
 class ActionSchemaCollection implements \IteratorAggregate, \Countable
 {
     /**
-     * @param ActionSchema[] $actions
+     * Internal storage for ActionSchema instances.
+     *
+     * @var ActionSchema[]
      */
-    public function __construct(
-        private readonly array $actions
-    ) {
+    private readonly array $actions;
+
+    /**
+    * Creates a new ActionSchemaCollection instance.
+    *
+    * @param ActionSchema[] $actions List of ActionSchema objects.
+    * @throws \InvalidArgumentException If any element is not an instance of ActionSchema.
+    */
+    public function __construct(array $actions)
+    {
         foreach ($actions as $action) {
             if (!$action instanceof ActionSchema) {
                 throw new \InvalidArgumentException('All elements must be instances of ActionSchema.');
             }
         }
+        $this->actions = $actions;
     }
 
     /**
-     * @return \ArrayIterator<int, ActionSchema>
+     * Returns an iterator to traverse the collection.
+     *
+     * @return \ArrayIterator<int, ActionSchema> An iterator over ActionSchema elements.
      */
     public function getIterator(): \Traversable
     {
@@ -33,7 +48,9 @@ class ActionSchemaCollection implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return int
+     * Returns the number of ActionSchema objects in the collection.
+     *
+     * @return int The total number of actions.
      */
     public function count(): int
     {
@@ -41,7 +58,9 @@ class ActionSchemaCollection implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return ActionSchema[]
+     * Returns all ActionSchema instances as an array.
+     *
+     * @return ActionSchema[] List of all actions.
      */
     public function all(): array
     {

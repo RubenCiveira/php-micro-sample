@@ -5,22 +5,25 @@ declare(strict_types=1);
 namespace Civi\Micro\Schema;
 
 /**
- * Represents a dynamic schema for an action, allowing fields to be defined, 
- * marked as calculated, or set as readonly.
+ * Represents a dynamic schema builder for a set of fields,
+ * allowing fields to be added, marked as calculated, or marked as readonly.
  *
- * @api
+ * This builder supports both creating fields from simple arrays or
+ * from fully-typed FieldSchema objects.
  */
 class FieldsetSchemaBuilder
 {
     /**
-     * @var array<string, FieldSchema>
+     * Holds the collection of fields in the schema.
+     *
+     * @var array<string, FieldSchema> Associative array of fields indexed by their name.
      */
     private array $fields = [];
 
     /**
-     * Exports the current schema structure.
+     * Exports the current structure of the schema.
      *
-     * @return array<string, FieldSchema> 
+     * @return array<string, FieldSchema> The complete list of fields currently in the schema.
      */
     public function export(): array
     {
@@ -28,10 +31,13 @@ class FieldsetSchemaBuilder
     }
 
     /**
-     * Marks a set of fields as calculated.
+     * Marks the specified fields as "calculated".
+     *
+     * This sets the `calculated` flag to true on each specified field,
+     * without modifying any other properties.
      *
      * @param string[] $names List of field names to mark as calculated.
-     * @return $this
+     * @return $this Fluent interface.
      */
     public function markCalculated(array $names): FieldsetSchemaBuilder
     {
@@ -53,10 +59,13 @@ class FieldsetSchemaBuilder
     }
 
     /**
-     * Marks a set of fields as readonly.
+     * Marks the specified fields as "readonly".
+     *
+     * This sets the `readonly` flag to true on each specified field,
+     * without modifying any other properties.
      *
      * @param string[] $names List of field names to mark as readonly.
-     * @return $this
+     * @return $this Fluent interface.
      */
     public function markReadonly(array $names): FieldsetSchemaBuilder
     {
@@ -80,14 +89,17 @@ class FieldsetSchemaBuilder
     /**
      * Adds a new field to the schema.
      *
-     * If no type, label, or required flag is provided, default values will be assigned:
-     * - 'type' defaults to 'text'
-     * - 'label' defaults to the field name with the first letter capitalized
-     * - 'required' defaults to false
+     * You can add either a FieldSchema object or an array describing the field.
+     * When passing an array, default values are automatically assigned if not specified:
+     * - `type` defaults to 'text'
+     * - `label` defaults to the capitalized field name
+     * - `required` defaults to false
+     *
+     * If a `reference` is provided in the array, it is converted into a ReferenceType object.
      *
      * @param string $name The field name.
-     * @param array<string, mixed> $info The field properties.
-     * @return $this
+     * @param array<string, mixed>|FieldSchema $info The field definition as an array or a prebuilt FieldSchema.
+     * @return $this Fluent interface.
      */
     public function addField(string $name, array|FieldSchema $info): FieldsetSchemaBuilder
     {

@@ -7,12 +7,18 @@ namespace Civi\Micro\Schema;
 /**
  * Represents a strongly-typed, read-only collection of FieldSchema objects.
  *
+ * Provides iteration, counting, and lookup capabilities.
+ *
  * @implements \IteratorAggregate<int, FieldSchema>
  */
 class FieldSchemaCollection implements \IteratorAggregate, \Countable
 {
     /**
-     * @param FieldSchema[] $fields
+     * Creates a new FieldSchemaCollection.
+     *
+     * @param FieldSchema[] $fields An array of FieldSchema objects.
+     *
+     * @throws \InvalidArgumentException if any element is not a FieldSchema instance.
      */
     public function __construct(
         private readonly array $fields
@@ -25,15 +31,9 @@ class FieldSchemaCollection implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return FieldSchema|null
-     */
-    public function find(string $name)
-    {
-        return $this->fields[$name] ?? null;
-    }
-
-    /**
-     * @return \ArrayIterator<int, FieldSchema>
+     * Returns an iterator for the collection.
+     *
+     * @return \ArrayIterator<int, FieldSchema> The iterator over FieldSchema objects.
      */
     public function getIterator(): \Traversable
     {
@@ -41,7 +41,9 @@ class FieldSchemaCollection implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return int
+     * Returns the number of fields in the collection.
+     *
+     * @return int The total number of FieldSchema elements.
      */
     public function count(): int
     {
@@ -49,10 +51,12 @@ class FieldSchemaCollection implements \IteratorAggregate, \Countable
     }
 
     /**
-     * Find a FieldSchema by its name.
+     * Finds a FieldSchema by its declared `name` attribute.
      *
-     * @param string $name
-     * @return FieldSchema|null
+     * This is a search based on the logical field name, not the array key.
+     *
+     * @param string $name The name attribute of the FieldSchema to find.
+     * @return FieldSchema|null The matching FieldSchema, or null if not found.
      */
     public function findByName(string $name): ?FieldSchema
     {
@@ -65,7 +69,9 @@ class FieldSchemaCollection implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return FieldSchema[]
+     * Returns all FieldSchema elements in the collection.
+     *
+     * @return FieldSchema[] The array of FieldSchema objects.
      */
     public function all(): array
     {

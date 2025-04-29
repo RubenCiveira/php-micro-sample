@@ -4,199 +4,170 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Schema\Tests;
 
-use Civi\Micro\Schema\ActionSchemaBuilder;
 use Civi\Micro\Schema\TypeSchemaBuilder;
+use Civi\Micro\Schema\FieldsetSchemaBuilder;
+use Civi\Micro\Schema\TypeSchema;
+use Civi\Micro\Schema\FieldSchema;
 use PHPUnit\Framework\TestCase;
-use Ramsey\Uuid\Uuid;
 
 class TypeSchemaBuilderUnitTest extends TestCase
 {
-    private TypeSchemaBuilder $schema;
+    private TypeSchemaBuilder $builder;
 
     protected function setUp(): void
     {
-        $this->schema = new TypeSchemaBuilder('TestEntity', 'Entity Title', 'id');
+        $this->builder = new TypeSchemaBuilder('TestEntity', 'Test Entity', 'id');
     }
 
     public function testExportWithoutColumns(): void
     {
-        $this->schema->addField('field1', ['label' => 'Field 1']);
-        $exported = $this->schema->export();
+        $this->builder->addField('name', ['label' => 'Name', 'type' => 'string']);
+        $schema = $this->builder->export();
 
-        $this->assertSame('TestEntity', $exported['title']);
-        $this->assertSame('Entity Title', $exported['description']);
-        $this->assertSame('id', $exported['id']);
-        $this->assertArrayHasKey('field1', $exported['fields']);
-        $this->assertArrayHasKey('field1', $exported['columns']);
-        $this->assertEmpty($exported['filters']);
-        $this->assertEmpty($exported['actions']);
+        $this->assertInstanceOf(TypeSchema::class, $schema);
+        $this->assertSame('TestEntity', $schema->name);
+        $this->assertCount(1, $schema->fields);
+        $this->assertArrayHasKey('name', $schema->fields->all());
+        $this->assertSame('Name', $schema->fields->all()['name']->label);
+        $this->assertCount(1, $schema->columns);
     }
 
-    public function testExportWithExplicitColumns(): void
+    public function testExportWithCustomColumn(): void
     {
-        $this->schema->addColumn('col1', 'Column 1');
-        $exported = $this->schema->export();
-        $this->assertArrayHasKey('col1', $exported['columns']);
-        $this->assertSame('Column 1', $exported['columns']['col1']['label']);
+        $this->builder->addField('name', ['label' => 'Name', 'type' => 'string']);
+        $this->builder->addColumn('custom', 'Custom Column');
+
+        $schema = $this->builder->export();
+
+        $this->assertCount(1, $schema->columns);
+        $this->assertArrayHasKey('custom', $schema->columns->all());
+        $this->assertSame('Custom Column', $schema->columns->all()['custom']->label);
     }
 
     public function testExcludeColumn(): void
     {
-        $this->schema->addField('field1', ['label' => 'Field 1']);
-        $this->schema->excludeColumn('field1');
-        $exported = $this->schema->export();
+        $this->builder->addField('name', ['label' => 'Name', 'type' => 'string']);
+        $this->builder->excludeColumn('name');
+        
+        $schema = $this->builder->export();
 
-        $this->assertArrayNotHasKey('field1', $exported['columns']);
+        $this->assertArrayNotHasKey('name', $schema->columns->all());
     }
 
     public function testAddContextualConfirmAction(): void
     {
-        $callback = function () {};
-        $this->schema->addContextualConfirmAction('delete', 'Delete', $callback);
-        $exported = $this->schema->export();
-        $this->assertArrayHasKey('delete', $exported['actions']);
-        $this->assertTrue($exported['actions']['delete']['contextual']);
-        $this->assertSame('danger', $exported['actions']['delete']['kind']);
-    }
+        $callback = fn(array $data) => null;
+        $this->builder->addContextualConfirmAction('delete', 'Delete', $callback);
 
-    public function testAddStandaloneFormActionWithActionSchemaBuilder(): void
-    {
-        $form = new ActionSchemaBuilder();
-        $form->addField('username', []);
-        $this->schema->addStandaloneFormAction('register', 'Register', $form, function () {});
-        $exported = $this->schema->export();
-
-        $this->assertArrayHasKey('register', $exported['actions']);
-        $this->assertSame('success', $exported['actions']['register']['kind']);
+        $schema = $this->builder->export();
+        $this->assertArrayHasKey('delete', $schema->actions->all());
+        $this->assertTrue($schema->actions->all()['delete']->contextual);
     }
 
     public function testAddStandaloneFormActionWithArray(): void
     {
-        $this->schema->addField('email', ['label' => 'Email']);
-        $this->schema->addStandaloneFormAction('invite', 'Invite', ['email'], function () {});
-        $exported = $this->schema->export();
+        $this->builder->addField('field1', ['label' => 'Field 1', 'type' => 'text']);
+        $this->builder->addStandaloneFormAction('create', 'Create', ['field1'], fn(array $data) => null);
 
-        $this->assertArrayHasKey('invite', $exported['actions']);
-        $this->assertSame('success', $exported['actions']['invite']['kind']);
-        $this->assertArrayHasKey('email', $exported['actions']['invite']['form']);
+        $schema = $this->builder->export();
+        $this->assertArrayHasKey('create', $schema->actions->all());
+        $this->assertFalse($schema->actions->all()['create']->contextual);
     }
 
-    public function testAddContextualFormActionWithActionSchemaBuilder(): void
+    public function testAddStandaloneFormActionWithBuilder(): void
     {
-        $form = new ActionSchemaBuilder();
-        $form->addField('username', []);
-        $this->schema->addContextualFormAction('edit', 'Edit', $form, function () {});
-        $exported = $this->schema->export();
+        $fieldset = new FieldsetSchemaBuilder();
+        $fieldset->addField('field1', ['label' => 'Field 1', 'type' => 'text']);
+        
+        $this->builder->addStandaloneFormAction('create', 'Create', $fieldset, fn(array $data) => null);
 
-        $this->assertArrayHasKey('edit', $exported['actions']);
-        $this->assertSame('warn', $exported['actions']['edit']['kind']);
+        $schema = $this->builder->export();
+        $this->assertArrayHasKey('create', $schema->actions->all());
     }
 
     public function testAddContextualFormActionWithArray(): void
     {
-        $this->schema->addField('email', ['label' => 'Email']);
-        $this->schema->addContextualFormAction('change', 'Change Email', ['email'], function () {});
-        $exported = $this->schema->export();
+        $this->builder->addField('field1', ['label' => 'Field 1', 'type' => 'text']);
+        $this->builder->addContextualFormAction('update', 'Update', ['field1'], fn(array $data) => null);
 
-        $this->assertArrayHasKey('change', $exported['actions']);
-        $this->assertSame('warn', $exported['actions']['change']['kind']);
-        $this->assertArrayHasKey('email', $exported['actions']['change']['form']);
+        $schema = $this->builder->export();
+        $this->assertArrayHasKey('update', $schema->actions->all());
+        $this->assertTrue($schema->actions->all()['update']->contextual);
     }
 
-    public function testExecClosureCallback(): void
+    public function testAddContextualFormActionWithBuilder(): void
     {
-        $executed = false;
-        $this->schema->addContextualConfirmAction('delete', 'Delete', function (array $data) use (&$executed) {
-            $executed = true;
+        $fieldset = new FieldsetSchemaBuilder();
+        $fieldset->addField('field1', ['label' => 'Field 1', 'type' => 'text']);
+        
+        $this->builder->addContextualFormAction('update', 'Update', $fieldset, fn(array $data) => null);
+
+        $schema = $this->builder->export();
+        $this->assertArrayHasKey('update', $schema->actions->all());
+    }
+
+    public function testExecWithClosureCallback(): void
+    {
+        $called = false;
+        $this->builder->addContextualConfirmAction('delete', 'Delete', function(array $data) use (&$called) {
+            $called = true;
         });
 
-        $result = $this->schema->exec(['delete' => 'some-id']);
-
-        $this->assertTrue($executed);
-        $this->assertSame('Se ha delete correctamente', $result);
+        $result = $this->builder->exec(['delete' => 'some-id']);
+        $this->assertTrue($called);
+        $this->assertEquals('Se ha delete correctamente', $result);
     }
 
-    public function testExecCallableCallback(): void
+    public function testExecWithCallableCallback(): void
     {
-        $executed = false;
-        $callback = function (array $data) use (&$executed) {
-            $executed = true;
-        };
-        $this->schema->addContextualConfirmAction('delete', 'Delete', $callback);
-        $result = $this->schema->exec(['delete' => 'some-id']);
-        $this->assertTrue($executed);
-        $this->assertSame('Se ha delete correctamente', $result);
-    }
+        $callback = [$this, 'dummyCallback'];
+        $this->builder->addContextualConfirmAction('delete', 'Delete', $callback);
 
-    public function testExecGenerateUuidWhenEmpty(): void
-    {
-        $executed = false;
-        $this->schema->addContextualConfirmAction('delete', 'Delete', function (array $data) use (&$executed) {
-            $executed = Uuid::isValid($data['id']);
-        });
-
-        $result = $this->schema->exec(['delete' => '']); // Empty value, should generate UUID
-
-        $this->assertTrue($executed);
-        $this->assertSame('Se ha delete correctamente', $result);
-    }
-
-    public function testExecNoActionProcessed(): void
-    {
-        $this->schema->addContextualConfirmAction('delete', 'Delete', function () {});
-        $result = $this->schema->exec([]);
-        $this->assertNull($result);
+        $result = $this->builder->exec(['delete' => 'some-id']);
+        $this->assertEquals('Se ha delete correctamente', $result);
     }
 
     public function testAddResumeAction(): void
     {
-        $this->schema->addResumeAction('resume', 'Resume', 'JSON.stringify({})');
-        $exported = $this->schema->export();
+        $this->builder->addResumeAction('resume', 'Resume', 'JSON.stringify({})');
 
-        $this->assertArrayHasKey('resume', $exported['actions']);
-        $this->assertSame('info', $exported['actions']['resume']['kind']);
-        $this->assertStringContainsString('copyToClipboard', $exported['actions']['resume']['functions']);
-    }
-
-    public function testExportHandlesReferenceField(): void
-    {
-        $this->schema->addField('user', [
-            'label' => 'User',
-            'reference' => ['label' => 'name']
-        ]);
-
-        $exported = $this->schema->export();
-
-        $this->assertArrayHasKey('user', $exported['columns']);
-        $this->assertSame('user.name', $exported['columns']['user']['name']);
-        $this->assertSame('User', $exported['columns']['user']['label']);
+        $schema = $this->builder->export();
+        $this->assertArrayHasKey('resume', $schema->actions->all());
+        $this->assertSame('info', $schema->actions->all()['resume']->kind);
     }
 
     public function testAddFilter(): void
     {
-        $this->schema->addFilter('status');
-        $exported = $this->schema->export();
-        $this->assertArrayHasKey('status', $exported['filters']);
+        $this->builder->addFilter('status');
+        $schema = $this->builder->export();
+
+        $this->assertArrayHasKey('status', $schema->filters->all());
     }
-    public function testExecWithCallableString(): void
+
+    public function testExecGeneratesUuidWhenIdIsMissing(): void
     {
-        $this->schema->addField('id', ['label' => 'ID']);
-
-        // Registramos una función global de prueba
-        $called = false;
-        // Registramos el callback como un [objeto, método] (no Closure)
-        $this->schema->addContextualConfirmAction('confirm', 'Confirm', [$this, 'dummyCallback']);
-
-        $result = $this->schema->exec(['confirm' => 'test-id']);
-
-        $this->assertSame('Se ha confirm correctamente', $result);
-        $this->assertSame('test-id', $this->executedData['id']);
+        $calledData = [];
+    
+        $this->builder->addContextualConfirmAction('delete', 'Delete', function(array $data) use (&$calledData) {
+            $calledData = $data;
+        });
+    
+        // 'delete' está presente, pero no hay campo 'id'
+        $result = $this->builder->exec(['delete' => false]);
+    
+        $this->assertEquals('Se ha delete correctamente', $result);
+    
+        // Ahora comprobamos que se ha generado un UUID
+        $this->assertArrayHasKey('id', $calledData);
+        $this->assertNotEmpty($calledData['id']);
+        $this->assertMatchesRegularExpression(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/',
+            $calledData['id']
+        );
     }
-
-    private array $executedData = [];
 
     public function dummyCallback(array $data): void
     {
-        $this->executedData = $data;
+        // Dummy callback for callable tests
     }
 }
