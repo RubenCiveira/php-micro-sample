@@ -8,7 +8,7 @@ use Civi\Micro\Management\HealthManagement;
 use Civi\Micro\Management\HealthProviderInterface;
 use Civi\Micro\Management\ManagementInterface;
 use Civi\Micro\Management\MetricsManagement;
-use Civi\Micro\Middleware\GzipMiddleware;
+use Civi\Micro\Middleware\HttpCompressionMiddleware;
 use Civi\Micro\Telemetry\Helper\SlimMetricMiddleware;
 use Civi\Micro\Telemetry\LoggerAwareInterface;
 use Civi\Micro\Telemetry\MetricAwareInterface;
@@ -63,7 +63,7 @@ class AppBuilder
 
         // Middleware para parsear json
         $app->addBodyParsingMiddleware();
-        $app->add(GzipMiddleware::class);
+        $app->add(HttpCompressionMiddleware::class);
         $app->add(SlimMetricMiddleware::class);
         // $app->add( CorsMiddeleware::class );
         $app->addRoutingMiddleware();
