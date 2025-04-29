@@ -200,6 +200,33 @@ final class AbstractPipelineUnitTest extends TestCase
 
         $this->pipeline->publicRunPipeline($handlers, 'start');
     }
+
+    public function testGetPipelineHandlersReturnsArrayFromContainer(): void
+    {
+        $handlers = [
+            fn ($input, $next) => $next($input . 'A'),
+            fn ($input, $next) => $next($input . 'B')
+        ];
+
+        $tag = 'pipeline.handlers';
+
+        $this->container
+            ->method('has')
+            ->with($tag)
+            ->willReturn(true);
+
+        $this->container
+            ->method('get')
+            ->with($tag)
+            ->willReturn($handlers);
+
+        $result = $this->pipeline->publicGetPipelineHandlers($tag);
+
+        $this->assertIsArray($result);
+        $this->assertCount(2, $result);
+        $this->assertSame($handlers, $result);
+    }
+
 }
 
 class NonStaticHandler
