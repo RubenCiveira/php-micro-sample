@@ -170,4 +170,28 @@ class TypeSchemaBuilderUnitTest extends TestCase
     {
         // Dummy callback for callable tests
     }
+
+    public function testExportWithReferenceColumn(): void
+    {
+        $builder = new TypeSchemaBuilder('product', 'Product', 'id');
+
+        $builder->addField('category', [
+            'type' => 'string',
+            'label' => 'Category',
+            'reference' => [
+                'id' => 'categoryId',
+                'label' => 'name',
+                'load' => fn() => [],
+            ]
+        ]);
+
+        $schema = $builder->export();
+
+        $columns = $schema->columns->all();
+
+        // Verify the column name includes the reference label
+        $this->assertArrayHasKey('category', $columns);
+        $this->assertSame('category.name', $columns['category']->name);
+        $this->assertSame('Category', $columns['category']->label);
+    }
 }

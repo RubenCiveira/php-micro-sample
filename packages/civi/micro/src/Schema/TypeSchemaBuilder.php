@@ -70,7 +70,7 @@ class TypeSchemaBuilder
         if (empty($columns)) {
             foreach ($fields as $v) {
                 if (!in_array($v->name, $this->hideColumns)) {
-                    if (isset($v->reference)) {
+                    if ($v->reference) {
                         $columns[$v->name] = new ColumnType("{$v->name}.{$v->reference->label}", $v->label);
                     } else {
                         $columns[$v->name] = new ColumnType($v->name, $v->label);
