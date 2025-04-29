@@ -14,6 +14,9 @@ use Slim\Routing\RouteContext;
 
 class SlimMetricMiddleware
 {
+    /**
+     * @api
+     */
     public function __construct(
         private readonly AppConfig $appConfig,
         private readonly TelemetryConfig $config,

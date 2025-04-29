@@ -6,36 +6,37 @@ namespace Civi\Micro\Kernel;
 
 use Psr\Container\ContainerInterface;
 use InvalidArgumentException;
+use Traversable;
 
+/**
+ * @api
+ */
 abstract class AbstractPipeline
 {
     public function __construct(protected readonly ContainerInterface $container)
     {
     }
 
-    protected function getPipelineHandlers(string $tag): array
+    protected function getPipelineHandlers(string $tag): Traversable|array
     {
         if (!$this->container->has($tag)) {
             return [];
         }
-
         $handlers = $this->container->get($tag);
-
-        if (!is_iterable($handlers)) {
+        if (!($handlers instanceof Traversable) && !is_array($handlers)) {
             throw new InvalidArgumentException("El servicio '$tag' debe ser iterable.");
         }
-
         return $handlers;
     }
 
-    protected function runPipeline(iterable $handlers, mixed $input, mixed ...$args): mixed
+    protected function runPipeline(Traversable|array $handlers, mixed $input, mixed ...$args): mixed
     {
         $handler = array_reduce(
             array_reverse(iterator_to_array($handlers)),
             fn ($next, $current) => fn ($filter) => $this->run($current, $filter, $next, ...$args),
             fn ($filter) =>  $filter
         );
-        return $handler($input, ...$args);
+        return $handler($input);
     }
 
     protected function toArray(array|object $object): array

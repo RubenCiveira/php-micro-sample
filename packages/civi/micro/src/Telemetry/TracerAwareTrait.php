@@ -6,6 +6,9 @@ namespace Civi\Micro\Telemetry;
 
 use OpenTelemetry\API\Trace\TracerInterface;
 
+/**
+ * @api
+ */
 trait TracerAwareTrait
 {
     protected ?TracerInterface $tracer = null;

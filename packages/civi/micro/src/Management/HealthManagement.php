@@ -5,18 +5,24 @@ declare(strict_types=1);
 namespace Civi\Micro\Management;
 
 use Closure;
+use Override;
 
+/**
+ * @api
+ */
 class HealthManagement implements ManagementInterface
 {
     public function __construct(private readonly array $providers)
     {
     }
 
+    #[Override]
     public function name(): string
     {
         return 'health';
     }
 
+    #[Override]
     public function get(): ?Closure
     {
         return function (): array {
@@ -38,6 +44,7 @@ class HealthManagement implements ManagementInterface
         };
     }
 
+    #[Override]
     public function set(): ?Closure
     {
         return null;

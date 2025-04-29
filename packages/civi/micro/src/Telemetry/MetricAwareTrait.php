@@ -6,6 +6,9 @@ namespace Civi\Micro\Telemetry;
 
 use Prometheus\CollectorRegistry;
 
+/**
+ * @api
+ */
 trait MetricAwareTrait
 {
     private ?CollectorRegistry $metricRegistry = null;

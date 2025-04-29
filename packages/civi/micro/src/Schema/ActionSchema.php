@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Schema;
 
+/**
+ * @api
+ */
 class ActionSchema
 {
     private array $fields = [];

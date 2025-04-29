@@ -9,29 +9,71 @@ use Dotenv\Dotenv;
 use ReflectionClass;
 use ReflectionNamedType;
 
+
+/**
+ * Class Config
+ *
+ * Loads and manages configuration from YAML files and environment variables.
+ * 
+ * It supports environment profiles (e.g., `.env.dev`, `security.dev.yaml`) and
+ * automatically flattens hierarchical YAML structures into dot-notated keys.
+ */
 class Config
 {
+    /**
+     * @var array<string, mixed> Flattened configuration data loaded from YAML files.
+     */
     private array $configData = [];
+
+    /**
+     * @var array<string> List of configuration files and environment files that were loaded.
+     */
     private array $loadedFiles = [];
 
+    /**
+     * Config constructor.
+     *
+     * @param string $configPath Path to the configuration files directory.
+     * @param string $envPath Path to the environment files directory.
+     * @param string $file Base filename (without extension) for the YAML configuration.
+     */
     public function __construct(private string $configPath, private string $envPath, $file)
     {
         $this->loadEnv();
         $this->loadYamlFiles($file);
     }
 
+    /**
+     * Creates a Config instance using the project root and loads a specific configuration.
+     *
+     * @param string $prefix The prefix in the flattened configuration to use.
+     * @param string $className The fully qualified class name to instantiate with the config values.
+     * @param string $file The base name of the YAML file to load.
+     * @return object An instance of the target class populated with configuration values.
+     */
     public static function load(string $prefix, string $className, string $file): object
     {
-        $instance = new self('../config', '../', $file);
+        $root = ProjectLocator::getRootPath();
+        $instance = new self("$root/config", "$root", $file);
         return $instance->build($prefix, $className);
     }
 
-    public function build($prefix, $className)
+    /**
+     * Builds an instance of the specified class populated with configuration values.
+     *
+     * @param string $prefix The prefix to filter the configuration entries.
+     * @param string $className The class name to instantiate.
+     * @return object Instantiated object with injected configuration.
+     */
+    private function build($prefix, $className)
     {
         $data = $this->getFlatConfig($prefix);
         return $this->instantiate($className, $data);
     }
 
+    /**
+     * Loads environment variables from `.env` and profile-specific `.env` files.
+     */
     private function loadEnv(): void
     {
         $dotenv = Dotenv::createMutable($this->envPath);
@@ -51,6 +93,11 @@ class Config
         }
     }
 
+    /**
+     * Loads and merges configuration YAML files, including environment-specific variants.
+     *
+     * @param string $fileName Base name of the YAML file to load.
+     */
     private function loadYamlFiles(string $fileName): void
     {
         $this->configData = [];
@@ -74,6 +121,13 @@ class Config
         $this->configData = $this->flatten($this->configData);
     }
 
+    /**
+     * Flattens a nested associative array into a single-level array with dot notation keys.
+     *
+     * @param array<string, mixed> $array The array to flatten.
+     * @param string $prefix (optional) Current prefix for nested keys.
+     * @return array<string, mixed> The flattened array.
+     */
     private function flatten(array $array, string $prefix = ''): array
     {
         $result = [];
@@ -102,19 +156,42 @@ class Config
         return $result;
     }
 
+    /**
+     * Converts a camelCase string into dot.notation format.
+     *
+     * @param string $input The input camelCase string.
+     * @return string The dot-notated, lowercase string.
+     */
     private function camelToDotNotation(string $input): string
     {
         return strtolower(preg_replace('/(?<!^)[A-Z]/', '.$0', $input));
     }
 
+    /**
+     * Resolves environment variable placeholders inside configuration values.
+     *
+     * Supports format: `%env(VAR_NAME)%`.
+     *
+     * @param mixed $value The configuration value to resolve.
+     * @return mixed The resolved value, or the original if no substitution is needed.
+     */
     private function resolveEnvVar(mixed $value): mixed
     {
         if (is_string($value) && preg_match('/^%env\((.+?)\)%$/', $value, $matches)) {
-            return $_ENV[$matches[1]] ?? $_SERVER[$matches[1]] ?? null;
+            $varName = $matches[1] ?? null;
+            if (is_string($varName) && $varName !== '') {
+                return $_ENV[$varName] ?? $_SERVER[$varName] ?? null;
+            }
         }
         return $value;
     }
 
+    /**
+     * Filters the flattened configuration data by a specific prefix.
+     *
+     * @param string $prefix The prefix to match (case-insensitive).
+     * @return array<string, mixed> Filtered configuration data.
+     */
     private function getFlatConfig(string $prefix): array
     {
         $data = [];
@@ -128,6 +205,13 @@ class Config
         return $data;
     }
 
+    /**
+     * Instantiates a class using the configuration data to inject constructor arguments.
+     *
+     * @param string $className The fully qualified class name to instantiate.
+     * @param array<string, mixed> $data The data used to fill constructor parameters.
+     * @return object Instantiated object with injected values.
+     */
     private function instantiate(string $className, array $data): object
     {
         $args = [];
@@ -145,22 +229,4 @@ class Config
         return $refClass->newInstanceArgs($args);
     }
 
-    public function getLoadedFiles(): array
-    {
-        return $this->loadedFiles;
-    }
-
-    public function getLatestModified(): ?int
-    {
-        $max = null;
-
-        foreach ($this->loadedFiles as $file) {
-            if (file_exists($file)) {
-                $mtime = filemtime($file);
-                $max = max($max ?? 0, $mtime);
-            }
-        }
-
-        return $max;
-    }
 }

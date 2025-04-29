@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Micro\Config;
@@ -6,19 +8,26 @@ use Civi\Micro\Config;
 class ConfigUnitTest extends TestCase
 {
     private string $configDir;
+    private string $rootDir;
 
     protected function setUp(): void
     {
-        $this->configDir = __DIR__ . '/test-config';
+        $this->rootDir = \Civi\Micro\ProjectLocator::getRootPath();
+        $this->configDir = "{$this->rootDir}/config";
 
         if (!is_dir($this->configDir)) {
             mkdir($this->configDir, 0777, true);
         }
 
-        file_put_contents($this->configDir . '/.env', "FOO=bar\nCOMMON=value\n");
-        file_put_contents($this->configDir . '/.env.dev', "PROFILE_VAR=dev_value\nCOMMON=dev_override\n");
+        // Borrar envs anteriores
+        unset($_ENV['FOO'], $_ENV['COMMON'], $_ENV['PROFILE'], $_SERVER['FOO'], $_SERVER['COMMON'], $_SERVER['PROFILE']);
 
-        file_put_contents($this->configDir . '/security.yaml', <<<YAML
+        // Crear archivos de entorno
+        file_put_contents("{$this->rootDir}/.env", "FOO=bar\nCOMMON=value\n");
+        file_put_contents("{$this->rootDir}/.env.dev", "PROFILE_VAR=dev_value\nCOMMON=dev_override\n");
+
+        // Crear archivos de configuración
+        file_put_contents("{$this->configDir}/security.yaml", <<<YAML
 app:
   security:
     public-routes:
@@ -29,7 +38,7 @@ app:
       - admin
 YAML);
 
-        file_put_contents($this->configDir . '/security.dev.yaml', <<<YAML
+        file_put_contents("{$this->configDir}/security.dev.yaml", <<<YAML
 app:
   security:
     protected-routes:
@@ -38,6 +47,7 @@ YAML);
 
         $_ENV['PROFILE'] = 'dev';
     }
+
 
     protected function tearDown(): void
     {
@@ -57,22 +67,24 @@ YAML);
     {
         // Precondición: los archivos deben existir
         $expectedFiles = [
-            '/.env',
-            '/.env.dev',
-            '/security.yaml',
-            '/security.dev.yaml',
+            $this->rootDir . '/.env',
+            $this->rootDir . '/.env.dev',
+            $this->configDir . '/security.yaml',
+            $this->configDir . '/security.dev.yaml',
         ];
 
-        foreach ($expectedFiles as $relative) {
-            $path = $this->configDir . $relative;
+        foreach ($expectedFiles as $path) {
             $this->assertFileExists($path, "Archivo esperado no encontrado: $path");
         }
 
-        $config = new Config($this->configDir, $this->configDir, 'security');
-        $files = $config->getLoadedFiles();
+        $config = new Config($this->configDir, $this->rootDir, 'security');
+        $reflection = new \ReflectionClass($config);
+        $property = $reflection->getProperty('loadedFiles');
+        $property->setAccessible(true);
+        $files = $property->getValue($config);
 
-        foreach ($expectedFiles as $relative) {
-            $this->assertContains($this->configDir . $relative, $files);
+        foreach ($expectedFiles as $path) {
+            $this->assertContains($path, $files, "El archivo cargado esperado no se encontró: $path");
         }
     }
 
@@ -86,7 +98,7 @@ app:
 YAML);
 
         $refClass = new \ReflectionClass(Config::class);
-        $config = $refClass->newInstance($this->configDir, $this->configDir, 'envtest');
+        $config = $refClass->newInstance($this->configDir, $this->rootDir, 'envtest');
 
         // Forzamos el acceso al método privado getFlatConfig()
         $method = $refClass->getMethod('getFlatConfig');
@@ -98,7 +110,7 @@ YAML);
 
     public function testClassInstantiation(): void
     {
-        eval (<<<'PHP'
+        eval(<<<'PHP'
         namespace Civi\Repomanager\Shared;
 
         class SecurityConfig {
@@ -110,12 +122,65 @@ YAML);
         PHP);
 
         $config = new Config($this->configDir, $this->configDir, 'security');
-        $instance = $config->build('app.security', 'Civi\Repomanager\Shared\SecurityConfig');
-        // $instance = Config::load('app.security', 'Civi\Repomanager\Shared\SecurityConfig', 'security');
+        $refClass = new \ReflectionClass(Config::class);
+        $method = $refClass->getMethod('build');
+        $method->setAccessible(true);
+        $instance = $method->invoke($config, 'app.security', 'Civi\Repomanager\Shared\SecurityConfig');
 
         $this->assertInstanceOf('Civi\Repomanager\Shared\SecurityConfig', $instance);
 
         $this->assertEquals(['verify', 'login'], $instance->publicRoutes);
         $this->assertContains('dev-dashboard', $instance->protectedRoutes);
     }
+
+    public function testInstantiateWithNonArrayParameters(): void
+    {
+        eval(<<<'PHP'
+    namespace Civi\Repomanager\Shared;
+
+    class AppConfig {
+        public function __construct(
+            public readonly string $appName,
+            public readonly int $appVersion
+        ) {}
+    }
+    PHP);
+
+        file_put_contents($this->configDir . '/app.yaml', <<<YAML
+app:
+  config:
+    app-name: "TestApp"
+    app-version: 42
+YAML);
+
+        $config = new Config($this->configDir, $this->configDir, 'app');
+        $refClass = new \ReflectionClass(Config::class);
+        $method = $refClass->getMethod('build');
+        $method->setAccessible(true);
+        $instance = $method->invoke($config, 'app.config', 'Civi\Repomanager\Shared\AppConfig');
+
+        $this->assertInstanceOf('Civi\Repomanager\Shared\AppConfig', $instance);
+        $this->assertEquals('TestApp', $instance->appName);
+        $this->assertEquals(42, $instance->appVersion);
+    }
+    public function testStaticLoad(): void
+    {
+        eval(<<<'PHP'
+    namespace Civi\Repomanager\Shared;
+
+    class StaticSecurityConfig {
+        public function __construct(
+            public readonly array $protectedRoutes,
+            public readonly array $publicRoutes
+        ) {}
+    }
+    PHP);
+
+        $instance = Config::load('app.security', 'Civi\Repomanager\Shared\StaticSecurityConfig', 'security');
+
+        $this->assertInstanceOf('Civi\Repomanager\Shared\StaticSecurityConfig', $instance);
+        $this->assertEquals(['verify', 'login'], $instance->publicRoutes);
+        $this->assertContains('dev-dashboard', $instance->protectedRoutes);
+    }
+
 }

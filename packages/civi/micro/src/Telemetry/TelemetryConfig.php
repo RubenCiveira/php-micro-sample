@@ -6,8 +6,10 @@ namespace Civi\Micro\Telemetry;
 
 use Civi\Micro\ProjectLocator;
 use Monolog\Level;
-use Monolog\Logger;
 
+/**
+ * @api
+ */
 class TelemetryConfig
 {
     public readonly string $logFile;
@@ -22,9 +24,9 @@ class TelemetryConfig
         ?string $logPath,
         ?string $logLevel
     ) {
-        $this->logFile = ProjectLocator::getRootPath() . '/var/log/app.log';
+        $this->logFile = $logPath ?? ProjectLocator::getRootPath() . '/var/log/app.log';
         $this->logLevel = Level::Debug;
-        $this->metricsFile = ProjectLocator::getRootPath() . '/var/metrics.json';
+        $this->metricsFile = $logLevel ?? ProjectLocator::getRootPath() . '/var/metrics.json';
 
         $this->appName = 'app.name';
         $this->appNamespace = 'civi';

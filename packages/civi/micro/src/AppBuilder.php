@@ -23,6 +23,9 @@ use Slim\Factory\AppFactory;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 
+/**
+ * @api
+ */
 class AppBuilder
 {
     private static array $routes = [];
@@ -66,39 +69,7 @@ class AppBuilder
         $app->addRoutingMiddleware();
 
         // Los registros de management
-        $appConfig = $container->get(AppConfig::class);
-        $base = $appConfig->managementEndpoint;
-        $interfaces = $container->get(ManagementInterface::class);
-        foreach ($interfaces as $interface) {
-            $name = $interface->name();
-            $get = $interface->get();
-            if ($get) {
-                $app->get("{$base}/{$name}", function (Request $request, Response $response) use ($get) {
-                    $value = $get();
-                    if (is_string($value)) {
-                        $response->getBody()->write($value);
-                        return $response->withHeader('Content-Type', 'text/plain');
-                    } else {
-                        $response->getBody()->write(json_encode($value));
-                        return $response->withHeader('Content-Type', 'application/json');
-                    }
-                });
-            }
-            $set = $interface->set();
-            if ($set) {
-                $app->post("{$base}/{$name}", function (Request $request, Response $response) use ($set) {
-                    $data = $request->getParsedBody();
-                    $value = $set($data);
-                    if (is_string($value)) {
-                        $response->getBody()->write($value);
-                        return $response->withHeader('Content-Type', 'text/plain');
-                    } else {
-                        $response->getBody()->write(json_encode($value));
-                        return $response->withHeader('Content-Type', 'application/json');
-                    }
-                });
-            }
-        }
+        self::registerManagers( $app, $container );
 
         foreach (self::$routes as $route) {
             $routes = require $route;
@@ -144,5 +115,42 @@ class AppBuilder
         $builder->addDefinitions([
             ManagementInterface::class => \DI\add(\DI\get(MetricsManagement::class)),
         ]);
+    }
+
+    private static function registerManagers(App $app, Container $container)
+    {
+        $appConfig = $container->get(AppConfig::class);
+        $base = $appConfig->managementEndpoint;
+        $interfaces = $container->get(ManagementInterface::class);
+        foreach ($interfaces as $interface) {
+            $name = $interface->name();
+            $get = $interface->get();
+            if ($get) {
+                $app->get("{$base}/{$name}", function (Request $request, Response $response) use ($get) {
+                    $value = $get();
+                    if (is_string($value)) {
+                        $response->getBody()->write($value);
+                        return $response->withHeader('Content-Type', 'text/plain');
+                    } else {
+                        $response->getBody()->write(json_encode($value));
+                        return $response->withHeader('Content-Type', 'application/json');
+                    }
+                });
+            }
+            $set = $interface->set();
+            if ($set) {
+                $app->post("{$base}/{$name}", function (Request $request, Response $response) use ($set) {
+                    $data = $request->getParsedBody();
+                    $value = $set($data);
+                    if (is_string($value)) {
+                        $response->getBody()->write($value);
+                        return $response->withHeader('Content-Type', 'text/plain');
+                    } else {
+                        $response->getBody()->write(json_encode($value));
+                        return $response->withHeader('Content-Type', 'application/json');
+                    }
+                });
+            }
+        }
     }
 }

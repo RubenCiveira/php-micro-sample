@@ -6,6 +6,9 @@ namespace Civi\Micro\Telemetry;
 
 use Psr\Log\LoggerInterface;
 
+/**
+ * @api
+ */
 trait LoggerAwareTrait
 {
     protected ?LoggerInterface $logger = null;

@@ -6,6 +6,9 @@ namespace Civi\Micro\Management;
 
 use Closure;
 
+/**
+ * @api
+ */
 interface ManagementInterface
 {
     public function name(): string;

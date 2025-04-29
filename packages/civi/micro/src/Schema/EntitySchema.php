@@ -6,13 +6,15 @@ namespace Civi\Micro\Schema;
 
 use Ramsey\Uuid\Uuid;
 
+/**
+ * @api
+ */
 class EntitySchema
 {
     // private array $fields = [];
     private readonly ActionSchema $ActionSchema;
     private array $columns = [];
     private array $hideColumns = [];
-    private array $hideFilters = [];
 
     private array $actions = [];
 

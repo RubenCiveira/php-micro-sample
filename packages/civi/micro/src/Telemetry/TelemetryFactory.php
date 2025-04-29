@@ -6,19 +6,15 @@ namespace Civi\Micro\Telemetry;
 
 use Civi\Micro\Telemetry\Helper\PrometeusFileStorage;
 use Monolog\Handler\StreamHandler;
-use Monolog\Level;
 use Monolog\Logger;
-use OpenTelemetry\API\Globals;
-use OpenTelemetry\API\Trace\TracerInterface;
-use OpenTelemetry\SDK\Common\Attribute\Attributes;
-use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
-use OpenTelemetry\SemConv\ResourceAttributes;
 use Prometheus\CollectorRegistry;
 use Psr\Log\LoggerInterface;
 
 class TelemetryFactory
 {
+    /**
+     * @api
+     */
     public function __construct(private readonly TelemetryConfig $config)
     {
     }

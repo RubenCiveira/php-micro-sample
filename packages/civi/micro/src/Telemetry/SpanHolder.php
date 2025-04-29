@@ -6,6 +6,9 @@ namespace Civi\Micro\Telemetry;
 
 use OpenTelemetry\API\Trace\SpanInterface;
 
+/**
+ * @api
+ */
 class SpanHolder
 {
     /**

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Management;
 
+/**
+ * @api
+ */
 class HealthDetail
 {
     public static function up(string $name, ?array $details = null): HealthDetail

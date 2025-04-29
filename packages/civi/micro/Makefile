@@ -7,7 +7,7 @@ COVERAGE_DIR=build/coverage
 # Ejecuta los tests unitarios
 test:
 	mkdir -p $(REPORT_DIR)
-	vendor/bin/phpunit --log-junit $(REPORT_DIR)/test-report.xml
+	vendor/bin/phpunit  --log-junit $(REPORT_DIR)/test-report.xml
 
 format:
 	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/
@@ -20,8 +20,10 @@ lint:
 coverage:
 	mkdir -p $(REPORT_DIR)
 	php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-clover $(REPORT_DIR)/coverage-report.xml --coverage-filter src/
-#	mkdir -p $(COVERAGE_DIR)
-#	php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html coverage/ --coverage-clover $(REPORT_DIR)/coverage-report.xml --coverage-filter src/
+
+coverage-view:
+	mkdir -p $(COVERAGE_DIR)
+	php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html ${REPORT_DIR}/coverage/ --coverage-filter src/
 	
 # Ejecuta análisis de estilo de código (linting)
 static-analysis:

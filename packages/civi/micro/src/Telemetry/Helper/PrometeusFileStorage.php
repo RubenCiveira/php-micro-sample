@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Telemetry\Helper;
 
+use Override;
 use Prometheus\Storage\Adapter;
 use Prometheus\Math;
 use Prometheus\MetricFamilySamples;
@@ -54,20 +55,11 @@ class PrometeusFileStorage implements Adapter
         }
     }
 
-    private function persist(): void
-    {
-        $data = [
-            'counters' => $this->counters,
-            'gauges' => $this->gauges,
-            'histograms' => $this->histograms,
-            'summaries' => $this->summaries,
-        ];
-        file_put_contents($this->filePath, json_encode($data, JSON_PRETTY_PRINT));
-    }
-
     /**
+     * @inheritDoc
      * @return MetricFamilySamples[]
      */
+    #[Override]
     public function collect(bool $sortMetrics = true): array
     {
         $metrics = $this->internalCollect($this->counters, $sortMetrics);
@@ -78,16 +70,9 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
-     * @deprecated use replacement method wipeStorage from Adapter interface
-     */
-    public function flushMemory(): void
-    {
-        $this->wipeStorage();
-    }
-
-    /**
      * @inheritDoc
      */
+    #[Override]
     public function wipeStorage(): void
     {
         $this->counters = [];
@@ -284,9 +269,11 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
+     * @inheritDoc
      * @param mixed[] $data
      * @return void
      */
+    #[Override]
     public function updateHistogram(array $data): void
     {
         // Initialize the sum
@@ -322,9 +309,11 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
+     * @inheritDoc
      * @param mixed[] $data
      * @return void
      */
+    #[Override]
     public function updateSummary(array $data): void
     {
         $metaKey = $this->metaKey($data);
@@ -348,8 +337,10 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
+     * @inheritDoc
      * @param mixed[] $data
      */
+    #[Override]
     public function updateGauge(array $data): void
     {
         $metaKey = $this->metaKey($data);
@@ -372,8 +363,10 @@ class PrometeusFileStorage implements Adapter
     }
 
     /**
+     * @inheritDoc
      * @param mixed[] $data
      */
+    #[Override]
     public function updateCounter(array $data): void
     {
         $metaKey = $this->metaKey($data);
@@ -492,5 +485,18 @@ class PrometeusFileStorage implements Adapter
             throw new RuntimeException(json_last_error_msg());
         }
         return $decodedValues;
+    }
+
+    private function persist(): void
+    {
+        $data = [
+            'counters' => $this->counters,
+            'gauges' => $this->gauges,
+            'histograms' => $this->histograms,
+            'summaries' => $this->summaries,
+        ];
+        if( file_exists(dirname($this->filePath))) {
+            file_put_contents($this->filePath, json_encode($data, JSON_PRETTY_PRINT));
+        }
     }
 }
