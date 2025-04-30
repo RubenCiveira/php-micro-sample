@@ -46,15 +46,15 @@ class AppBuilder
         $builder = new ContainerBuilder();
         $builder->useAutowiring(true);
         self::standarContext($builder);
-        $container = $builder->build();
         foreach (self::$dependencies as $dep) {
             $di = require $dep;
-            $di($container);
+            $di($builder);
         }
-        if (!in_array("$root/dependencies.php", self::$dependencies) && file_exists("$root/dependencies.php")) {
-            $di = require "$root/dependencies.php";
-            $di($container);
+        if (!in_array("$root/di.container.php", self::$dependencies) && file_exists("$root/di.container.php")) {
+            $di = require "$root/di.container.php";
+            $di($builder);
         }
+        $container = $builder->build();
         AppFactory::setContainer($container);
         $app = AppFactory::create();
         $scriptName = $_SERVER['SCRIPT_NAME']; // Devuelve algo como "/midashboard/index.php"
@@ -126,7 +126,7 @@ class AppBuilder
             $name = $interface->name();
             $get = $interface->get();
             if ($get) {
-                $app->get("{$base}/{$name}", function (Request $request, Response $response) use ($get) {
+                $app->get("{$base}/{$name}", function ($_, Response $response) use ($get) {
                     $value = $get();
                     if (is_string($value)) {
                         $response->getBody()->write($value);

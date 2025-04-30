@@ -38,6 +38,9 @@ class BaseView
     }
     protected function render(array $context, Request $request, Response $response): Response
     {
+        if( !$this->isAccesible($request)) {
+            return $this->foward('error/unauthorized', [], $request, $response);
+        }
         if (isset($_SESSION['indicator'])) {
             $context['indicator'] = $_SESSION['indicator'];
             unset($_SESSION['indicator']);

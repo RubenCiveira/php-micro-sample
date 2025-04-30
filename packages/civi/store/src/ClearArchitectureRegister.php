@@ -3,17 +3,15 @@
 namespace Civi\Store;
 
 use Civi\Micro\ProjectLocator;
-use DI\Container;
+use DI\ContainerBuilder;
 
 class ClearArchitectureRegister
 {
-    public static function mappers(Container $container, $name, $type)
+    public static function mappers(ContainerBuilder $container, $name, $type)
     {
         $array = [];
         self::scanRegister($array, $name, $type);
-        foreach($array as $k=>$v) {
-            $container->set($k, $v);
-        }
+        $container->addDefinitions($array);
     }
 
     public static function scanRegister(array &$container, $name, $type)

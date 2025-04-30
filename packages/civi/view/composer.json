@@ -7,7 +7,7 @@
       "Civi\\View\\": "src/"
     },
     "files": [
-      "bootstrap.php"
+      "bootstrap/register.php"
     ]
   },
   "autoload-dev": {

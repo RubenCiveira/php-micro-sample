@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Civi\Micro\Kernel;
 
+use Closure;
 use Psr\Container\ContainerInterface;
 use InvalidArgumentException;
 use Traversable;
@@ -76,6 +77,90 @@ abstract class AbstractPipeline
         return $handler($input);
     }
 
+    protected function runInterfacePipeline(
+        array $handlers,
+        Closure $last,
+        array $stepHandler,
+        ?array $nextHandler = null,
+        ...$args
+    ): mixed {
+        $expectedInterface = $stepHandler[0];
+        $handleMethod = $stepHandler[1];
+    
+        if (!interface_exists($expectedInterface)) {
+            throw new \InvalidArgumentException("Interfaz inválida: $expectedInterface");
+        }
+    
+        if (!is_string($handleMethod)) {
+            throw new \InvalidArgumentException("Método inválido: $handleMethod");
+        }
+    
+        $pipeline = array_reduce(
+            array_reverse([...$handlers]),
+            function ($next, $current) use ($expectedInterface, $handleMethod, $nextHandler) {
+                return function (...$args) use ($current, $next, $expectedInterface, $handleMethod, $nextHandler) {
+                    $instance = $this->interfaceInstance($current, $expectedInterface);
+                    $typedNext = $this->handlerInstance($next, $nextHandler);
+                    $params = [...$args, $typedNext];
+                    return $instance->{$handleMethod}(...$params);
+                };
+            },
+            fn(...$args) => $last(...$args) // función final si no hay más pasos
+        );
+    
+        return $pipeline(...$args);
+    }
+
+    private function handlerInstance(mixed $next, array $nextHandler): mixed
+    {
+        if ($nextHandler) {
+            [$nextInterface, $nextMethod] = $nextHandler;
+
+            return new class($next, $nextInterface, $nextMethod) {
+                public function __construct(
+                    private $next,
+                    private string $interface,
+                    private string $method
+                ) {}
+
+                public function __invoke(...$args): mixed
+                {
+                    $callback = $this->next;
+                    $result = $callback(...$args);
+                    if (!is_a( $result, $this->interface) ) {
+                        throw new \RuntimeException("El next result no implementa {$this->interface}");
+                    }
+                    if (!method_exists($result, $this->method)) {
+                        throw new \RuntimeException("El método {$this->method} no existe en " . get_class($result));
+                    }
+                    return $result->{$this->method}(...$args);
+                }
+            };
+        } else {
+            return $next;
+        }
+    }
+
+    private function interfaceInstance(mixed $current, string $expectedInterface): mixed
+    {
+        if (is_string($current) && class_exists($current)) {
+            $instance = $this->container->get($current);
+        } elseif (is_object($current)) {
+            $instance = $current;
+        } else {
+            throw new \InvalidArgumentException("Elemento de pipeline no válido: " . print_r($current, true));
+        }
+
+        if (!($instance instanceof $expectedInterface)) {
+            throw new \RuntimeException(sprintf(
+                'El objeto %s no implementa %s',
+                get_class($instance),
+                $expectedInterface
+            ));
+        }
+        return $instance;
+    }
+
     /**
      * Converts an object or array to an array representation.
      *
@@ -144,4 +229,6 @@ abstract class AbstractPipeline
         }
         throw new InvalidArgumentException("Handler no invocable: " . print_r($current, true));
     }
+
+
 }

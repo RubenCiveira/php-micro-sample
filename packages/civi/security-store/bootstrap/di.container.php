@@ -1,6 +1,6 @@
 <?php
 
-use DI\Container;
+use DI\ContainerBuilder;
 
-return function (Container $container) {
+return function (ContainerBuilder $container) {
 };
