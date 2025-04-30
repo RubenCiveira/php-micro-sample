@@ -13,6 +13,7 @@ composer.lock
 
 # Archivos de caché y logs
 .phpunit.result.cache
+.php-cs-fixer.cache
 .cache/
 .assets/
 /node_modules/
@@ -23,3 +24,5 @@ Thumbs.db
 sessions/
 logs/
 storage/
+build/
+var/
