@@ -45,6 +45,7 @@ class BaseView
             'debug' => true,
         ]);
         $html = $twig->render("{$this->name}.html.twig", $context);
+        die($html);
         $response->getBody()->write($html);
         return $response;
     }

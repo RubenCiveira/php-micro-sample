@@ -8,7 +8,7 @@
             "Civi\\SecurityStoreBackoffice\\": "apps/backoffice/"
         },
         "files": [
-            "bootstrap.php"
+            "bootstrap/register.php"
         ]
     },
     "autoload-dev": {
