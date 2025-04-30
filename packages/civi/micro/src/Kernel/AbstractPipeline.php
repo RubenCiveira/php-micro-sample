@@ -77,11 +77,41 @@ abstract class AbstractPipeline
         return $handler($input);
     }
 
+        /**
+     * Executes a handler pipeline enforcing interface conformance and dynamic resolution.
+     *
+     * This method builds a pipeline of handlers (either class names or instances),
+     * ensuring each handler implements the expected interface. Each handler
+     * is invoked in order, passing the output of the previous as the input of the next.
+     *
+     * The pipeline can inject a custom "next" generator per step to modify the behavior
+     * or signature of the downstream handlers.
+     *
+     * @param array<int, object|string> $handlers
+     *     A list of handler objects or class names to be resolved from the container.
+     * @param array{0: class-string, 1: string} $stepHandler
+     *     Tuple containing the expected interface name and the method to call on each handler.
+     * @param \Closure $last
+     *     Final callable to execute when no more handlers remain.
+     * @param \Closure|null $nextHandler
+     *     Optional closure that receives the next callable and returns a wrapped version.
+     *     Useful to control how the "next" handler is passed to each pipeline step.
+     * @param mixed ...$args
+     *     Arguments to pass into the pipeline.
+     *
+     * @return mixed
+     *     The result of the final pipeline execution.
+     *
+     * @throws \InvalidArgumentException
+     *     If the interface or method name are invalid, or if a handler cannot be resolved.
+     * @throws \RuntimeException
+     *     If a resolved handler does not implement the required interface.
+     */
     protected function runInterfacePipeline(
         array $handlers,
-        Closure $last,
         array $stepHandler,
-        ?array $nextHandler = null,
+        Closure $last,
+        ?Closure $nextHandler = null,
         ...$args
     ): mixed {
         $expectedInterface = $stepHandler[0];
@@ -100,7 +130,7 @@ abstract class AbstractPipeline
             function ($next, $current) use ($expectedInterface, $handleMethod, $nextHandler) {
                 return function (...$args) use ($current, $next, $expectedInterface, $handleMethod, $nextHandler) {
                     $instance = $this->interfaceInstance($current, $expectedInterface);
-                    $typedNext = $this->handlerInstance($next, $nextHandler);
+                    $typedNext = $nextHandler ? $nextHandler($next) : $next;
                     $params = [...$args, $typedNext];
                     return $instance->{$handleMethod}(...$params);
                 };
@@ -111,50 +141,18 @@ abstract class AbstractPipeline
         return $pipeline(...$args);
     }
 
-    private function handlerInstance(mixed $next, array $nextHandler): mixed
-    {
-        if ($nextHandler) {
-            [$nextInterface, $nextMethod] = $nextHandler;
-
-            return new class($next, $nextInterface, $nextMethod) {
-                public function __construct(
-                    private $next,
-                    private string $interface,
-                    private string $method
-                ) {}
-
-                public function __invoke(...$args): mixed
-                {
-                    $callback = $this->next;
-                    $result = $callback(...$args);
-                    if (!is_a( $result, $this->interface) ) {
-                        throw new \RuntimeException("El next result no implementa {$this->interface}");
-                    }
-                    if (!method_exists($result, $this->method)) {
-                        throw new \RuntimeException("El método {$this->method} no existe en " . get_class($result));
-                    }
-                    return $result->{$this->method}(...$args);
-                }
-            };
-        } else {
-            return $next;
-        }
-    }
-
     private function interfaceInstance(mixed $current, string $expectedInterface): mixed
     {
         if (is_string($current) && class_exists($current)) {
             $instance = $this->container->get($current);
-        } elseif (is_object($current)) {
-            $instance = $current;
         } else {
-            throw new \InvalidArgumentException("Elemento de pipeline no válido: " . print_r($current, true));
+            $instance = $current;
         }
 
         if (!($instance instanceof $expectedInterface)) {
             throw new \RuntimeException(sprintf(
                 'El objeto %s no implementa %s',
-                get_class($instance),
+                is_object($instance) ? get_class($instance) : (string)$instance,
                 $expectedInterface
             ));
         }

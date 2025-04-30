@@ -23,6 +23,15 @@ final class AbstractPipelineUnitTest extends TestCase
             {
                 return $this->getPipelineHandlers($tag);
             }
+            public function publicRunInterfacePipeline(
+                array $handlers,
+                array $stepHandler,
+                \Closure $last,
+                ?\Closure $nextHandler = null,
+                ...$args
+            ): mixed {
+                return $this->runInterfacePipeline($handlers, $stepHandler, $last, $nextHandler, ...$args);
+            }
             public function publicRunPipeline(iterable $handlers, mixed $input, mixed ...$args)
             {
                 return $this->runPipeline($handlers, $input, ...$args);
@@ -227,6 +236,107 @@ final class AbstractPipelineUnitTest extends TestCase
         $this->assertSame($handlers, $result);
     }
 
+    public function testRunInterfacePipelineWithObjectInstances(): void
+    {
+        $handler = new class () implements MyStepInterface {
+            public function handle($input, $next)
+            {
+                return $next($input . '1');
+            }
+        };
+
+        $result = $this->pipeline->publicRunInterfacePipeline(
+            [$handler],
+            [MyStepInterface::class, 'handle'],
+            fn ($input) => $input . 'X',
+            null,
+            'A'
+        );
+
+        $this->assertEquals('A1X', $result);
+    }
+
+    public function testRunInterfacePipelineWithClassNames(): void
+    {
+        $className = MyHandlerClass::class;
+        $this->container->method('get')->with($className)->willReturn(new MyHandlerClass());
+
+        $result = $this->pipeline->publicRunInterfacePipeline(
+            [$className],
+            [MyStepInterface::class, 'handle'],
+            fn ($input) => $input . 'X',
+            null,
+            'A'
+        );
+
+        $this->assertEquals('A1X', $result);
+    }
+
+    public function testRunInterfacePipelineWithClassNamesAndWrongPrimitiveParam(): void
+    {
+        $className = MyHandlerClass::class;
+        $this->container->method('get')->with($className)->willReturn(22);
+        $this->expectException(RuntimeException::class);
+
+        $this->pipeline->publicRunInterfacePipeline(
+            [$className],
+            [MyStepInterface::class, 'handle'],
+            fn ($input) => $input . 'X',
+            null,
+            'A'
+        );
+    }
+
+    public function testRunInterfacePipelineThrowsOnInvalidInterface(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->pipeline->publicRunInterfacePipeline([], ['Invalid\Interface', 'handle'], fn () => null);
+    }
+
+    public function testRunInterfacePipelineThrowsOnInvalidMethod(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->pipeline->publicRunInterfacePipeline([], [MyStepInterface::class, null], fn () => null);
+    }
+
+    public function testRunInterfacePipelineThrowsIfNotImplementingInterface(): void
+    {
+        $badHandler = new class () {}; // no implementa MyStepInterface
+
+        $this->expectException(RuntimeException::class);
+        $this->pipeline->publicRunInterfacePipeline(
+            [$badHandler],
+            [MyStepInterface::class, 'handle'],
+            fn ($input) => $input
+        );
+    }
+
+    public function testRunInterfacePipelineWithCustomNextWrapper(): void
+    {
+        $handler = new class () implements MyStepInterface {
+            public function handle($input, $next)
+            {
+                return $next->next($input . 'A');
+            }
+        };
+        $nextWrapper = fn ($next) => new class($next) implements MyStepHandler {
+            public function __construct(private readonly Closure $next){}
+            public function next($input) {
+                $next = $this->next;
+                return '[' . $next($input) . ']';
+            }
+        };
+
+        $result = $this->pipeline->publicRunInterfacePipeline(
+            [$handler],
+            [MyStepInterface::class, 'handle'],
+            fn ($input) => $input . 'Z',
+            $nextWrapper,
+            'X'
+        );
+
+        $this->assertEquals('[XAZ]', $result);
+    }
 }
 
 class NonStaticHandler
@@ -242,5 +352,24 @@ class StaticHandler
     public static function handle($input, $next)
     {
         return $next($input . 'S');
+    }
+}
+
+interface MyStepInterface
+{
+    public function handle($input, $next);
+}
+
+interface MyStepHandler
+{
+    public function next($input);
+}
+
+
+class MyHandlerClass implements MyStepInterface
+{
+    public function handle($input, $next)
+    {
+        return $next($input . '1');
     }
 }
