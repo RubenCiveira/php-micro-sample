@@ -19,24 +19,31 @@ abstract class MasterDetailView extends BaseView
         parent::__construct($services, $name, $templates);
 
     }
-    public function post(Request $request, Response $response, array $args): Response
+    public function post(Request $request, Response $response): Response
     {
-        $data = $request->getParsedBody();
-        $meta = $this->meta();
-        try {
-            $text = $meta->exec($data);
-            if ($response) {
-                $this->addIndication($text);
+        if( !$this->isAccesible($request)) {
+            return $this->foward('error/unauthorized', [], $request, $response);
+        } else {
+            $data = $request->getParsedBody();
+            $meta = $this->meta();
+            try {
+                $text = $meta->exec($data);
+                if ($response) {
+                    $this->addIndication($text);
+                }
+            } catch (\Exception $ex) {
+                $this->addErrorIndication($ex->getMessage());
             }
-        } catch (\Exception $ex) {
-            $this->addErrorIndication($ex->getMessage());
+            $routeContext = RouteContext::fromRequest($request);
+            $route = $routeContext->getRoute();
+            return $this->redirect($route ? substr($route->getPattern(), 1) : '', $request, $response);
         }
-        $routeContext = RouteContext::fromRequest($request);
-        $route = $routeContext->getRoute();
-        return $this->redirect($route ? substr($route->getPattern(), 1) : '', $request, $response);
     }
-    public function get(Request $request, Response $response, array $args): Response
+    public function get(Request $request, Response $response): Response
     {
+        if( !$this->isAccesible($request)) {
+            return $this->foward('error/unauthorized', [], $request, $response);
+        }
         $params = $request->getQueryParams();
         $meta = $this->meta()->export();
         if (isset($params['fetch'])) {

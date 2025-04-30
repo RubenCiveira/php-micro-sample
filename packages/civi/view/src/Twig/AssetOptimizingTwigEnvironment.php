@@ -28,7 +28,7 @@ class AssetOptimizingTwigEnvironment extends Environment
         $this->optimizer = new AssetOptimizer(  "{$root}/public/.assets", "{$basePath}/.assets");
 
         $this->addFunction(new TwigFunction('modules', function($app) use($services) {
-           return ViewBuilder::getViews($app);
+           return array_filter( ViewBuilder::getViews($app), fn($view) => $services->guard->canView($view) );
         }));
         $this->addFunction(new TwigFunction('path', function (string $routeName, array $params = []) use ($basePath) {
             $url = $basePath . ( str_starts_with($routeName, "/") ? "" : "/" ) . $routeName;
