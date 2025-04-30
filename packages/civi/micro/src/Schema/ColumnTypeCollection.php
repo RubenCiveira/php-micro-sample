@@ -13,7 +13,7 @@ use Override;
  * and provides standard iterable and countable capabilities.
  *
  * @api
- * 
+ *
  * @implements \IteratorAggregate<int, ColumnType>
  *
  */

@@ -10,7 +10,7 @@ namespace Civi\Micro\Schema;
  * This class encapsulates all metadata necessary to describe
  * the structure, fields, columns, filters, and actions available
  * for a specific entity within the application.
- * 
+ *
  * @api
  */
 class TypeSchema

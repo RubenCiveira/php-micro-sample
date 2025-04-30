@@ -10,7 +10,7 @@ use Override;
  * Represents a strongly-typed, read-only collection of FilterType objects.
  *
  * @api
- * 
+ *
  * @implements \IteratorAggregate<int, FilterType>
  */
 class FilterTypeCollection implements \IteratorAggregate, \Countable

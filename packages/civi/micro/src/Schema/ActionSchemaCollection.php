@@ -13,7 +13,7 @@ use Override;
  * provides iteration capabilities, counting, and access to the full array of actions.
  *
  * @api
- * 
+ *
  * @implements \IteratorAggregate<int, ActionSchema>
  */
 class ActionSchemaCollection implements \IteratorAggregate, \Countable

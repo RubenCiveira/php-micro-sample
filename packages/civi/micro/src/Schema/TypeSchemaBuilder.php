@@ -9,7 +9,7 @@ use Ramsey\Uuid\Uuid;
 /**
  * Represents a builder for defining a dynamic schema of an entity within the Civi Micro framework.
  * This builder allows configuration of fields, columns, filters, and actions, supporting export to a strongly typed immutable TypeSchema.
- * 
+ *
  * @api
  */
 class TypeSchemaBuilder

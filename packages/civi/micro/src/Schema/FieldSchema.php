@@ -56,7 +56,7 @@ class FieldSchema
             label: $this->label,
             required: $this->required,
             calculated: $this->readonly, // calculated
-            readonly: true, 
+            readonly: true,
             enum: $this->enum,
             reference: $this->reference
         );

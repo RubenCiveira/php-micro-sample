@@ -10,7 +10,7 @@ namespace Civi\Micro\Schema;
  *
  * This builder supports both creating fields from simple arrays or
  * from fully-typed FieldSchema objects.
- * 
+ *
  * @api
  */
 class FieldsetSchemaBuilder

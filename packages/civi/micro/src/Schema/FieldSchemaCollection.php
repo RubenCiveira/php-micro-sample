@@ -12,7 +12,7 @@ use Override;
  * Provides iteration, counting, and lookup capabilities.
  *
  * @api
- * 
+ *
  * @implements \IteratorAggregate<int, FieldSchema>
  */
 class FieldSchemaCollection implements \IteratorAggregate, \Countable
