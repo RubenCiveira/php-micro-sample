@@ -5,7 +5,10 @@
       "autoload": {
         "psr-4": {
             "Civi\\Security\\": "src/"
-        }
+        },
+        "files": [
+            "bootstrap/register.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
