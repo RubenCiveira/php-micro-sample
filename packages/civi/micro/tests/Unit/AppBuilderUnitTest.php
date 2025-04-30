@@ -5,16 +5,6 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Micro\AppBuilder;
 use Slim\App;
-use DI\ContainerBuilder;
-use Psr\Container\ContainerInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Slim\Middleware\RoutingMiddleware;
-use Slim\Middleware\BodyParsingMiddleware;
-use Civi\Micro\Middleware\GzipMiddleware;
-use Civi\Micro\Telemetry\Helper\SlimMetricMiddleware;
-use Civi\Micro\AppConfig;
-use Civi\Micro\Management\ManagementInterface;
 use Psr\Log\LoggerInterface;
 
 final class AppBuilderUnitTest extends TestCase
@@ -64,7 +54,7 @@ final class AppBuilderUnitTest extends TestCase
         if (!is_dir($root)) {
             mkdir($root);
         }
-        file_put_contents($root . '/dependencies.php', "<?php return function(\$c) {};");
+        file_put_contents($root . '/di.container.php', "<?php return function(\$c) {};");
 
         $this->mockProjectLocator($root);
 
@@ -73,7 +63,7 @@ final class AppBuilderUnitTest extends TestCase
         $this->assertInstanceOf(App::class, $app);
 
         // Cleanup
-        unlink($root . '/dependencies.php');
+        unlink($root . '/di.container.php');
         rmdir($root);
     }
 
@@ -84,7 +74,7 @@ final class AppBuilderUnitTest extends TestCase
             mkdir($tempDir, 0777, true);
         }
 
-        $depFile = $tempDir . '/dependencies.php';
+        $depFile = $tempDir . '/di.container.php';
         file_put_contents($depFile, <<<PHP
 <?php
 return function(\$container) {
@@ -177,7 +167,7 @@ PHP);
         }
 
         // Crear dependencies.php vacío porque sino falla
-        $depFile = $tempDir . '/dependencies.php';
+        $depFile = $tempDir . '/di.container.php';
         file_put_contents($depFile, "<?php \n"
             . "use Civi\Micro\Management\ManagementInterface;\n"
             . "class MockTxtManagementSample implements ManagementInterface {\n"
@@ -191,10 +181,10 @@ PHP);
             . "public function set(): ?Closure { return fn() => [\"name\" => \"NAME SET\"]; }\n"
             . "}\n"
             ."return function(\$c) {\n"
-            ."\$c->set(ManagementInterface::class, \\DI\\add([\n"
+            ."\$c->addDefinitions([ManagementInterface::class => \\DI\\add([\n"
                 . "\\DI\\factory(fn() => new MockJsonManagementSample() ),\n"
                 . "\\DI\\factory(fn() => new MockTxtManagementSample() ),\n"
-            . "] ) );\n"
+            . "])]);\n"
             // ."\$c->set(ManagementInterface::class, \\DI\\add(\\DI\\factory(fn() => new MockTxtManagementSample() ) ) );\n"
             ." };");
 
@@ -235,7 +225,7 @@ PHP);
         }
 
         // Crear dependencies.php vacío porque sino falla
-        $depFile = $tempDir . '/dependencies.php';
+        $depFile = $tempDir . '/di.container.php';
         file_put_contents($depFile, "<?php return function(\$c) {};");
 
         $this->mockProjectLocator($tempDir);
