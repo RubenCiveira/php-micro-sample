@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Civi\View\Twig;
 
-use Civi\Micro\Schema\TypeSchemaBuilder;
-use Civi\View\ViewConfig;
 use InvalidArgumentException;
+use Civi\Micro\Schema\TypeSchemaBuilder;
+use Civi\View\ViewServices;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
@@ -14,9 +14,9 @@ use Slim\Routing\RouteContext;
 abstract class MasterDetailView extends BaseView
 {
 
-    public function __construct(private readonly ViewConfig $config, private readonly string $name, private readonly string $templates) 
+    public function __construct(ViewServices $services, string $name, string $templates) 
     {
-        parent::__construct($config, $name, $templates);
+        parent::__construct($services, $name, $templates);
 
     }
     public function post(Request $request, Response $response, array $args): Response

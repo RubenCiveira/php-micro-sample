@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Civi\View\Twig;
 
 use Civi\Micro\ProjectLocator;
-use Civi\View\ViewConfig;
+use Civi\View\ViewServices;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Routing\RouteContext;
 
 class BaseView
 {
-    public function __construct(private readonly ViewConfig $config, private readonly string $name, private readonly string $templates) {}
+    public function __construct(private readonly ViewServices $services, private readonly string $name, private readonly string $templates)
+    {
+    }
 
     protected function redirect(string $target, Request $request, Response $response): Response
     {
@@ -36,11 +38,11 @@ class BaseView
         }
         $loader = new \Twig\Loader\FilesystemLoader($this->templates);
         $base = realpath($this->templates);
-        $root = realpath(ProjectLocator::getRootPath() . "/{$this->config->rootTemplateDir}");
+        $root = realpath(ProjectLocator::getRootPath() . "/{$this->services->config->rootTemplateDir}");
         if ($base != $root) {
             $loader->addPath($root, 'Root');
         }
-        $twig = new AssetOptimizingTwigEnvironment($request, $loader, [
+        $twig = new AssetOptimizingTwigEnvironment($this->services, $request, $loader, [
             'cache' => ProjectLocator::getRootPath() . '/.cache',
             'debug' => true,
         ]);

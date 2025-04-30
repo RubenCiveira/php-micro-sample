@@ -2,18 +2,17 @@
 namespace Civi\RepomanagerBackoffice;
 
 use Civi\Repomanager\Features\Repository\Credential\Gateway\CredentialGateway;
-use Civi\Repomanager\Features\Repository\Credential\Schema\CredentialTypeSchemaBuilder;
 use Civi\View\Twig\MasterDetailListQuery;
 use Civi\View\Twig\MasterDetailView;
-use Civi\View\ViewConfig;
 use Civi\Micro\Schema\TypeSchemaBuilder;
 use Civi\Repomanager\Features\Repository\Credential\Schema\CredentialEntitySchemaBuilder;
+use Civi\View\ViewServices;
 
 class CredentialsView extends MasterDetailView
 {
-    public function __construct(ViewConfig $config, private readonly CredentialGateway $credentials, private readonly CredentialEntitySchemaBuilder $meta)
+    public function __construct(ViewServices $services, private readonly CredentialGateway $credentials, private readonly CredentialEntitySchemaBuilder $meta)
     {
-        parent::__construct($config, 'credentials', __DIR__ . '/templates');
+        parent::__construct($services, 'credentials', __DIR__ . '/templates');
     }
 
     protected function list(MasterDetailListQuery $query): array
