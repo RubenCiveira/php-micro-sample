@@ -14,9 +14,6 @@ class ViewGuard
     }
     public function canView(string $viewName): bool
     {
-        if( $viewName == '/roles' ) {
-            return false;
-        }
         return $this->guard->canExecute('view', '#view', $viewName, [], []);
     }
 }
