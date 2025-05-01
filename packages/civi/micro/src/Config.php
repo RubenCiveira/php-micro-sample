@@ -50,6 +50,10 @@ class Config
         $this->configPath = $configPath ?? "$root/config/app";
         $this->loadEnv();
         $this->loadYamlFiles();
+        if( file_exists("{$this->configPath}/overrides.json") ) {
+            $overrides = json_decode( file_get_contents("{$this->configPath}/overrides.json"), true );
+            $this->configData = [...$this->configData, $overrides];
+        }
         if( $errors = $this->findConfigErrors() ) {
             throw new \RuntimeException("Config errors:\n" . implode("\n", $errors));
         }
