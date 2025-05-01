@@ -87,7 +87,7 @@ final class CompiledPolicy
                 $rules['rules'] = $this->rules[ $key ]['rules'];
             }
             if ($first && isset($rulesData['override'])) {
-                $allowOverride = $rules['override'] = $rulesData['override'];
+                $rules['override'] = $rulesData['override'];
             }
             // allowOverrid can be modified for the resource: double check
             if ($allowOverride) {
