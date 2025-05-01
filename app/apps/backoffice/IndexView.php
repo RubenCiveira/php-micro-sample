@@ -4,12 +4,13 @@ namespace Civi\RepomanagerBackoffice;
 
 use Civi\View\Twig\BaseView;
 use Civi\View\ViewConfig;
+use Civi\View\ViewServices;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 class IndexView extends BaseView
 {
-    public function __construct(ViewConfig $config)
+    public function __construct(ViewServices $config)
     {
         parent::__construct($config, 'index', __DIR__ . '/templates');
     }
