@@ -6,6 +6,8 @@ namespace Civi\Micro;
 
 use Symfony\Component\Yaml\Yaml;
 use Dotenv\Dotenv;
+use JsonSchema\Constraints\Constraint;
+use JsonSchema\Validator;
 use ReflectionClass;
 use ReflectionNamedType;
 
@@ -32,6 +34,8 @@ class Config
     private readonly string $configPath;
 
     private readonly string $envPath;
+
+    private static array $schemas = [];
     /**
      * Config constructor.
      *
@@ -46,6 +50,19 @@ class Config
         $this->configPath = $configPath ?? "$root/config/app";
         $this->loadEnv();
         $this->loadYamlFiles();
+        if( $errors = $this->findConfigErrors() ) {
+            throw new \RuntimeException("Config errors:\n" . implode("\n", $errors));
+        }
+    }
+
+    public static function registerConfigSchema($schema)
+    {
+        self::$schemas[] = json_decode( $schema );
+    }
+
+    public static function registerConfigSchemaFile($file)
+    {
+        self::$schemas[] = json_decode( file_get_contents($file) );
     }
 
     /**
@@ -159,6 +176,22 @@ class Config
         }
 
         return $result;
+    }
+
+    public function findConfigErrors(): array {
+        $errors = [];
+        $data = json_decode(json_encode(['port' => 'malo']));
+
+        if( self::$schemas ) {
+            foreach(self::$schemas as $schema) {
+                $validator = new Validator();
+                $validator->validate($data, $schema, Constraint::CHECK_MODE_VALIDATE_SCHEMA	| Constraint::CHECK_MODE_COERCE_TYPES | Constraint::CHECK_MODE_APPLY_DEFAULTS);
+                if (!$validator->isValid()) {
+                    $errors = [...array_map(fn($e) => "- [{$e['property']}] {$e['message']}", $validator->getErrors()), ...$errors];
+                }
+            }
+        }
+        return $errors;
     }
 
     /**
