@@ -2,6 +2,11 @@
 
 namespace Civi\SecurityStore\Bootstrap;
 
+use Civi\Security\Authentication;
+use Civi\Security\Connection;
+use Civi\Security\SecurityContext;
+use Civi\Security\SecurityContextHolder;
+use Civi\SecurityStore\Features\Access\User\Gateway\UserGateway;
 use Exception;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\App;
@@ -12,7 +17,6 @@ session_start();
 
 class AuthSecurityMiddleware
 {
-    private readonly array $users;
     // private readonly string $verifyRoute;
     private readonly string $basePath;
     private readonly string $loginUrl;
@@ -20,10 +24,9 @@ class AuthSecurityMiddleware
     private readonly string $redirectPath;
     private readonly array $auths;
 
-    public function __construct(SecurityConfig $config, App $app, array $auths)
+    public function __construct(SecurityConfig $config, private readonly UserGateway $users, App $app, array $auths)
     {
         $this->auths = $auths;
-        $this->users = $config->authorizedUsers;
         $this->loginUrl = $config->loginUrl;
         $this->redirectPath = $config->oauthRedirectPath;
         $this->redirectUrl = $config->oauthRedirectHost . $config->oauthRedirectPath;
@@ -54,12 +57,17 @@ class AuthSecurityMiddleware
             $response = new Response();
             // TODO: if request dont accept Html => error with message
             return $response->withHeader('Location', $this->basePath . $login)->withStatus(302);
-        } elseif (!$this->isValidUser()) {
-            $response = new Response();
-            $response->getBody()->write("El usuario $user no tiene acceso permitido");
-            return $response->withStatus(403);
         } else {
-            return $handler->handle($request);
+            $auth = $this->validUser();
+            if( $auth ) {
+                $context = new SecurityContext($auth, Connection::remoteHttp());
+                SecurityContextHolder::set($context);
+                return $handler->handle($request);
+            } else {
+                $response = new Response();
+                $response->getBody()->write("El usuario $user no tiene acceso permitido");
+                return $response->withStatus(403);
+            }
         }
     }
 
@@ -73,7 +81,7 @@ class AuthSecurityMiddleware
                     try {
                         $username = $auth->verifyAuthorization("{$this->redirectUrl}/" . $auth->id(), $request);
                         if ($username) {
-                            $_SESSION['user'] = $username;
+                            $_SESSION['user'] = ['name' => $username['name'], 'email' => $username['email']];
                             return $response->withHeader('Location', $this->basePath)->withStatus(302);
                         } else {
                             return $response->withHeader('Location', '?msg=Token invalido')->withStatus(302);
@@ -98,10 +106,21 @@ class AuthSecurityMiddleware
         return $providers;
     }
 
-    private function isValidUser(): bool
+    private function validUser(): ?Authentication
     {
         $email = $_SESSION['user']['email'] ?? null;
-        return $email && in_array($email, $this->users);
+        $users = $this->users->listUsers(['filter' => ['emailEquals' => $email]], ['rol.name']);
+        if( $users[0] ?? false ) {
+            $user = $users[0];
+            return new Authentication(
+                        anonimous: false,
+                        name: $user['email'],
+                        roles: isset($user['rol']['name']) ? [$user['rol']['name']] : []
+                    );
+        } else {
+            return null;
+        }
+        // return $email && in_array($email, $this->users);
     }
 
     private function getUsername(): mixed
