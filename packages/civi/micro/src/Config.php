@@ -29,6 +29,9 @@ class Config
      */
     private array $loadedFiles = [];
 
+    private readonly string $configPath;
+
+    private readonly string $envPath;
     /**
      * Config constructor.
      *
@@ -36,10 +39,13 @@ class Config
      * @param string $envPath Path to the environment files directory.
      * @param string $file Base filename (without extension) for the YAML configuration.
      */
-    public function __construct(private string $configPath, private string $envPath, $file)
+    public function __construct(?string $configPath=null, ?string $envPath=null)
     {
+        $root = ProjectLocator::getRootPath();
+        $this->envPath = $envPath ?? "$root";
+        $this->configPath = $configPath ?? "$root/config/app";
         $this->loadEnv();
-        $this->loadYamlFiles($file);
+        $this->loadYamlFiles();
     }
 
     /**
@@ -50,21 +56,7 @@ class Config
      * @param string $file The base name of the YAML file to load.
      * @return object An instance of the target class populated with configuration values.
      */
-    public static function load(string $prefix, string $className, string $file): object
-    {
-        $root = ProjectLocator::getRootPath();
-        $instance = new self("$root/config", "$root", $file);
-        return $instance->build($prefix, $className);
-    }
-
-    /**
-     * Builds an instance of the specified class populated with configuration values.
-     *
-     * @param string $prefix The prefix to filter the configuration entries.
-     * @param string $className The class name to instantiate.
-     * @return object Instantiated object with injected configuration.
-     */
-    private function build($prefix, $className)
+    public function load(string $prefix, string $className): object
     {
         $data = $this->getFlatConfig($prefix);
         return $this->instantiate($className, $data);
@@ -97,27 +89,41 @@ class Config
      *
      * @param string $fileName Base name of the YAML file to load.
      */
-    private function loadYamlFiles(string $fileName): void
+    private function loadYamlFiles(): void
     {
         $this->configData = [];
 
-        $files = ["{$fileName}.yaml"];
+        $env = $_ENV['PROFILE'] ?? $_SERVER['PROFILE'] ?? null;
+        $genericFiles = [];
+        $envFiles = [];
 
-        $profile = $_ENV['PROFILE'] ?? $_SERVER['PROFILE'] ?? null;
-
-        if ($profile && file_exists("{$this->configPath}/{$fileName}.$profile.yaml")) {
-            $files[] = "{$fileName}.$profile.yaml";
+        foreach (glob($this->configPath . "/*.yaml") as $file) {
+            if (preg_match('/\/(?<name>[^\/]+?)(\.(?<env>\w+))?\.yaml$/', $file, $matches)) {
+                $fileEnv = $matches['env'] ?? null;
+                // Saltar si es override de otro entorno
+                if ($fileEnv === null ) {
+                    $genericFiles[] = $file;
+                    continue;
+                } else if( $fileEnv === $env) {
+                    $envFiles[] = $file;
+                }
+            }    
         }
-
-        foreach ($files as $file) {
-            $fullPath = "{$this->configPath}/$file";
-            if (file_exists($fullPath)) {
-                $data = Yaml::parse(file_get_contents($fullPath) . "\n\n");
-                $this->configData = array_merge_recursive($this->configData, $data ?? []);
-                $this->loadedFiles[] = $fullPath;
-            }
+        foreach ($genericFiles as $fullPath) {
+            $this->loadYamlFile($fullPath);
+        }
+        foreach ($envFiles as $fullPath) {
+            $this->loadYamlFile($fullPath);
         }
         $this->configData = $this->flatten($this->configData);
+    }
+
+    private function loadYamlFile($fullPath) {
+        if (file_exists($fullPath)) {
+            $data = Yaml::parse(file_get_contents($fullPath) . "\n\n");
+            $this->configData = array_merge_recursive($this->configData, $data ?? []);
+            $this->loadedFiles[] = $fullPath;
+        }
     }
 
     /**

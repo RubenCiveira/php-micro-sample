@@ -7,8 +7,8 @@ use DI\ContainerBuilder;
 
 return function (ContainerBuilder $container) {
     $container->addDefinitions([
-        ViewConfig::class => \DI\factory(function () {
-            return Config::load('app.templates', ViewConfig::class, 'templates');
+        ViewConfig::class => \DI\factory(function (Config $config) {
+            return $config->load('app.templates', ViewConfig::class);
         })
     ]);
 

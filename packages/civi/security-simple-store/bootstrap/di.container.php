@@ -23,7 +23,7 @@ return function (ContainerBuilder $container) {
             }
             return new AuthSecurityMiddleware($config, $users, $app, $providers);
         }),
-        SecurityConfig::class => \DI\factory(function () {
-            return Config::load('app.security', SecurityConfig::class, 'security');
+        SecurityConfig::class => \DI\factory(function (Config $config) {
+            return $config->load('app.security', SecurityConfig::class);
         })]);
 };

@@ -43,7 +43,9 @@ class AppBuilder
     public static function buildApp(): App
     {
         $root = ProjectLocator::getRootPath();
+        $config = new Config();
         $builder = new ContainerBuilder();
+        $builder->addDefinitions([Config::class => $config]);
         $builder->useAutowiring(true);
         self::standarContext($builder);
         foreach (self::$dependencies as $dep) {
@@ -89,11 +91,11 @@ class AppBuilder
             CollectorRegistry::class => \DI\factory(function (TelemetryFactory $factory) {
                 return $factory->metrics();
             }),
-            AppConfig::class => \DI\factory(function () {
-                return Config::load('app.server', AppConfig::class, 'application');
+            AppConfig::class => \DI\factory(function (Config $config) {
+                return $config->load('app.server', AppConfig::class);
             }),
-            TelemetryConfig::class => \DI\factory(function () {
-                return Config::load('app.telemetry', TelemetryConfig::class, 'application');
+            TelemetryConfig::class => \DI\factory(function (Config $config) {
+                return $config->load('app.telemetry', TelemetryConfig::class);
             }),
             LoggerInterface::class => \DI\factory(function (TelemetryFactory $factory) {
                 return $factory->logger();
