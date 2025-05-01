@@ -48,24 +48,22 @@ YAML);
         $_ENV['PROFILE'] = 'dev';
     }
 
-
     protected function tearDown(): void
     {
         $files = array_merge(
             glob($this->configDir . '/*'),
-            glob($this->configDir . '/.env*') // incluir .env, .env.dev, etc.
+            glob($this->rootDir . '/.env*')
         );
         foreach ($files as $file) {
             if (is_file($file) && basename($file) !== '.' && basename($file) !== '..') {
                 unlink($file);
             }
         }
-        rmdir($this->configDir);
+        @rmdir($this->configDir);
     }
 
     public function testLoadedFilesTracking(): void
     {
-        // Precondición: los archivos deben existir
         $expectedFiles = [
             $this->rootDir . '/.env',
             $this->rootDir . '/.env.dev',
@@ -77,7 +75,7 @@ YAML);
             $this->assertFileExists($path, "Archivo esperado no encontrado: $path");
         }
 
-        $config = new Config($this->configDir, $this->rootDir, 'security');
+        $config = new Config($this->configDir, $this->rootDir);
         $reflection = new \ReflectionClass($config);
         $property = $reflection->getProperty('loadedFiles');
         $property->setAccessible(true);
@@ -97,13 +95,12 @@ app:
     shared: "%env(COMMON)%"
 YAML);
 
+        $config = new Config($this->configDir, $this->rootDir);
         $refClass = new \ReflectionClass(Config::class);
-        $config = $refClass->newInstance($this->configDir, $this->rootDir, 'envtest');
-
-        // Forzamos el acceso al método privado getFlatConfig()
         $method = $refClass->getMethod('getFlatConfig');
         $method->setAccessible(true);
         $flat = $method->invoke($config, 'app.sample');
+
         $this->assertEquals('bar', $flat['api.key']);
         $this->assertEquals('dev_override', $flat['shared']);
     }
@@ -121,14 +118,10 @@ YAML);
         }
         PHP);
 
-        $config = new Config($this->configDir, $this->configDir, 'security');
-        $refClass = new \ReflectionClass(Config::class);
-        $method = $refClass->getMethod('build');
-        $method->setAccessible(true);
-        $instance = $method->invoke($config, 'app.security', 'Civi\Repomanager\Shared\SecurityConfig');
+        $config = new Config($this->configDir, $this->configDir);
+        $instance = $config->load('app.security', 'Civi\Repomanager\Shared\SecurityConfig');
 
         $this->assertInstanceOf('Civi\Repomanager\Shared\SecurityConfig', $instance);
-
         $this->assertEquals(['verify', 'login'], $instance->publicRoutes);
         $this->assertContains('dev-dashboard', $instance->protectedRoutes);
     }
@@ -136,15 +129,15 @@ YAML);
     public function testInstantiateWithNonArrayParameters(): void
     {
         eval(<<<'PHP'
-    namespace Civi\Repomanager\Shared;
+        namespace Civi\Repomanager\Shared;
 
-    class AppConfig {
-        public function __construct(
-            public readonly string $appName,
-            public readonly int $appVersion
-        ) {}
-    }
-    PHP);
+        class AppConfig {
+            public function __construct(
+                public readonly string $appName,
+                public readonly int $appVersion
+            ) {}
+        }
+        PHP);
 
         file_put_contents($this->configDir . '/app.yaml', <<<YAML
 app:
@@ -153,34 +146,98 @@ app:
     app-version: 42
 YAML);
 
-        $config = new Config($this->configDir, $this->configDir, 'app');
-        $refClass = new \ReflectionClass(Config::class);
-        $method = $refClass->getMethod('build');
-        $method->setAccessible(true);
-        $instance = $method->invoke($config, 'app.config', 'Civi\Repomanager\Shared\AppConfig');
+        $config = new Config($this->configDir, $this->configDir);
+        $instance = $config->load('app.config', 'Civi\Repomanager\Shared\AppConfig');
 
         $this->assertInstanceOf('Civi\Repomanager\Shared\AppConfig', $instance);
         $this->assertEquals('TestApp', $instance->appName);
         $this->assertEquals(42, $instance->appVersion);
     }
+
     public function testStaticLoad(): void
     {
         eval(<<<'PHP'
-    namespace Civi\Repomanager\Shared;
+        namespace Civi\Repomanager\Shared;
 
-    class StaticSecurityConfig {
-        public function __construct(
-            public readonly array $protectedRoutes,
-            public readonly array $publicRoutes
-        ) {}
-    }
-    PHP);
+        class StaticSecurityConfig {
+            public function __construct(
+                public readonly array $protectedRoutes,
+                public readonly array $publicRoutes
+            ) {}
+        }
+        PHP);
 
-        $instance = Config::load('app.security', 'Civi\Repomanager\Shared\StaticSecurityConfig', 'security');
+        $config = new Config($this->configDir, $this->rootDir);
+        $instance = $config->load('app.security', 'Civi\Repomanager\Shared\StaticSecurityConfig');
 
         $this->assertInstanceOf('Civi\Repomanager\Shared\StaticSecurityConfig', $instance);
         $this->assertEquals(['verify', 'login'], $instance->publicRoutes);
         $this->assertContains('dev-dashboard', $instance->protectedRoutes);
     }
 
+    public function testOverridesJson(): void
+    {
+        file_put_contents("{$this->configDir}/app.yaml", <<<YAML
+app:
+  settings:
+    theme: "light"
+    timeout: 30
+YAML);
+
+        file_put_contents("{$this->configDir}/overrides.json", json_encode([
+            'app.settings.theme' => 'dark'
+        ]));
+
+        $config = new Config($this->configDir, $this->rootDir);
+        $flat = (new \ReflectionClass($config))->getMethod('getFlatConfig');
+        $flat->setAccessible(true);
+
+        $data = $flat->invoke($config, 'app.settings');
+
+        $this->assertEquals('dark', $data['theme']);
+        $this->assertEquals(30, $data['timeout']);
+    }
+
+    public function testJsonSchemaValidationFails(): void
+    {
+        $schema = json_encode([
+            'type' => 'object',
+            'properties' => [
+                'port' => ['type' => 'integer']
+            ],
+            'required' => ['port']
+        ]);
+
+        Config::registerConfigSchema($schema);
+
+        file_put_contents("{$this->configDir}/fake.yaml", "port: notanumber\n");
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageMatches("/Config errors:/");
+
+        new Config($this->configDir, $this->rootDir);
+    }
+
+    public function testRegisterConfigSchemaFile(): void
+    {
+        $schemaPath = "{$this->configDir}/app.schema.json";
+        file_put_contents($schemaPath, json_encode([
+            'type' => 'object',
+            'properties' => [
+                'port' => ['type' => 'integer']
+            ],
+            'required' => ['port']
+        ]));
+
+        Config::registerConfigSchemaFile($schemaPath);
+
+        file_put_contents("{$this->configDir}/app.yaml", <<<YAML
+port: "notanumber"
+YAML);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageMatches("/Config errors:/");
+
+        new Config($this->configDir, $this->rootDir);
+    }
 }

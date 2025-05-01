@@ -28,6 +28,19 @@ final class ProjectLocatorUnitTest extends TestCase
         }
     }
 
+    public function testGetCompilePathReturnsEmpty(): void
+    {
+        $path = ProjectLocator::getCompiledPath();
+        $this->assertNull($path);
+    }
+
+    public function testGetCompilePathReturnsNotEmpty(): void
+    {
+        $_ENV['profile'] = 'PROD';
+        $path = ProjectLocator::getCompiledPath();
+        $this->assertIsString($path);
+    }
+
     public function testGetRootPathReturnsString(): void
     {
         $path = ProjectLocator::getRootPath();
@@ -115,4 +128,6 @@ final class ProjectLocatorUnitTest extends TestCase
         $prop->setAccessible(true);
         $prop->setValue(null, $value);
     }
+
+    
 }

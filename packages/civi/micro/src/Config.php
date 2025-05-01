@@ -52,7 +52,7 @@ class Config
         $this->loadYamlFiles();
         if( file_exists("{$this->configPath}/overrides.json") ) {
             $overrides = json_decode( file_get_contents("{$this->configPath}/overrides.json"), true );
-            $this->configData = [...$this->configData, $overrides];
+            $this->configData = [...$this->configData, ...$overrides];
         }
         if( $errors = $this->findConfigErrors() ) {
             throw new \RuntimeException("Config errors:\n" . implode("\n", $errors));
@@ -239,6 +239,9 @@ class Config
         $data = [];
         $prefix = strtolower($prefix);
         foreach ($this->configData as $key => $value) {
+            if (!is_string($key)) {
+                continue; // Ignorar claves no string
+            }
             if (str_starts_with($key, $prefix . ".")) {
                 $shortKey = substr($key, strlen($prefix) + 1);
                 $data[$shortKey] = $value;
