@@ -2,7 +2,7 @@
 
 use Civi\Security\Guard\AccessGuard;
 use Civi\Security\Guard\AccessRuleInterface;
-use Civi\Security\Engine\PolicyEngine;
+use Civi\Security\Policy\PolicyEngine;
 use DI\ContainerBuilder;
 use DI\Definition\ArrayDefinition;
 use Psr\Log\LoggerInterface;

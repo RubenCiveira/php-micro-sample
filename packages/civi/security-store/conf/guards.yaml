@@ -1,0 +1,10 @@
+rules:
+  "#view":
+    "/roles":
+      default: false
+      allowed:
+        - ifRole: ['ADMIN']
+    "/users":
+      default: false
+      allowed:
+        - ifRole: ['ADMIN']

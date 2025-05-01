@@ -1,0 +1,4 @@
+default: true
+rules:
+  "#view":
+    override: true

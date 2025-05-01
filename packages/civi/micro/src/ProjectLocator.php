@@ -36,6 +36,16 @@ class ProjectLocator
     }
 
     /**
+     * Return a path to store compiled file to pre cache code optimizations based on configurations.
+     * 
+     * @return ?string If the app can store cache code files, the absolute path to the directory. Return null if no valid path was found
+     */
+    public static function getCompiledPath(): ?string
+    {
+        $root = self::getRootPath();
+        return $root ? $root . '/.cache' : null;
+    }
+    /**
      * Searches for the root path of the project.
      *
      * This method attempts to locate the root by:
