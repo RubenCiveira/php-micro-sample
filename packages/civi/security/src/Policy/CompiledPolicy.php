@@ -68,10 +68,10 @@ final class CompiledPolicy
     {
         $key = $this->makeKey($namespace, $resource, $action);
         $in = $action;
-        if( $in === "*" ) {
+        if ($in === "*") {
             $in = $resource;
         }
-        if( $in === "*" ) {
+        if ($in === "*") {
             $in = $namespace;
         }
         $ignore = $in == 'default' || $in == 'allowed' || $in == 'disallowed' || $in == 'override';
@@ -80,36 +80,39 @@ final class CompiledPolicy
             if (isset($rulesData['default'])) {
                 $rules['default'] = (bool)$rulesData['default'];
             }
-            if( isset($this->rules[ $key ]['override']) ) {
+            if (isset($this->rules[ $key ]['override'])) {
                 $allowOverride = !$this->rules[ $key ]['override'];
             }
-            if( isset($this->rules[ $key ]['rules']) ) {
+            if (isset($this->rules[ $key ]['rules'])) {
                 $rules['rules'] = $this->rules[ $key ]['rules'];
             }
             if ($first && isset($rulesData['override'])) {
-                $rules['override'] = $rulesData['override'];
+                $allowOverride = $rules['override'] = $rulesData['override'];
             }
-            if (is_array($rulesData['allowed'] ?? false)) {
-                foreach ($rulesData['allowed'] as $rule) {
-                    $rule['allow'] = true;
-                    $rules['rules'][] = PolicyRule::fromArray($rule);
+            // allowOverrid can be modified for the resource: double check
+            if ($allowOverride) {
+                if (is_array($rulesData['allowed'] ?? false)) {
+                    foreach ($rulesData['allowed'] as $rule) {
+                        $rule['allow'] = true;
+                        $rules['rules'][] = PolicyRule::fromArray($rule);
+                    }
                 }
-            }
-            if (is_array($rulesData['disallowed'] ?? false)) {
-                foreach ($rulesData['disallowed'] as $rule) {
-                    $rule['allow'] = false;
-                    $rules['rules'][] = PolicyRule::fromArray($rule);
+                if (is_array($rulesData['disallowed'] ?? false)) {
+                    foreach ($rulesData['disallowed'] as $rule) {
+                        $rule['allow'] = false;
+                        $rules['rules'][] = PolicyRule::fromArray($rule);
+                    }
                 }
-            }
-            if (isset($rules['default']) || isset($rules['override']) || isset($rules['rules'])) {
-                $this->rules[ $key ] = $rules;
-            }
-            if( is_array($rulesData) && $action === "*" ) {
-                foreach ($rulesData as $childName => $childs) {
-                    $cnamespace = $namespace === "*" ? $childName : $namespace;
-                    $cresource = $namespace !== "*" && $resource === "*" ? $childName : $resource;
-                    $caction = $namespace !== "*" && $resource !== "*" ? $childName : $action;
-                    $this->loadRules($cnamespace, $cresource, $caction, $childs, $first, $allowOverride);
+                if (isset($rules['default']) || isset($rules['override']) || isset($rules['rules'])) {
+                    $this->rules[ $key ] = $rules;
+                }
+                if (is_array($rulesData) && $action === "*") {
+                    foreach ($rulesData as $childName => $childs) {
+                        $cnamespace = $namespace === "*" ? $childName : $namespace;
+                        $cresource = $namespace !== "*" && $resource === "*" ? $childName : $resource;
+                        $caction = $namespace !== "*" && $resource !== "*" ? $childName : $action;
+                        $this->loadRules($cnamespace, $cresource, $caction, $childs, $first, $allowOverride);
+                    }
                 }
             }
         }
