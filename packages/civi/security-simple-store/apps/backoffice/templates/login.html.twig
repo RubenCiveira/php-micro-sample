@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+
+<h1>Make login</h1>
+    {% for url, prov in providers %}
+        <a href="{{ url }}" class="button">{{ prov }}</a>
+    {% endfor %}
+{% endblock %}
