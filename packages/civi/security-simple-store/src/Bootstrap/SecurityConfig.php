@@ -7,6 +7,7 @@ class SecurityConfig
     public readonly string $loginUrl;
 
     public function __construct(
+        public readonly string $root,
         public readonly string $oauthRedirectHost,
         public readonly string $oauthRedirectPath,
         public readonly string $oauthProvidersGoogleClientId,

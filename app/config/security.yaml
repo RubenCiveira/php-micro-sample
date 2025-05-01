@@ -1,5 +1,6 @@
 app:
   security:
+    root: ruben.civeira@gmail.com
     oauth:
       redirect-host: http://localhost/dev/repo-manager/app/public
       redirect-path: /authorization

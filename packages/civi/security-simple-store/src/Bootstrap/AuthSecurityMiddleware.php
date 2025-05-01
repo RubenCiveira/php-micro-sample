@@ -20,6 +20,7 @@ class AuthSecurityMiddleware
     // private readonly string $verifyRoute;
     private readonly string $basePath;
     private readonly string $loginUrl;
+    private readonly string $rootUser;
     private readonly string $redirectUrl;
     private readonly string $redirectPath;
     private readonly array $auths;
@@ -27,6 +28,7 @@ class AuthSecurityMiddleware
     public function __construct(SecurityConfig $config, private readonly UserGateway $users, App $app, array $auths)
     {
         $this->auths = $auths;
+        $this->rootUser = $config->root;
         $this->loginUrl = $config->loginUrl;
         $this->redirectPath = $config->oauthRedirectPath;
         $this->redirectUrl = $config->oauthRedirectHost . $config->oauthRedirectPath;
@@ -108,19 +110,27 @@ class AuthSecurityMiddleware
 
     private function validUser(): ?Authentication
     {
-        $email = $_SESSION['user']['email'] ?? null;
-        $users = $this->users->listUsers(['filter' => ['emailEquals' => $email]], ['rol.name']);
-        if( $users[0] ?? false ) {
-            $user = $users[0];
-            return new Authentication(
+        if( !isset($_SESSION['user']['auth']) ) {
+            $email = $_SESSION['user']['email'] ?? null;
+            if( $email === $this->rootUser ) {
+                $_SESSION['user']['auth'] = new Authentication(
+                    anonimous: false,
+                    name: $email,
+                    roles: ['ADMIN', 'ROOT']
+                );
+            } else {
+                $users = $this->users->listUsers(['filter' => ['emailEquals' => $email]], ['rol.name']);
+                if( $users[0] ?? false ) {
+                    $user = $users[0];
+                    $_SESSION['user']['auth'] = new Authentication(
                         anonimous: false,
                         name: $user['email'],
                         roles: isset($user['rol']['name']) ? [$user['rol']['name']] : []
                     );
-        } else {
-            return null;
+                }
+            }
         }
-        // return $email && in_array($email, $this->users);
+        return $_SESSION['user']['auth'] ?? null;
     }
 
     private function getUsername(): mixed
