@@ -1,7 +1,7 @@
 <?php
 
 use Civi\Micro\AppBuilder;
-use Civi\Repomanager\Bootstrap\Security\SecurityConfig;
+//use Civi\Repomanager\Bootstrap\Security\SecurityConfig;
 use Civi\Micro\Middleware\GzipMiddleware;
 use Civi\Store\Endpoint\Register;
 use Civi\RepomanagerBackoffice\ConfigurationView;
@@ -14,12 +14,7 @@ use Civi\View\ViewBuilder;
 use Civi\View\ViewSection;
 
 return function (App $app) {
-    $container = $app->getContainer();
-    $config = $container->get(SecurityConfig::class);
-    $app->add(GoogleSecurityMiddleware::class);
-
     if( ViewBuilder::registerView(new ViewSection('backoffice', 'home', "/")) ) {
-        $app->get("/" . basename($config->googleRedirectUri), [GoogleSecurityMiddleware::class, 'verifyAuthorization']);
         $app->get("/", [IndexView::class, 'get']);
     }
 

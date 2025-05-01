@@ -1,10 +1,11 @@
 app:
   security:
-    google:
-      client-id: '%env(GOOGLE_CLIENT_ID)%'
-      client-secret: '%env(GOOGLE_SECRET)%'
-      redirect-uri: '%env(GOOGLE_REDIRECT_URL)%'
+    oauth:
+      redirect-host: http://localhost/dev/repo-manager/app/public
+      redirect-path: /authorization
+    oauth-providers:
+      google:
+        client-id: '%env(GOOGLE_CLIENT_ID)%'
+        client-secret: '%env(GOOGLE_SECRET)%'
     authorized-users: '%env(USERS_ALLOWED)%'
-    public-paths:
-      - composer 
 
