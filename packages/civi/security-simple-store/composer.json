@@ -1,5 +1,5 @@
 {
-    "name": "civi/security-store",
+    "name": "civi/security-simple-store",
     "minimum-stability": "dev",
     "prefer-stable": true,
       "autoload": {
@@ -46,6 +46,7 @@
         "civi/store": "*",
         "civi/view": "*",
         "civi/security": "*",
+        "league/oauth2-google": "^4.0",
         "slim/slim": "^4.14",
         "slim/psr7": "^1.7",
         "ramsey/uuid": "^4.7",
