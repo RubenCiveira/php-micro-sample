@@ -250,8 +250,10 @@ class MyFormater extends FormattedError
             $is['constraints'] = $previous->errors;
         } else if ($previous instanceof TypeError) {
             echo "<p>" . $previous->getMessage();
-        } else {
+        } else if( is_object($previous) ) {
             echo "<pre>" . get_class($previous);
+        } else {
+            echo "<pre>"; print_r($previous);
         }
         return $is;
     }
