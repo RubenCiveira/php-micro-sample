@@ -41,6 +41,13 @@ final class CompiledPolicy
         return include $path;
     }
 
+    public static function __set_state(array $data): CompiledPolicy
+    {
+        $c = new CompiledPolicy();
+        $c->rules = $data['rules'];
+        return $c;
+    }
+
     public function dumpToCacheFile(string $path): void
     {
         $content = '<?php return ' . var_export($this, true) . ';';

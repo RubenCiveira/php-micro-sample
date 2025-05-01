@@ -25,10 +25,12 @@ class PolicyEngine implements AccessRuleInterface
     {
         $root = ProjectLocator::getRootPath();
         $dir = ProjectLocator::getCompiledPath();
-        $policy = false && $dir ? CompiledPolicy::loadFromCacheFile($dir . '/compiled_policy.php') : null;
+        $policy = $dir ? CompiledPolicy::loadFromCacheFile($dir . '/compiled_policy.php') : null;
         if( ! $policy ) {
             $policy = CompiledPolicy::fromYamlFiles($root . '/config/guards.yaml', self::$fromLibrary);
-            $policy->dumpToCacheFile($dir . '/compiled_policy.php');
+            if( $dir ) {
+                $policy->dumpToCacheFile($dir . '/compiled_policy.php');
+            }
         }
         $this->policy = $policy;
     }

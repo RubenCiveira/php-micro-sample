@@ -43,7 +43,7 @@ class ProjectLocator
     public static function getCompiledPath(): ?string
     {
         $root = self::getRootPath();
-        return $root ? $root . '/.cache' : null;
+        return $root && ($_ENV['profile']??false) == 'PROD' ? $root . '/.cache' : null;
     }
     /**
      * Searches for the root path of the project.

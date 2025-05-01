@@ -80,7 +80,10 @@ final class PolicyRule
             'ifAnonymous' => $this->ifAnonymous,
         ];
     }
-
+    public static function __set_state(array $data): self
+    {
+        return self::fromArray($data);
+    }
     public static function fromArray(array $data): self
     {
         return new self(
