@@ -24,10 +24,12 @@ class AuthSecurityMiddleware
     private readonly string $redirectUrl;
     private readonly string $redirectPath;
     private readonly array $auths;
+    private readonly array $whiteList;
 
     public function __construct(SecurityConfig $config, private readonly UserGateway $users, App $app, array $auths)
     {
         $this->auths = $auths;
+        $this->whiteList = $config->routesWhiteList;
         $this->rootUser = $config->root;
         $this->loginUrl = $config->loginUrl;
         $this->redirectPath = $config->oauthRedirectPath;
@@ -49,7 +51,7 @@ class AuthSecurityMiddleware
         if (str_starts_with($route, $this->basePath)) {
             $route = substr($route, strlen($this->basePath));
         }
-        $rutasPermitidas = [$login];
+        $rutasPermitidas = [$login, ...$this->whiteList];
         // Si la ruta está permitida, se omite la autenticación
         if (in_array($route, $rutasPermitidas) || str_starts_with("/{$route}", "{$this->redirectPath}/")) {
             return $handler->handle($request);

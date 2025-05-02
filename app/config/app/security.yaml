@@ -1,6 +1,9 @@
 app:
   security:
     root: ruben.civeira@gmail.com
+    routes:
+      white-list:
+        - /composer/repository
     oauth:
       redirect-host: http://localhost/dev/repo-manager/app/public
       redirect-path: /authorization

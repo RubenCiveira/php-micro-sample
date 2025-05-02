@@ -12,6 +12,7 @@ class SecurityConfig
         public readonly string $oauthRedirectPath,
         public readonly string $oauthProvidersGoogleClientId,
         public readonly string $oauthProvidersGoogleClientSecret,
+        public readonly array $routesWhiteList = []
     ) {
         $this->loginUrl = '/login';
     }
