@@ -210,22 +210,21 @@ class Config
     }
 
     /**
-     * Resolves environment variable placeholders inside configuration values.
+     * Reemplaza referencias %env(VAR_NAME)% dentro de cualquier string.
      *
-     * Supports format: `%env(VAR_NAME)%`.
-     *
-     * @param mixed $value The configuration value to resolve.
-     * @return mixed The resolved value, or the original if no substitution is needed.
+     * @param mixed $value Valor a procesar
+     * @return mixed Valor con variables de entorno reemplazadas
      */
     private function resolveEnvVar(mixed $value): mixed
     {
-        if (is_string($value) && preg_match('/^%env\((.+?)\)%$/', $value, $matches)) {
-            $varName = $matches[1] ?? null;
-            if (is_string($varName) && $varName !== '') {
-                return $_ENV[$varName] ?? $_SERVER[$varName] ?? null;
-            }
+        if (!is_string($value)) {
+            return $value;
         }
-        return $value;
+
+        return preg_replace_callback('/%env\((.+?)\)%/', function ($matches) {
+            $varName = $matches[1] ?? '';
+            return $_ENV[$varName] ?? $_SERVER[$varName] ?? '';
+        }, $value);
     }
 
     /**
