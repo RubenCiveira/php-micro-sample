@@ -255,6 +255,15 @@ PHP);
         if (file_exists($tempDir . '/.env.dev')) {
             unlink($tempDir . '/.env.dev');
         }
+        if (file_exists($tempDir . '/var/buckets.json') ) {
+            unlink($tempDir . '/var/buckets.json');
+        }
+        if (file_exists($tempDir . '/var/metrics.json') ) {
+            unlink($tempDir . '/var/metrics.json');
+        }
+        if (is_dir($tempDir . '/var') ) {
+            rmdir($tempDir . '/var');
+        }
         rmdir($tempDir);
     }
 

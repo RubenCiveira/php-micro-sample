@@ -9,9 +9,9 @@ use Civi\Micro\Management\HealthProviderInterface;
 use Civi\Micro\Management\ManagementInterface;
 use Civi\Micro\Management\MetricsManagement;
 use Civi\Micro\Middleware\HttpCompressionMiddleware;
+use Civi\Micro\Middleware\RateLimitMiddleware;
+use Civi\Micro\Rate\RateConfig;
 use Civi\Micro\Telemetry\Helper\SlimMetricMiddleware;
-use Civi\Micro\Telemetry\LoggerAwareInterface;
-use Civi\Micro\Telemetry\MetricAwareInterface;
 use Civi\Micro\Telemetry\TelemetryConfig;
 use Civi\Micro\Telemetry\TelemetryFactory;
 use DI\Container;
@@ -22,6 +22,7 @@ use Slim\App;
 use Slim\Factory\AppFactory;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
+use Symfony\Component\RateLimiter\Storage\StorageInterface;
 
 /**
  * @api
@@ -67,6 +68,7 @@ class AppBuilder
         $app->addBodyParsingMiddleware();
         $app->add(HttpCompressionMiddleware::class);
         $app->add(SlimMetricMiddleware::class);
+        $app->add(RateLimitMiddleware::class);
         // $app->add( CorsMiddeleware::class );
         $app->addRoutingMiddleware();
 
@@ -97,19 +99,23 @@ class AppBuilder
             TelemetryConfig::class => \DI\factory(function (Config $config) {
                 return $config->load('app.telemetry', TelemetryConfig::class);
             }),
+            RateConfig::class => \DI\factory(function (Config $config) {
+                return $config->load('app.rate-limit', RateConfig::class);
+            }),
             LoggerInterface::class => \DI\factory(function (TelemetryFactory $factory) {
                 return $factory->logger();
             }),
+            StorageInterface::class => \DI\get(\Civi\Micro\Rate\FileStorage::class),
             HealthProviderInterface::class => [],
             ManagementInterface::class => [\DI\get(HealthManagement::class)],
             HealthManagement::class => \DI\factory(function (Container $container) {
                 $interfaces = $container->get(HealthProviderInterface::class);
                 return new HealthManagement($interfaces ?? []);
             }),
-            MetricAwareInterface::class => \DI\autowire()
-                 ->method('setMetricRegistry', \DI\get(CollectorRegistry::class)),
-            LoggerAwareInterface::class => \DI\autowire()
-                ->method('setLogger', \DI\get(LoggerInterface::class)),
+            //MetricAwareInterface::class => \DI\autowire()
+            //     ->method('setMetricRegistry', \DI\get(CollectorRegistry::class)),
+            //LoggerAwareInterface::class => \DI\autowire()
+            //    ->method('setLogger', \DI\get(LoggerInterface::class)),
             // TracerAwareInterface::class => \DI\autowire()
             //     ->method('setTracer', \DI\get(Logger::class)),
         ]);
