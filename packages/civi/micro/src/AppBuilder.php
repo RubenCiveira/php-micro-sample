@@ -16,12 +16,19 @@ use Civi\Micro\Telemetry\TelemetryConfig;
 use Civi\Micro\Telemetry\TelemetryFactory;
 use DI\Container;
 use DI\ContainerBuilder;
+use Nimbly\Capsule\Factory\RequestFactory;
+use Nimbly\Capsule\Factory\StreamFactory;
 use Prometheus\CollectorRegistry;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Slim\App;
 use Slim\Factory\AppFactory;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\StreamFactoryInterface;
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpClient\HttplugClient;
 use Symfony\Component\RateLimiter\Storage\StorageInterface;
 
 /**
@@ -104,6 +111,19 @@ class AppBuilder
             }),
             LoggerInterface::class => \DI\factory(function (TelemetryFactory $factory) {
                 return $factory->logger();
+            }),
+            ClientInterface::class => \DI\factory(function () {
+                return new HttplugClient(HttpClient::create([
+                    'max_duration' => 10, // Establece un tiempo máximo para la solicitud
+                    'timeout' => 10.0,    // Timeout para la espera de respuesta del servidor
+                    'http_version' => '1.0', // Prueba especificar HTTP/1.1 explícitamente
+                ]));
+            }),
+            RequestFactoryInterface::class => \DI\factory(function () {
+                return new RequestFactory();
+            }),
+            StreamFactoryInterface::class => \DI\factory(function () {
+                return new StreamFactory();
             }),
             StorageInterface::class => \DI\get(\Civi\Micro\Rate\FileStorage::class),
             HealthProviderInterface::class => [],

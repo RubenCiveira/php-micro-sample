@@ -197,7 +197,11 @@ class GraphQLProcessor
                     $meta,
                     $filter
                 );
-                if( count($response) > 0 ) {
+                if( count($response) == 1 ) {
+                    if( $data[$meta->idName] !== $response[0][ $meta->idName ] ) {
+                        throw new NotUniqueException("There is already one " . implode(",", $label));    
+                    }
+                } else if( count($response) > 1 ) {
                     throw new NotUniqueException("There is already one " . implode(",", $label));
                 }
             }

@@ -18,6 +18,8 @@
   ],
   "require": {
     "php": "^8.4",
+    "psr/http-client": "^1.0",
+    "psr/log": "^3.0",
     "slim/slim": "^4.14",
     "slim/psr7": "^1.7",
     "vlucas/phpdotenv": "^5.6",
@@ -27,10 +29,11 @@
     "open-telemetry/api": "^1.2",
     "promphp/prometheus_client_php": "^2.12",
     "justinrainbow/json-schema": "^6.4",
-    "psr/log": "^3.0",
     "open-telemetry/opentelemetry-logger-monolog": "^1.1",
     "open-telemetry/sdk": "^1.2",
     "symfony/rate-limiter": "^7.1",
+    "symfony/http-client": "^7.1",
+    "nimbly/capsule": "^2.0",
     "jimdo/prometheus_client_php": "*"
   },
   "require-dev": {

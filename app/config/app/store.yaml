@@ -1,0 +1,5 @@
+app:
+  store:
+    backup:
+      token: '%env(GIT_HUB_TOKEN)%'
+      remote: 'https://github.com/RubenCiveira/repomanager-json-db-backup'
