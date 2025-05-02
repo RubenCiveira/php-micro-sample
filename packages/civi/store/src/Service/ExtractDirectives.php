@@ -2,13 +2,8 @@
 
 namespace Civi\Store\Service;
 
-use GraphQL\Type\Definition\NamedType;
-use GraphQL\Type\Schema;
-use GraphQL\Utils\BuildSchema;
-
 class ExtractDirectives
 {
-
     public static function fromNode($node): array {
         $directives = [];
         $ast = $node->astNode;

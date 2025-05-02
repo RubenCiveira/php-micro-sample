@@ -6,10 +6,12 @@ directive @mutation(
   create: Boolean = true, update: Boolean = true, delete: Boolean = true, extra: [String!] = []
 ) on OBJECT
 
+directive @unique on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
 type User
     @mutation {
   id: ID!
-  email: String!
+  email: String! @unique
   rol: Rol
   until: String @format(type: "date-time")
 }

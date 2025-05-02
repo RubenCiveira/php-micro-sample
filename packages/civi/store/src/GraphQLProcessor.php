@@ -41,20 +41,25 @@ class GraphQLProcessor
     {
         $namepace = $this->namespace;
         $schema = $this->schemas->schema($namepace);
+        $extractor = new ExtractMutation();
+        $mutations = $extractor->fromSchema($schema);
+        
         $rootQuery = $schema->getQueryType();
 
-        $schemaMeta = new StoreSchema("id", ["name"]);
-
+        
         $resolvers = [];
         $names = $rootQuery->getFieldNames();
         foreach ($names as $name) {
-            $resolvers[$name] = function ($root, array $args, $context, ResolveInfo $resolveInfo) use ($namepace, $schema, $name, $rootQuery, $schemaMeta) {
-                if (isset($args['id'])) {
-                    $args['filter'] = ['idEquals' => $args['id']];
-                    unset($args['id']);
-                }
+            $resolvers[$name] = function ($root, array $args, $context, $resolveInfo) use ($namepace, $schema, $name, $rootQuery) {
                 $type = $rootQuery->getField($name)->getType();
                 $theType = Type::getNamedType($type);
+                $schemaMeta = StoreSchema::fromType($theType);
+
+                $idName = $schemaMeta->idName;
+                if (isset($args[$idName])) {
+                    $args['filter'] = ["{$idName}Equals" => $args[$idName]];
+                    unset($args[$idName]);
+                }
                 $filter = new DataQueryParam($schema, $theType->toString(), $args);
                 $response = $this->datas->fetch(
                     $namepace,
@@ -68,10 +73,9 @@ class GraphQLProcessor
                 return ($type instanceof ListOfType) ? $response : $response[0];
             };
         }
-        $extractor = new ExtractMutation();
-        $mutations = $extractor->fromSchema($schema);
         foreach ($mutations as $theType => $hisMutations) {
             foreach ($hisMutations as $mutation) {
+                $schemaMeta = StoreSchema::fromTypedName($theType, $schema);
                 $resolvers[lcfirst($theType) . ucfirst($mutation['name'])] = function ($root, array $args, $context, ResolveInfo $resolveInfo) use ($namepace, $schema, $mutation, $theType, $schemaMeta) {
                     $data = [];
                     // Suposition, first argument ID, segund argument is a data array
@@ -174,6 +178,29 @@ class GraphQLProcessor
     private function validateReferences(string $namespace, Schema $schema, StoreSchema $meta, NamedType|Type|null $type, $data)
     {
         if ($type instanceof ObjectType) {
+            foreach ($meta->uniqueFields as $uniques) {
+                $label = [];
+                $params = [];
+                if( is_string($uniques) ) {
+                    $label[] = $uniques;
+                    $params[ $uniques . 'Equals' ] = $data[$uniques];
+                } else if( is_array($uniques)) {
+                    $label = $uniques;
+                    foreach($uniques as $unique) {
+                        $params[ $unique . 'Equals' ] = $data[$unique];
+                    }
+                }
+                $filter = new DataQueryParam($schema, $type->toString(), ['filter' => $params]);
+                $response = $this->datas->fetch(
+                    $namespace,
+                    $type->toString(),
+                    $meta,
+                    $filter
+                );
+                if( count($response) > 0 ) {
+                    throw new NotUniqueException("There is already one " . implode(",", $label));
+                }
+            }
             foreach ($type->getFields() as $field) {
                 $baseType = Type::getNamedType($field->getType());
                 if ($data[$field->name] && is_a($baseType, ObjectType::class)) {
@@ -206,15 +233,7 @@ class GraphQLProcessor
             $this->pending[$on] = [];
         }
         $type = $schema->getType($on);
-        $id = 'id';
-        if ($type instanceof ObjectType) {
-            foreach ($type->getFields() as $fieldName => $fieldDef) {
-                $baseType = Type::getNamedType($fieldDef->getType());
-                if ($baseType->name === 'ID') {
-                    $id = $fieldName;
-                }
-            }
-        }
+        $id = $meta->idName;
         $theId = is_array($objectValue) ? $objectValue[$id] : $objectValue;
         if( $theId ) {
             if (!in_array($theId, $this->pending[$on])) {
